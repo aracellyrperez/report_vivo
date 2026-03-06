@@ -326,6 +326,40 @@ input.error, select.error { border-color: var(--accent) !important; }
 /* Placeholder */
 #placeholder { text-align: center; padding: 60px 20px; color: var(--muted); }
 
+/* ── CUENTA GRUPOS ── */
+.cuenta-grupo { margin-bottom: 20px; }
+.cuenta-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+}
+.cuenta-header:hover { background: #162a8a; }
+.cuenta-badge {
+  background: #1e46e6;
+  color: #fff;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+.cuenta-nombre { font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 15px; flex: 1; }
+.cuenta-meta { font-size: 12px; color: rgba(255,255,255,0.45); }
+.cuenta-chevron { font-size: 10px; color: rgba(255,255,255,0.45); transition: transform 0.25s; flex-shrink: 0; }
+.cuenta-body { display: none; }
+.cuenta-body.open { display: block; }
+.pos-list-inner { display: flex; flex-direction: column; gap: 8px; padding-left: 14px; border-left: 3px solid var(--accent); margin-bottom: 4px; }
+
 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 768px) {
   .hero { padding: 32px 20px; }
@@ -456,20 +490,24 @@ input.error, select.error { border-color: var(--accent) !important; }
 <script>
 // ── MODELOS REALES ──
 const MODELOS = [
-  { id: 'm16', nombre: 'VIVO X300 PRO 512GB 5G',   lineal: 'New' },
-  { id: 'm14', nombre: 'VIVO V60 LITE 256GB 5G',   lineal: 'New' },
-  { id: 'm10', nombre: 'VIVO V50 512GB 5G',        lineal: 'New' },
-  { id: 'm12', nombre: 'VIVO V50 LITE 256GB 5G',   lineal: 'New' },
+  { id: 'm01', nombre: 'VIVO V30SE 256GB 5G',     lineal: 'EOL' },
+  { id: 'm02', nombre: 'VIVO Y27 128GB 4G',        lineal: 'EOL' },
+  { id: 'm03', nombre: 'VIVO Y28S 256GB 5G',       lineal: 'EOL' },
+  { id: 'm04', nombre: 'VIVO Y36 256GB 4G',        lineal: 'EOL' },
+  { id: 'm05', nombre: 'VIVO Y03 128GB 4G',        lineal: 'EOL' },
+  { id: 'm06', nombre: 'VIVO Y18 128GB',           lineal: 'EOL' },
   { id: 'm07', nombre: 'VIVO V40SE 256GB 5G',      lineal: 'EOL' },
-  { id: 'm01', nombre: 'VIVO V21 128GB 5G',        lineal: 'EOL' },
+  { id: 'm08', nombre: 'VIVO Y39 256GB 5G',        lineal: 'New' },
+  { id: 'm09', nombre: 'VIVO Y19S 256GB',          lineal: 'New' },
+  { id: 'm10', nombre: 'VIVO V50 512GB 5G',        lineal: 'New' },
+  { id: 'm11', nombre: 'VIVO Y04 128GB 4G',        lineal: 'New' },
+  { id: 'm12', nombre: 'VIVO V50 LITE 256GB 5G',   lineal: 'New' },
+  { id: 'm13', nombre: 'VIVO Y29S 256GB 5G',       lineal: 'New' },
+  { id: 'm14', nombre: 'VIVO V60 LITE 256GB 5G',   lineal: 'New' },
+  { id: 'm15', nombre: 'VIVO Y21D 256GB 4G',       lineal: 'New' },
+  { id: 'm16', nombre: 'VIVO X300 PRO 512GB 5G',   lineal: 'New' },
   { id: 'm17', nombre: 'VIVO Y31 512GB 5G',        lineal: 'New' },
   { id: 'm18', nombre: 'VIVO Y31 256GB 5G',        lineal: 'New' },
-  { id: 'm08', nombre: 'VIVO Y39 256GB 5G',        lineal: 'New' },
-  { id: 'm02', nombre: 'VIVO Y35 128GB 4G',        lineal: 'EOL' },
-  { id: 'm15', nombre: 'VIVO Y21D 256GB 4G',       lineal: 'New' },
-  { id: 'm13', nombre: 'VIVO Y29S 256GB 5G',       lineal: 'New' }, 
-  { id: 'm09', nombre: 'VIVO Y19S 256GB',          lineal: 'New' },
-  { id: 'm11', nombre: 'VIVO Y04 128GB 4G',        lineal: 'New' },  
 ];
 
 // ── POS POR ZONA ──
@@ -501,23 +539,87 @@ let currentData = {};
 document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
+// Nombres completos de cuentas
+const CUENTA_NOMBRES = {
+  'CL': 'Claro', 'EN': 'Entel', 'ES': 'Estilos',
+  'HI': 'Hiraoka', 'OE': 'Oechsle', 'PL': 'Plaza Vea',
+  'RI': 'Ripley', 'TE': 'Tec'
+};
+
+function getCuenta(pos) {
+  const parts = pos.split('_');
+  return parts[0] || 'OTRO';
+}
+
 function loadZona() {
   const zona = document.getElementById('zona').value;
   document.getElementById('pos-section').style.display = zona ? 'block' : 'none';
   document.getElementById('placeholder').style.display = zona ? 'none' : 'block';
   if (!zona) return;
+
   currentData = {};
   const list = document.getElementById('pos-list');
   list.innerHTML = '';
+
   const posList = ZONAS[zona];
+
+  // Asignar índice global a cada POS e inicializar currentData
   posList.forEach((pos, idx) => {
     currentData[idx] = {};
     MODELOS.forEach(m => { currentData[idx][m.id] = { so: '', stock: '' }; });
-    const card = buildCard(pos, idx);
-    card.style.animationDelay = `${Math.min(idx * 0.03, 0.5)}s`;
-    list.appendChild(card);
   });
+
+  // Agrupar por cuenta
+  const cuentas = {};
+  posList.forEach((pos, idx) => {
+    const cuenta = getCuenta(pos);
+    if (!cuentas[cuenta]) cuentas[cuenta] = [];
+    cuentas[cuenta].push({ pos, idx });
+  });
+
+  // Construir UI por cuenta
+  Object.keys(cuentas).sort().forEach(cuenta => {
+    const nombreCuenta = CUENTA_NOMBRES[cuenta] || cuenta;
+    const grupo = document.createElement('div');
+    grupo.className = 'cuenta-grupo';
+    grupo.id = `cuenta-${cuenta}`;
+
+    const header = document.createElement('div');
+    header.className = 'cuenta-header';
+    header.innerHTML = `
+      <div class="cuenta-badge">${cuenta}</div>
+      <div class="cuenta-nombre">${nombreCuenta}</div>
+      <div class="cuenta-meta" id="cmeta-${cuenta}"><span class="cuenta-pos-count">${cuentas[cuenta].length} POS</span></div>
+      <div class="cuenta-chevron" id="cchev-${cuenta}">▼</div>`;
+    header.onclick = () => toggleCuenta(cuenta);
+
+    const body = document.createElement('div');
+    body.className = 'cuenta-body open';
+    body.id = `cbody-${cuenta}`;
+
+    const posCont = document.createElement('div');
+    posCont.className = 'pos-list-inner';
+
+    cuentas[cuenta].forEach(({ pos, idx }, ci) => {
+      const card = buildCard(pos, idx);
+      card.style.animationDelay = `${ci * 0.03}s`;
+      posCont.appendChild(card);
+    });
+
+    body.appendChild(posCont);
+    grupo.appendChild(header);
+    grupo.appendChild(body);
+    list.appendChild(grupo);
+  });
+
   updateProgress(); updateResumen();
+}
+
+function toggleCuenta(cuenta) {
+  const body = document.getElementById(`cbody-${cuenta}`);
+  const chev = document.getElementById(`cchev-${cuenta}`);
+  body.classList.toggle('open');
+  chev.style.transform = body.classList.contains('open') ? '' : 'rotate(-90deg)';
 }
 
 function buildCard(posName, idx) {
@@ -681,13 +783,22 @@ function submitForm() {
   const posList = ZONAS[zona];
   const rows = [];
 
+  // Fecha y hora de envío — Perú UTC-5
+  const ahora = new Date();
+  const horaPeru = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000) - (5 * 3600000));
+  const fechaEnvio = `${horaPeru.getUTCFullYear()}-${String(horaPeru.getUTCMonth()+1).padStart(2,'0')}-${String(horaPeru.getUTCDate()).padStart(2,'0')}`;
+  const horaEnvio = `${String(horaPeru.getUTCHours()).padStart(2,'0')}:${String(horaPeru.getUTCMinutes()).padStart(2,'0')}:${String(horaPeru.getUTCSeconds()).padStart(2,'0')}`;
+  const fechaHoraEnvio = `${fechaEnvio} ${horaEnvio}`;
+
   posList.forEach((pos, i) => {
     const nota = document.getElementById(`nota-${i}`)?.value || '';
+    const cuenta = getCuenta(pos);
+    const cuentaNombre = CUENTA_NOMBRES[cuenta] || cuenta;
     MODELOS.forEach(m => {
       const so = parseInt(currentData[i][m.id].so) || 0;
       const stock = parseInt(currentData[i][m.id].stock) || 0;
       if (so || stock) {
-        rows.push({ fecha, corte, zona, pos, modelo: m.nombre, lineal: m.lineal, so, stock, nota });
+        rows.push({ fecha, fechaHoraEnvio, corte, zona, cuenta: cuentaNombre, pos, modelo: m.nombre, lineal: m.lineal, so, stock, nota });
       }
     });
   });
@@ -803,6 +914,8 @@ function clearAll() {
       if (stEl) stEl.value = '';
     });
     updateTotals(i); updateStatus(i);
+    const notaEl = document.getElementById(`nota-${i}`);
+    if (notaEl) notaEl.value = '';
   }
   updateProgress(); updateResumen();
 }
