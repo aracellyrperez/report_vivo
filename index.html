@@ -98,7 +98,7 @@ body {
 .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .id-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -392,10 +392,6 @@ input.error, select.error { border-color: var(--accent) !important; }
         <option>Corte 3</option>
       </select>
     </div>
-    <div class="field">
-      <label>Observación general</label>
-      <input type="text" id="obs-global" placeholder="Opcional...">
-    </div>
   </div>
 
   <div id="pos-section" style="display:none">
@@ -579,7 +575,7 @@ function buildCard(posName, idx) {
         </tbody>
       </table>
       <div class="notas-row">
-        <span style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap">Nota:</span>
+        <span style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap">Observación:</span>
         <input type="text" placeholder="Observación para este POS (opcional)..." id="nota-${idx}">
       </div>
     </div>`;
@@ -690,11 +686,12 @@ function submitForm() {
   const rows = [];
 
   posList.forEach((pos, i) => {
+    const nota = document.getElementById(`nota-${i}`)?.value || '';
     MODELOS.forEach(m => {
       const so = parseInt(currentData[i][m.id].so) || 0;
       const stock = parseInt(currentData[i][m.id].stock) || 0;
       if (so || stock) {
-        rows.push({ fecha, corte, zona, pos, modelo: m.nombre, lineal: m.lineal, so, stock });
+        rows.push({ fecha, corte, zona, pos, modelo: m.nombre, lineal: m.lineal, so, stock, nota });
       }
     });
   });
