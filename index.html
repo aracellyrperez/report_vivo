@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte de Ventas VIVO</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6ff;
+  --bg2: #eaeefc;
+  --surface: #ffffff;
+  --border: #d4daff;
+  --ink: #0d1540;
+  --ink2: #2d3a6e;
+  --muted: #7a85b8;
+  --accent: #1e46e6;
+  --accent2: #4d6ef0;
+  --so: #1a6b3a;
+  --so-bg: #e8f5ed;
+  --so-border: #a8d5b5;
+  --stock: #1e46e6;
+  --stock-bg: #eaeefc;
+  --stock-border: #a8baff;
+  --eol: #7a3a00;
+  --eol-bg: #fff4e8;
+  --new: #0d5c2e;
+  --new-bg: #e6f9ee;
+  --success: #1a6b3a;
+  --warn: #b87800;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Exo 2', sans-serif;
+  min-height: 100vh;
+  padding: 0 0 80px;
+}
+.topbar {
+  background: #000000;
+  color: #fff;
+  padding: 10px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-brand {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.topbar-brand .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.6); }
+.topbar-date { font-size: 12px; color: rgba(255,255,255,0.4); }
+.hero {
+  background: #000000;
+  color: #fff;
+  padding: 44px 40px 50px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(30,70,230,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero h1 {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 800;
+  font-size: clamp(26px, 4vw, 42px);
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.hero h1 span { color: #1e46e6; }
+.hero p { color: rgba(255,255,255,0.45); font-size: 14px; }
+.main { max-width: 1140px; margin: 0 auto; padding: 32px 24px 0; }
+.section-label {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.id-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+.field { display: flex; flex-direction: column; gap: 7px; }
+label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.req { color: var(--accent); }
+input[type="text"], input[type="date"], select, textarea {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 13px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200,65,26,0.1);
+}
+input.error, select.error { border-color: var(--accent) !important; }
+
+/* Legend */
+.legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.legend { display: flex; gap: 18px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--ink2); }
+.ldot { width: 10px; height: 10px; border-radius: 3px; }
+.ldot-so { background: var(--so); }
+.ldot-stock { background: var(--stock); }
+.ldot-eol { background: var(--eol); }
+.ldot-new { background: var(--new); }
+
+/* Progress */
+.progress-wrap { margin-bottom: 20px; }
+.progress-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.progress-track { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s ease; }
+
+/* POS list */
+.pos-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+.pos-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  animation: slideIn 0.35s ease both;
+}
+.pos-card.complete { border-color: #a8d5b5; }
+.pos-card.partial { border-color: #f5d080; }
+.pos-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.pos-header:hover { background: var(--bg); }
+.pos-num {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: #1e46e6;
+  color: #fff;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.pos-card.complete .pos-num { background: var(--so); }
+.pos-card.partial .pos-num { background: var(--warn); }
+.pos-name { font-family: 'Exo 2', sans-serif; font-weight: 600; font-size: 13px; flex: 1; }
+.pos-status { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; letter-spacing: 0.03em; white-space: nowrap; }
+.status-pending { background: var(--bg2); color: var(--muted); }
+.status-partial  { background: #fef3d0; color: var(--warn); }
+.status-done     { background: var(--so-bg); color: var(--so); }
+.pos-chevron { font-size: 9px; color: var(--muted); transition: transform 0.25s; flex-shrink: 0; }
+.pos-card.open .pos-chevron { transform: rotate(180deg); }
+.pos-body { display: none; border-top: 1px solid var(--border); }
+.pos-card.open .pos-body { display: block; }
+
+/* Models table */
+.models-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.models-table th {
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--bg2);
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.models-table th.col-so { color: var(--so); background: var(--so-bg); border-left: 1px solid var(--so-border); }
+.models-table th.col-stock { color: var(--stock); background: var(--stock-bg); border-left: 1px solid var(--stock-border); }
+.models-table td { padding: 8px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.models-table tr:last-child td { border-bottom: none; }
+.models-table tbody tr:hover td { background: var(--bg); }
+.model-name { font-weight: 500; color: var(--ink); }
+.model-lineal {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.tag-eol { background: var(--eol-bg); color: var(--eol); }
+.tag-new { background: var(--new-bg); color: var(--new); }
+.cell-so { border-left: 1px solid var(--so-border); }
+.cell-stock { border-left: 1px solid var(--stock-border); }
+.num-input {
+  width: 90px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  color: var(--ink);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 10px;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.num-input:focus { border-color: var(--accent); background: #fff; }
+.num-input.so-input:focus { border-color: var(--so); box-shadow: 0 0 0 3px rgba(26,107,58,0.1); }
+.num-input.stock-input:focus { border-color: var(--stock); box-shadow: 0 0 0 3px rgba(26,74,107,0.1); }
+.num-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.totals-row td { background: var(--bg2) !important; font-weight: 700; font-size: 11px; color: var(--muted); padding: 7px 14px; letter-spacing: 0.05em; }
+.totals-row td.tot-so { color: var(--so); background: var(--so-bg) !important; border-left: 1px solid var(--so-border); }
+.totals-row td.tot-stock { color: var(--stock); background: var(--stock-bg) !important; border-left: 1px solid var(--stock-border); }
+.notas-row { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.notas-row input[type="text"] { flex: 1; font-size: 13px; padding: 7px 11px; }
+
+/* Resumen */
+.resumen {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 32px;
+}
+.resumen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-top: 14px; }
+.resumen-card { background: var(--bg); border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
+.resumen-card .val { font-family: 'Exo 2', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+.resumen-card .lbl { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.resumen-card.so-card .val { color: var(--so); }
+.resumen-card.stock-card .val { color: var(--stock); }
+
+/* Submit */
+.submit-bar { display: flex; gap: 12px; }
+.btn-submit {
+  flex: 1;
+  padding: 15px 28px;
+  background: #1e46e6;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all 0.2s;
+}
+.btn-submit:hover { background: #1535c0; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,70,230,0.35); }
+.btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-clear {
+  padding: 15px 18px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-clear:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Success */
+.success-screen {
+  display: none;
+  max-width: 520px;
+  margin: 60px auto;
+  padding: 44px 36px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  text-align: center;
+  animation: slideIn 0.4s ease both;
+}
+.success-screen.show { display: block; }
+.success-icon { width: 68px; height: 68px; border-radius: 50%; background: var(--so-bg); border: 2px solid var(--so-border); display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 20px; }
+.success-screen h2 { font-family: 'Exo 2', sans-serif; font-weight: 800; font-size: 24px; margin-bottom: 8px; }
+.success-screen p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+.success-summary { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin: 20px 0; text-align: left; }
+.sum-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.sum-row:last-child { border-bottom: none; }
+.sum-key { color: var(--muted); }
+.sum-val { font-weight: 600; }
+.btn-new { padding: 11px 26px; background: #1e46e6; color: #fff; border: none; border-radius: 8px; font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: background 0.2s; }
+.btn-new:hover { background: #1535c0; }
+
+/* Placeholder */
+#placeholder { text-align: center; padding: 60px 20px; color: var(--muted); }
+
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 768px) {
+  .hero { padding: 32px 20px; }
+  .main { padding: 20px 14px 0; }
+  .id-grid { grid-template-columns: 1fr 1fr; }
+  .topbar { padding: 12px 16px; }
+  .num-input { width: 76px; font-size: 13px; }
+  .models-table th, .models-table td { padding: 7px 10px; }
+}
+@media (max-width: 480px) { .id-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand"><div class="dot"></div> VIVO — Portal de Reportes</div>
+  <div class="topbar-date" id="topbar-date"></div>
+</div>
+
+<div class="hero">
+  <h1>Portal de reportes<br><span>Ventas &amp; Stock</span></h1>
+  <p>Seleccioná tu zona, completá los datos por POS y enviá el reporte.</p>
+</div>
+
+<div class="main" id="main-form">
+
+  <div class="section-label">01 — Identificación</div>
+  <div class="id-grid">
+    <div class="field">
+      <label>Zona / Supervisor <span class="req">*</span></label>
+      <select id="zona" onchange="loadZona()">
+        <option value="">— Seleccioná tu zona —</option>
+        <option>Center 1</option>
+        <option>Center 2</option>
+        <option>Center 3</option>
+        <option>Lima 1</option>
+        <option>Lima 2</option>
+        <option>Lima 3</option>
+        <option>Lima 4</option>
+        <option>Lima 5</option>
+        <option>Lima 6</option>
+        <option>Lima 7</option>
+        <option>Lima 8</option>
+        <option>North 1</option>
+        <option>North 2</option>
+        <option>North 3</option>
+        <option>North 4</option>
+        <option>North 5</option>
+        <option>North 6</option>
+        <option>South 1</option>
+        <option>South 2</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Fecha <span class="req">*</span></label>
+      <input type="date" id="fecha">
+    </div>
+    <div class="field">
+      <label>Corte <span class="req">*</span></label>
+      <select id="corte">
+        <option value="">— Seleccioná —</option>
+        <option>Corte 1</option>
+        <option>Corte 2</option>
+        <option>Corte 3</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Observación general</label>
+      <input type="text" id="obs-global" placeholder="Opcional...">
+    </div>
+  </div>
+
+  <div id="pos-section" style="display:none">
+    <div class="legend-row">
+      <div class="section-label" style="margin-bottom:0;flex:1">02 — Puntos de venta</div>
+      <div class="legend">
+        <div class="legend-item"><div class="ldot ldot-so"></div> SO (Sell-Out)</div>
+        <div class="legend-item"><div class="ldot ldot-stock"></div> Stock depósito</div>
+        <div class="legend-item"><div class="ldot ldot-new" style="border-radius:2px"></div> New</div>
+        <div class="legend-item"><div class="ldot ldot-eol" style="border-radius:2px"></div> EOL</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span id="prog-label">0 de 0 POS con datos</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="pos-list" id="pos-list"></div>
+
+    <div class="section-label">03 — Resumen</div>
+    <div class="resumen">
+      <div class="resumen-grid">
+        <div class="resumen-card">
+          <div class="val" id="res-pos">0</div>
+          <div class="lbl">POS con datos</div>
+        </div>
+        <div class="resumen-card so-card">
+          <div class="val" id="res-so">0</div>
+          <div class="lbl">Total SO</div>
+        </div>
+        <div class="resumen-card stock-card">
+          <div class="val" id="res-stock">0</div>
+          <div class="lbl">Total Stock</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-bar">
+      <button class="btn-clear" onclick="clearAll()">✕ Limpiar</button>
+      <button class="btn-submit" id="btn-submit" onclick="submitForm()">Enviar reporte →</button>
+    </div>
+  </div>
+
+  <div id="placeholder">
+    <div style="font-size:38px;margin-bottom:14px">📍</div>
+    <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:16px;color:var(--ink2);margin-bottom:6px">Seleccioná tu zona para comenzar</div>
+    <div style="font-size:13px">Los POS aparecerán automáticamente según tu zona</div>
+  </div>
+
+</div>
+
+<div class="success-screen" id="success-screen">
+  <div class="success-icon">✅</div>
+  <h2>¡Reporte enviado!</h2>
+  <p>Los datos fueron registrados. El equipo de análisis los procesará en breve.</p>
+  <div class="success-summary" id="success-summary"></div>
+  <button class="btn-new" onclick="resetAll()">Cargar otro reporte</button>
+</div>
+
+<script>
+// ── MODELOS REALES ──
+const MODELOS = [
+  { id: 'm01', nombre: 'VIVO V30SE 256GB 5G',     lineal: 'EOL' },
+  { id: 'm02', nombre: 'VIVO Y27 128GB 4G',        lineal: 'EOL' },
+  { id: 'm03', nombre: 'VIVO Y28S 256GB 5G',       lineal: 'EOL' },
+  { id: 'm04', nombre: 'VIVO Y36 256GB 4G',        lineal: 'EOL' },
+  { id: 'm05', nombre: 'VIVO Y03 128GB 4G',        lineal: 'EOL' },
+  { id: 'm06', nombre: 'VIVO Y18 128GB',           lineal: 'EOL' },
+  { id: 'm07', nombre: 'VIVO V40SE 256GB 5G',      lineal: 'EOL' },
+  { id: 'm08', nombre: 'VIVO Y39 256GB 5G',        lineal: 'New' },
+  { id: 'm09', nombre: 'VIVO Y19S 256GB',          lineal: 'New' },
+  { id: 'm10', nombre: 'VIVO V50 512GB 5G',        lineal: 'New' },
+  { id: 'm11', nombre: 'VIVO Y04 128GB 4G',        lineal: 'New' },
+  { id: 'm12', nombre: 'VIVO V50 LITE 256GB 5G',   lineal: 'New' },
+  { id: 'm13', nombre: 'VIVO Y29S 256GB 5G',       lineal: 'New' },
+  { id: 'm14', nombre: 'VIVO V60 LITE 256GB 5G',   lineal: 'New' },
+  { id: 'm15', nombre: 'VIVO Y21D 256GB 4G',       lineal: 'New' },
+  { id: 'm16', nombre: 'VIVO X300 PRO 512GB 5G',   lineal: 'New' },
+  { id: 'm17', nombre: 'VIVO Y31 512GB 5G',        lineal: 'New' },
+  { id: 'm18', nombre: 'VIVO Y31 256GB 5G',        lineal: 'New' },
+];
+
+// ── POS POR ZONA ──
+const ZONAS = {
+  "Center 1": ["CL_Doble S_D.Junin","CL_Cell Shop_D.Hyo","CL_Tottus Huancayo","CL_Umicell_D.Huancayoi","CL_Umicell_D.Huancayoii","CL_Doble S_D.Hyo3","CL_Plaza Vea Huancayo","CL_Cac Huancayo","CL_Inv Solano_Hyo Lima Real","EN_Tpf_Huancayo","EN_Tpf_Tarma","EN_Isla_Rphuancayo","EN_Isla_Rphuancayoii","EN_Plaza Vea Huancayo","EN_Tp_Huancayo","ES_Estilos Huancayo","PL_Plaza Vea Huancayo","RI_Ripley Huancayo"],
+  "Center 2": ["CL_Tottus Huanuco","CL_Plaza Vea Huanuco","CL_Cell Shop_Dc.Huanuco","CL_Inv Rec Selva Huanuc Rp","CL_Plaza Vea Pucallpa","CL_Tottus Pucallpa","CL_Cac Pucallpa","CL_Cac Huanuco","EN_Isla_Rphuanuco","EN_Plaza Vea Huanuco","EN_Isla_Oppucallpa","EN_Plaza Vea Pucallpa","EN_Tottus Pucallpa","EN_Tpf_Huanuco","EN_Tpf_Pucallpa","EN_Tpf_Ucaportillo","EN_Tpf_Tingomaria","OE_Oechsle Huanuco","PL_Plaza Vea Huanuco"],
+  "Center 3": ["CL_Estilos Pisco","CL_Carsa Pisco3","CL_M.Online_D.Pisco","CL_Plaza Vea Pisco","CL_M.Online_D.Mega Plaza Pisco","CL_Saga Cañete","CL_Telsur Com_Cañete","CL_Mega Connection Sac","CL_Tottus Cañete","CL_Mega Imperial362B","CL_Mega Y17","CL_Cac Ica El Quinde","CL_Inv Solano_Chincha","CL_M.Online_D.Ica","CL_Tottus Ica","CL_Carsa Ica Nuevo","CL_Inv Rec Selva Ica","CL_M.Online_D.Ica1","CL_Saga Ica","CL_Tecal Ica","CL_M.Online_D.Chincha","CL_Tottus Chincha","CL_Cac Ayacucho","CL_Multiser Mov Ayacucho","CL_Atel Ayacucho","CL_Essal Chincha","EN_Plaza Vea Pisco","EN_Estilos Pisco","EN_Tp_Ica","EN_Tpf_Icapisco","EN_Isla_Plazadelsolica","EN_Isla_Quindeica","EN_Tpf_Ayacasamblea2","EN_Plaza Vea Chincha","EN_Tottus Chincha","EN_Isla_Mpcanñete","EN_Tottus Cañete","EN_Tpf_Icacañete","EN_Tpf_Chinchaitalia","ES_Estilos Pisco","ES_Estilos Chincha","ES_Estilos Ica","OE_Oechsle Ica"],
+  "Lima 1": ["CL_Cac Unicachi","CL_Huaytelcoms Huacho","CL_Inv Solano_Huacho","CL_Tottus Ppiedra","CL_Plaza Vea Puente Piedra","CL_Metro Barranca","CL_Oechsle Barranca","CL_Plaza Vea Barranca","CL_Inv Solano_Barranca","CL_Efe Huacho","CL_Estilos Huacho","CL_Plaza Vea Huacho","CL_Huaytelcoms Huaral","CL_Plaza Vea Huaral","CL_Tottus Huaral","CL_Delima Puente Piedra","CL_Delima Ventanilla","EN_Estilos Huacho","EN_Isla_Pdshuacho","EN_Plaza Vea Huacho","EN_Tpf_Puentepiedra","EN_Tpf_Huacho28","EN_Tottus Ppiedra","EN_Plaza Vea Puente Piedra","EN_Tpf_Barranca","EN_Oechsle Barranca","EN_Plaza Vea Barranca","EN_Isla_Barranca","EN_Tpf_Huaral","EN_Plaza Vea Huaral","EN_Tottus Huaral","ES_Estilos Huacho 2","ES_Estilos Huacho","ES_Estilos Huaral"],
+  "Lima 2": ["CL_Cellcom Plaza Norte2","CL_Cellcom Plaza Norte","CL_Redcotea_Plaza Norte","CL_Inv Solano_Plaza Norte","CL_Blazel Cc Plaza Norte","CL_Tottus Los Olivos","CL_Blazel Cc Megaplaza","CL_Cac Plaza Norte","CL_Plaza Vea Independencia","CL_Saga Mega Plaza","CL_Sodimac Mega Plaza","CL_Ripley Mega Plaza","CL_Cellcom M05","CL_Inv Solano_Independencia","CL_Plaza Vea Comas","CL_Metro Comas","EN_Metro Comas","EN_Plaza Vea Comas","ES_Estilos Plaza Norte","HI_Hiraoka Independencia","PL_Plaza Vea Puente Piedra","PL_Plaza Vea Pro","PL_Plaza Vea Independencia","PL_Plaza Vea Comas","RI_Ripley Plaza Lima Norte","RI_Ripley Mega Plaza"],
+  "Lima 3": ["CL_Cac Minka","CL_Cac Salaverry","CL_Cac San Miguel","CL_Tottus Canta Callao","CL_Cac Centro Civico","CL_Saga Lima","CL_Tottus Ventanilla","CL_Efe Ventanilla","CL_Carsa Ventanilla","CL_Saga San Miguel","CL_Tottus San Miguel","CL_Plaza Vea Ventanilla","CL_Ripley San Miguel","CL_Cellcom M87","CL_Telecom Cercado Lima","EN_Tottus Canta Callao","EN_Metro Ventanilla","EN_Plaza Vea Ventanilla","HI_Hiraoka Miraflores","HI_Hiraoka San Miguel","HI_Hiraoka Cercado De Lima","OE_Oechsle Primavera","PL_Plaza Vea Centro Civico","PL_Plaza Vea Ventanilla","RI_Ripley San Miguel"],
+  "Lima 4": ["CL_Redcotea_Santa Anita","CL_Cac Mall Del Sur","CL_Cac Santa Anita","CL_Cac Larco","CL_Atlantic Sjl","CL_Plaza Vea Vmt","CL_Telecom Ves","CL_Tottus Mall Del Sur","CL_Oechsle Mall Del Sur","CL_Ripley Mall Sur","CL_Tottus Atocongo","CL_Inv Solano_Mall Del Sur","CL_Blazel Ma Santa Anita","CL_Ripley Santa Anita","CL_Saga Santa Anita","CL_Tottus Santa Anita","CL_Tottus Vmt","CL_Tottus Chorrillos","CL_Metro Chorrillos","CL_Ripley Chorrillos","CL_Inv Solano_Chorrillos","CL_Cyctel Msur 142","EN_Tpf_Villasalvador","EN_Isla_Rpvmt","EN_Plaza Vea La Curva","EN_Sodimac Atocongo","EN_Tottus Atocongo","ES_Estilos Sta Anita","HI_Hiraoka Sjl","PL_Plaza Vea Sj Lurigancho","TE_Tec Mall Sjl"],
+  "Lima 5": ["CL_Plaza Vea Pro","CL_Delima Comas","CL_Saga Comas","CL_Tottus Comas","CL_Estilos Plaza Norte","CL_Oechsle Plaza Norte","CL_Ripley Plaza Lima Norte","CL_Saga Plaza Norte","CL_Metro Plaza Norte","CL_Delima Pro","EN_Isla_Implazaii","EN_Isla_Implazai","EN_Plaza Vea Independencia","EN_Tottus Los Olivos","EN_Sodimac Mega Plaza","EN_Tp_Tpf_Megaplaza","EN_Tpf_Bellavista","EN_Tp_Tpf_Plimanorte","EN_Tp_Tpf_Comas","EN_Plaza Vea Pro","EN_Isla_Pro","EN_Isla_Minkaii","EN_Tp_Tpf_Minka2","EN_Isla_Plnorteii","EN_Metro Plaza Norte","EN_Oechsle_Plimanorteiii","EN_Tottus Comas"],
+  "Lima 6": ["CL_Cac Chorrillos","CL_Redcotea_Civico","CL_Oechsle Lima","CL_Plaza Vea Centro Civico","CL_Telesur_Civico","CL_Saga Angamos","CL_Tottus Angamos","EN_Tp_Tpf_Chorrillos","EN_Metro Chorrillos","EN_Tp_Tpf_Openangamos","EN_Tottus Angamos","EN_Teleatento_Cercado","EN_Konecta_Cercado","EN_Burns_Cercado","EN_ECCP_Cercado","EN_Isla_Ccivico","EN_Plaza Vea Centro Civico","EN_Tp_Tpf_Centrodelima","EN_Isla_Psmiguel","EN_Tp_Tpf_Plazasanmiguel","EN_Tottus San Miguel","EN_Tpf_Rpsalaverry","EN_Plaza Vea Salaverry","EN_Tp_Plazarepublica"],
+  "Lima 7": ["CL_Metro Proceres","CL_Oechsle Sjl","CL_Ripley Sjl2","CL_Tottus Sjl","CL_Metro Sjl","CL_Tottus Sjl 2","CL_Cac Jockey Plaza","EN_Tp_Tpf_Jockeyplaza","EN_Tottus Jockey Plaza","EN_Plaza Vea Mall Sjl","EN_Tottus Hilarion","EN_Metro Proceres","EN_Metro Sjl","EN_Plaza Vea Sj Lurigancho","EN_Tpf_Mapsjlurigancho","EN_Isla_Map Sta Anita","EN_Tottus Santa Anita","EN_Tp_Tpf_Santaanita","EN_Tp_Sjuanlurigancho","EN_Tp_Larco"],
+  "Lima 8": ["CL_Plaza Vea Puruchuco","CL_Tottus Puruchuco","CL_Telecom Nayllon","CL_Cac Santa Clara","CL_Plaza Vea Santa Clara","EN_Tp_Tpf_Puruchuco","EN_Tp_Tpf_Malldelsur","EN_Isla_Rpstaclara","EN_Tpf_Santaclara","EN_Plaza Vea Santa Clara","EN_Plaza Vea Puruchuco","EN_Tottus Puruchuco","EN_Isla_Msatocongoi","EN_Tottus Mall Del Sur","EN_Oechsle Mall Del Sur","OE_Oechsle San Borja","PL_Plaza Vea Puruchuco","PL_Plaza Vea Santa Clara","PL_Plaza Vea Ceres","PL_Plaza Vea Ate"],
+  "North 1": ["CL_Gcr Comu_D.Fco Pizarro","CL_Gcr Comu_D.Fco Pizarro_504","CL_Mya Mallplaza Trj","CL_Gcr Comu_D.Trujillo12","CL_Ripley Trujillo","CL_Sodimac Trujillo Mall","CL_Tottus Mall Trujillo","CL_Cac Trujillo","CL_Cac Trujillo 3","CL_Gcr Comu_D.Open Plaza","CL_Gcr Comu_D.Real Plaza","CL_Tottus Open Trujillo","CL_Mya Junin_626","CL_Mya Chacarero","CL_Mya Truj7","CL_Mya Truji4","CL_Tottus Chepen","CL_Tottus Pacasmayo","EN_Isla_Maptrujillo","EN_Tottus Mall Trujillo","EN_Tpf_Trujillochepen","EN_Tpf_Huamachuco","EN_Tpf_Trujillo","EN_Isla_Optrujillo2","EN_Plaza Vea El Chacarero","EN_Tottus Open Trujillo","EN_Tpf_Trujilloporvenir","EN_Tpf_Trupizarro","EN_Tp_Trujillo","EN_Tpf_Trujillojunin","PL_Plaza Vea El Chacarero","RI_Ripley Trujillo","TE_Tec Mall Plaza Trujillo"],
+  "North 2": ["CL_Cac Chiclayo Centro","CL_Niklu Lgonz","CL_Afervitel_D.Chic","CL_Grupo Bz Chiclayo","CL_Sport Dima Cix_Feria","CL_Telfox_Feria","CL_Nc Moviles Lamb2","CL_Nc Moviles Lamb3","CL_Nc Moviles Olmos","CL_Niklu Chiclayo","CL_Plaza Vea Chiclayo 2","CL_Tottus Chiclayo","CL_Saga Chiclayo","CL_Oechsle Chiclayo","CL_Ripley Chiclayo","CL_Telfox","EN_Tpf_Rpchiclayo","EN_Isla_Rpchiclayoii","EN_Plaza Vea Chiclayo","EN_Plaza Vea Chiclayo 2","EN_Oechsle Chiclayo","EN_Tp_Chiclayo","EN_Tpf_Mapchiclayo","OE_Oechsle Chiclayo","PL_Plaza Vea Chiclayo","RI_Ripley Chiclayo"],
+  "North 3": ["CL_Peru Phone_D.Piura Rp","CL_Peru Phone_D.Piura","CL_Peru Phone_D.Grau","CL_Oechsle Piura","CL_Plaza Vea Piura","CL_Cac Piura Real Plaza","CL_Estilos Tumbes","CL_Curacao Tumbes","CL_Efe Tumbes","CL_Metro Tumbes","CL_Plaza Vea Tumbes","CL_Mya Tumbes","CL_Mahadi Tumbes V","EN_Tpf_Piureal","EN_Tp_Tpf_Tumbes","EN_Tp_Piura","EN_Isla_Rppiura","EN_Plaza Vea Piura","EN_Estilos Tumbes","EN_Isla_Cmtumbes2","EN_Plaza Vea Tumbes","ES_Estilos Tumbes","ES_Estilos Piura","PL_Plaza Vea Piura"],
+  "North 4": ["CL_Cac Piura Open Plaza","CL_Mya Open Plaza","CL_Mahadi Op Piura","CL_Mahadi Real Plaza Piura","CL_Peru Phone_D.Sull","CL_Efe Sullana","CL_Plaza Vea Sullana","CL_Cardey_Piu","CL_Saga Piura","CL_Tottus Chulucanas","CL_Tottus Piura","CL_Tottus Sullana","CL_Cardey_Palacios","CL_Carsa Sullana","EN_Tpf_Paita2","EN_Isla_Oppiura","EN_Tottus Piuraplaza","EN_Tpf_Piura","EN_Tp_Talara","EN_Tpf_Sullana","EN_Plaza Vea Paita","EN_Plaza Vea Sullana","EN_Preciouno Sullana","EN_Tottus Sullana Mall","PL_Plaza Vea Sullana"],
+  "North 5": ["CL_Cell Serv Caj2","CL_Briceno_Cajamarca2","CL_Cac Cajamarca","CL_Oechsle Cajamarca","CL_Metro Cajamarca","CL_Plaza Vea Cajamarca","CL_Saga Cajamarca","CL_Mahadi Jaen","CL_Plaza Vea Jaen","CL_Cell Serv Mini_Jaen","CL_Calderon_Dp.Cajab","CL_Mahadi Caj Grau","EN_Tpf_Chabagua","EN_Isla_Quindecajamarca","EN_Plaza Vea Cajamarca","EN_Isla_Rpcajamarca","EN_Tpf_Mpcajamarca","EN_Plaza Vea Nuevo Chimbote","EN_Tpf_Moyobamba","EN_Tpf_Tarapoto","EN_Tpf_Cajamarca","EN_Plaza Vea Jaen","EN_Tpf_Jaen","ES_Estilos Jaen","ES_Estilos Tarapoto","PL_Plaza Vea Cajamarca"],
+  "North 6": ["CL_Carsa Chimbote","CL_Gomez Export_Chimbote","CL_Gomez Export_Nvo Chimbote","CL_Llecllish_D.Chimbote","CL_Mahadi Chimbote","CL_Telchim3","CL_Plaza Vea Nuevo Chimbote","CL_Ripley Chimbote","CL_Metro Nuevo Chimbote","CL_Plaza Vea Chimbote","CL_Saga Chimbote","CL_Tottus Chimbote","CL_Llecllish_D.Mega","CL_Gomez Export_Casma","CL_Syscom Anc7","CL_Syscom Anc6","CL_Cac Iquitos","CL_Syscom Megal","CL_Syscom Anc2","CL_Km Luna 3","CL_Carsa Huaraz","CL_Vahany Huaraz","CL_Llecllish_D.Caraz","CL_Curacao Huaraz","CL_Efe Huaraz","CL_Km Luna Huaraz","CL_Syscom Huaraz","CL_Calessa Huaraz","CL_Vahany1","CL_Vahany2","CL_Vahany3","EN_Tp_Tpf_Iquitos","EN_Plaza Vea Chimbote","EN_Tp_Chimbote","EN_Isla_Mpchimbote","EN_Tottus Chimbote","EN_Tpf_Casma","EN_Tpf_Mapiquitos","EN_Tpf_Huaraz","RI_Ripley Chimbote","TE_Tec Iquitos"],
+  "South 1": ["CL_Dimera_Aqp","CL_Dimera_Fm","CL_Gimovil_D.Aqp","CL_Red Sur Plus Arequipa","CL_Red Sur Plus Arq Ejercito","CL_Red Sur Plus Arq Arces","CL_Cac Tacna","CL_Cac Porongoche","CL_Ripley Cayma","CL_Estilos Rivero","CL_Metro Arequipa3","CL_Oechsle Arequipa","CL_Plaza Vea La Marina","CL_Tottus Cayma","CL_Plaza Vea El Ejercito","CL_Saga Cayma","CL_Cac Cerro Colorado","CL_Cac Arequipa","CL_Saga Porongoche","CL_Tottus Porongoche","CL_Ripley Bustamante Y Rivero","CL_Manyari_Is Porongoche","CL_Cac Ilo","CL_Mas Movil_Tacna","CL_Comsurpe_Tac Av Coro","EN_Tottus Porongoche","EN_Tp_Tpf_Maparequipa","EN_Tp_Tacna","EN_Isla_Mapcayma","EN_Isla_Rparequipa","EN_Estilos Arequipa","EN_Plaza Vea El Ejercito","EN_Tottus Cayma","EN_Isla_Aqpcenter","EN_Tpf_Aqppanoramico","EN_Tp_Arequipa","EN_Tpf_Altiplano","EN_Tpf_Aqppedregal","ES_Estilos Rivero","ES_Estilos Porongoche Ma","ES_Estilos Porongoche","RI_Ripley Porongoche"],
+  "South 2": ["CL_Cac Cusco Real Plaza","CL_Red Sur Plus Cusco","CL_Red Sur Plus Ayacucho","CL_Cac Juliaca Real Plaza","CL_Cac Puno","EN_Tpf_Puno","EN_Tp_Tpf_Juliaca","EN_Tp_Cusco","EN_Tp_Tpf_Cusco","OE_Oechsle Juliaca"],
+};
+
+// ── STATE ──
+let currentData = {};
+
+document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+function loadZona() {
+  const zona = document.getElementById('zona').value;
+  document.getElementById('pos-section').style.display = zona ? 'block' : 'none';
+  document.getElementById('placeholder').style.display = zona ? 'none' : 'block';
+  if (!zona) return;
+  currentData = {};
+  const list = document.getElementById('pos-list');
+  list.innerHTML = '';
+  const posList = ZONAS[zona];
+  posList.forEach((pos, idx) => {
+    currentData[idx] = {};
+    MODELOS.forEach(m => { currentData[idx][m.id] = { so: '', stock: '' }; });
+    const card = buildCard(pos, idx);
+    card.style.animationDelay = `${Math.min(idx * 0.03, 0.5)}s`;
+    list.appendChild(card);
+  });
+  updateProgress(); updateResumen();
+}
+
+function buildCard(posName, idx) {
+  const card = document.createElement('div');
+  card.className = 'pos-card';
+  card.id = `pos-card-${idx}`;
+
+  const rows = MODELOS.map((m, mi) => `
+    <tr>
+      <td>
+        <span class="model-name">${m.nombre}</span>
+        <span class="model-lineal ${m.lineal === 'EOL' ? 'tag-eol' : 'tag-new'}">${m.lineal}</span>
+      </td>
+      <td class="cell-so">
+        <input type="number" min="0" step="1" class="num-input so-input"
+          id="so-${idx}-${m.id}" placeholder="0"
+          oninput="handleInput(${idx},'${m.id}','so',this.value)"
+          onkeydown="navTable(event,${idx},${mi},'so')">
+      </td>
+      <td class="cell-stock">
+        <input type="number" min="0" step="1" class="num-input stock-input"
+          id="stock-${idx}-${m.id}" placeholder="0"
+          oninput="handleInput(${idx},'${m.id}','stock',this.value)"
+          onkeydown="navTable(event,${idx},${mi},'stock')">
+      </td>
+    </tr>`).join('');
+
+  card.innerHTML = `
+    <div class="pos-header" onclick="togglePos(${idx})">
+      <div class="pos-num">${idx + 1}</div>
+      <div class="pos-name">${posName}</div>
+      <div class="pos-status status-pending" id="status-${idx}">Sin datos</div>
+      <div class="pos-chevron">▼</div>
+    </div>
+    <div class="pos-body">
+      <table class="models-table">
+        <thead>
+          <tr>
+            <th style="width:44%">Modelo</th>
+            <th class="col-so">SO — Unidades vendidas</th>
+            <th class="col-stock">Stock — Depósito</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="totals-row">
+            <td style="font-size:10px;letter-spacing:.08em">TOTAL POS</td>
+            <td class="tot-so" id="tot-so-${idx}">0</td>
+            <td class="tot-stock" id="tot-stock-${idx}">0</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="notas-row">
+        <span style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap">Nota:</span>
+        <input type="text" placeholder="Observación para este POS (opcional)..." id="nota-${idx}">
+      </div>
+    </div>`;
+  return card;
+}
+
+function togglePos(idx) {
+  document.getElementById(`pos-card-${idx}`).classList.toggle('open');
+}
+
+function handleInput(posIdx, modelId, tipo, val) {
+  const v = val === '' ? '' : Math.max(0, parseInt(val) || 0);
+  currentData[posIdx][modelId][tipo] = v;
+  if (val !== '' && String(v) !== val) document.getElementById(`${tipo}-${posIdx}-${modelId}`).value = v;
+  updateTotals(posIdx); updateStatus(posIdx); updateProgress(); updateResumen();
+}
+
+function updateTotals(posIdx) {
+  let so = 0, st = 0;
+  MODELOS.forEach(m => {
+    so += parseInt(currentData[posIdx][m.id].so) || 0;
+    st += parseInt(currentData[posIdx][m.id].stock) || 0;
+  });
+  document.getElementById(`tot-so-${posIdx}`).textContent = so;
+  document.getElementById(`tot-stock-${posIdx}`).textContent = st;
+}
+
+function filledCount(posIdx) {
+  return MODELOS.filter(m => currentData[posIdx][m.id].so !== '' || currentData[posIdx][m.id].stock !== '').length;
+}
+
+function updateStatus(posIdx) {
+  const n = filledCount(posIdx), total = MODELOS.length;
+  const el = document.getElementById(`status-${posIdx}`);
+  const card = document.getElementById(`pos-card-${posIdx}`);
+  card.classList.remove('complete','partial');
+  if (n === 0) { el.className = 'pos-status status-pending'; el.textContent = 'Sin datos'; }
+  else if (n < total) { el.className = 'pos-status status-partial'; el.textContent = `${n}/${total} modelos`; card.classList.add('partial'); }
+  else { el.className = 'pos-status status-done'; el.textContent = '✓ Completo'; card.classList.add('complete'); }
+}
+
+function updateProgress() {
+  const zona = document.getElementById('zona').value;
+  if (!zona) return;
+  const total = ZONAS[zona].length;
+  let done = 0;
+  for (let i = 0; i < total; i++) if (filledCount(i) > 0) done++;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('prog-label').textContent = `${done} de ${total} POS con datos`;
+  document.getElementById('prog-pct').textContent = `${pct}%`;
+  const fill = document.getElementById('prog-fill');
+  fill.style.width = pct + '%';
+  fill.style.background = pct === 100 ? 'var(--so)' : 'var(--accent)';
+}
+
+function updateResumen() {
+  const zona = document.getElementById('zona').value;
+  if (!zona) return;
+  const total = ZONAS[zona].length;
+  let totalSo = 0, totalStock = 0, posDone = 0;
+  for (let i = 0; i < total; i++) {
+    let has = false;
+    MODELOS.forEach(m => {
+      const so = parseInt(currentData[i][m.id].so) || 0;
+      const st = parseInt(currentData[i][m.id].stock) || 0;
+      totalSo += so; totalStock += st;
+      if (so || st) has = true;
+    });
+    if (has) posDone++;
+  }
+  document.getElementById('res-pos').textContent = posDone;
+  document.getElementById('res-so').textContent = totalSo.toLocaleString('es-PE');
+  document.getElementById('res-stock').textContent = totalStock.toLocaleString('es-PE');
+}
+
+function navTable(e, posIdx, modelIdx, tipo) {
+  if (e.key !== 'Enter' && e.key !== 'Tab') return;
+  e.preventDefault();
+  if (tipo === 'so') {
+    document.getElementById(`stock-${posIdx}-${MODELOS[modelIdx].id}`)?.focus();
+  } else if (modelIdx + 1 < MODELOS.length) {
+    document.getElementById(`so-${posIdx}-${MODELOS[modelIdx + 1].id}`)?.focus();
+  }
+}
+
+function validate() {
+  let ok = true;
+  ['zona','fecha','corte'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('error');
+    if (!el.value) { el.classList.add('error'); ok = false; }
+  });
+  return ok;
+}
+
+function submitForm() {
+  if (!validate()) { alert('Completá los campos obligatorios: zona, fecha y corte.'); return; }
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  setTimeout(showSuccess, 1400);
+}
+
+function showSuccess() {
+  const zona = document.getElementById('zona').value;
+  const fecha = document.getElementById('fecha').value;
+  const corte = document.getElementById('corte').value;
+  const posList = ZONAS[zona];
+  const total = posList.length;
+  let totalSo = 0, totalStock = 0, posDone = 0;
+
+  // Acumular totales por modelo
+  const modelTotals = {}; // { modelId: { so, stock } }
+  MODELOS.forEach(m => { modelTotals[m.id] = { so: 0, stock: 0 }; });
+
+  // Armar detalle por POS (solo los que tienen datos)
+  let posDetalle = '';
+  for (let i = 0; i < total; i++) {
+    let posSo = 0, posStock = 0, hasData = false;
+    const modelLines = [];
+    MODELOS.forEach(m => {
+      const so = parseInt(currentData[i][m.id].so) || 0;
+      const st = parseInt(currentData[i][m.id].stock) || 0;
+      if (so || st) {
+        hasData = true;
+        modelLines.push(`    ${m.nombre}: SO ${so} | Stock ${st}`);
+        modelTotals[m.id].so += so;
+        modelTotals[m.id].stock += st;
+      }
+      posSo += so; posStock += st;
+      totalSo += so; totalStock += st;
+    });
+    if (hasData) {
+      posDone++;
+      posDetalle += `\n▸ ${posList[i]}\n${modelLines.join('\n')}\n  → Total POS: SO ${posSo} | Stock ${posStock}`;
+    }
+  }
+
+  // Armar detalle por modelo (solo los que tienen datos)
+  let modelDetalle = '';
+  MODELOS.forEach(m => {
+    const { so, stock } = modelTotals[m.id];
+    if (so || stock) {
+      modelDetalle += `\n  ${m.nombre} [${m.lineal}]: SO ${so} | Stock ${stock}`;
+    }
+  });
+
+  const d = new Date(fecha + 'T12:00:00');
+  const fechaFmt = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  const textoResumen =
+`━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPORTE VIVO — ${zona}
+Fecha: ${fechaFmt} | ${corte}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOTALES GENERALES
+  Total SO:    ${totalSo} uds.
+  Total Stock: ${totalStock} uds.
+  POS con datos: ${posDone} de ${total}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESUMEN POR MODELO
+${modelDetalle}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETALLE POR POS
+${posDetalle}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+  document.getElementById('success-summary').innerHTML = `<pre style="font-family:'Exo 2',monospace;font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--ink2);text-align:left;">${textoResumen}</pre>`;
+  document.getElementById('main-form').style.display = 'none';
+  document.getElementById('success-screen').classList.add('show');
+}
+
+function resetAll() {
+  document.getElementById('main-form').style.display = 'block';
+  document.getElementById('success-screen').classList.remove('show');
+  document.getElementById('zona').value = '';
+  document.getElementById('corte').value = '';
+  document.getElementById('obs-global').value = '';
+  document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('pos-section').style.display = 'none';
+  document.getElementById('placeholder').style.display = 'block';
+  document.getElementById('pos-list').innerHTML = '';
+  document.getElementById('btn-submit').disabled = false;
+  document.getElementById('btn-submit').textContent = 'Enviar reporte →';
+  currentData = {};
+}
+
+function clearAll() {
+  if (!confirm('¿Limpiar todos los valores ingresados?')) return;
+  const zona = document.getElementById('zona').value;
+  if (!zona) return;
+  const total = ZONAS[zona].length;
+  for (let i = 0; i < total; i++) {
+    MODELOS.forEach(m => {
+      currentData[i][m.id] = { so: '', stock: '' };
+      const soEl = document.getElementById(`so-${i}-${m.id}`);
+      const stEl = document.getElementById(`stock-${i}-${m.id}`);
+      if (soEl) soEl.value = '';
+      if (stEl) stEl.value = '';
+    });
+    updateTotals(i); updateStatus(i);
+  }
+  updateProgress(); updateResumen();
+}
+</script>
+</body>
+</html>
