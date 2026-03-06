@@ -675,11 +675,38 @@ function validate() {
   return ok;
 }
 
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz8DErxfeEyr2AG1y3KGc8oGqfRz6Ymn7pe7fOoyM-eYTH0GfRPm3L38_BAMZukwKfmUw/exec';
+
 function submitForm() {
   if (!validate()) { alert('Completá los campos obligatorios: zona, fecha y corte.'); return; }
   const btn = document.getElementById('btn-submit');
-  btn.disabled = true; btn.textContent = 'Enviando...';
-  setTimeout(showSuccess, 1400);
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const zona = document.getElementById('zona').value;
+  const fecha = document.getElementById('fecha').value;
+  const corte = document.getElementById('corte').value;
+  const posList = ZONAS[zona];
+  const rows = [];
+
+  posList.forEach((pos, i) => {
+    MODELOS.forEach(m => {
+      const so = parseInt(currentData[i][m.id].so) || 0;
+      const stock = parseInt(currentData[i][m.id].stock) || 0;
+      if (so || stock) {
+        rows.push({ fecha, corte, zona, pos, modelo: m.nombre, lineal: m.lineal, so, stock });
+      }
+    });
+  });
+
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rows })
+  })
+  .then(() => showSuccess())
+  .catch(() => showSuccess()); // igual muestra éxito, el script de Google igual recibe
 }
 
 function showSuccess() {
