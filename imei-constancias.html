@@ -156,22 +156,36 @@
     <div class="loading" id="loading-supervisores"><span class="spinner"></span> Cargando...</div>
   </div>
 
-  <!-- STEP 2B / 3: DNI -->
+  <!-- STEP 2B / 3: DNI o selector promotor -->
   <div class="card hidden" id="step-dni">
     <div class="card-title">
       <span class="section-num" id="dni-num">2</span>
       <span id="dni-title">Tu DNI</span>
     </div>
     <div id="supervisor-badge" class="badge-info hidden"></div>
-    <div class="field">
-      <label id="dni-label">Ingresá tu DNI</label>
-      <div class="search-wrap">
-        <input type="number" id="dni-input" placeholder="Ej: 70034656"
-          onkeydown="if(event.key==='Enter') buscarDNI()">
-        <button class="search-btn" onclick="buscarDNI()">Buscar</button>
+
+    <!-- Promotor: ingresa su DNI -->
+    <div id="bloque-dni">
+      <div class="field">
+        <label id="dni-label">Ingresá tu DNI</label>
+        <div class="search-wrap">
+          <input type="number" id="dni-input" placeholder="Ej: 70034656"
+            onkeydown="if(event.key==='Enter') buscarDNI()">
+          <button class="search-btn" onclick="buscarDNI()">Buscar</button>
+        </div>
+      </div>
+      <div class="loading" id="loading-dni"><span class="spinner"></span> Buscando...</div>
+    </div>
+
+    <!-- Supervisor: elige promotor de lista -->
+    <div id="bloque-promotor-select" class="hidden">
+      <div class="field">
+        <label>Promotor</label>
+        <select id="promotor-select" onchange="seleccionarPromotor()">
+          <option value="">— Seleccioná un promotor —</option>
+        </select>
       </div>
     </div>
-    <div class="loading" id="loading-dni"><span class="spinner"></span> Buscando...</div>
   </div>
 
   <!-- STEP 3/4: IMEI LIST -->
@@ -219,7 +233,7 @@
 
 <script>
 const SHEETS_ID = '1jPvPa1rFndWQ8fPiJkL32VCsZI6ObAoXD_dVwUZISeo';
-const SCRIPT_URL = '';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1LueQaQHuYFjwdmnO88KBjzerDRsU8ad2m6HZwHN-j989AsFxe3PPcsE0nd9Cjx-3ZA/exec';
 
 let todosLosIMEIs = [];
 let rolSeleccionado = null;
@@ -291,17 +305,19 @@ function elegirRol(rol) {
   if (rol === 'promotor') {
     document.getElementById('dni-num').textContent = '2';
     document.getElementById('dni-title').textContent = 'Tu DNI';
-    document.getElementById('dni-label').textContent = 'Ingresá tu DNI';
     document.getElementById('imei-num').textContent = '3';
     document.getElementById('upload-num').textContent = '4';
     document.getElementById('supervisor-badge').classList.add('hidden');
+    document.getElementById('bloque-dni').classList.remove('hidden');
+    document.getElementById('bloque-promotor-select').classList.add('hidden');
     document.getElementById('step-dni').classList.remove('hidden');
   } else {
     document.getElementById('dni-num').textContent = '3';
-    document.getElementById('dni-title').textContent = 'DNI del promotor';
-    document.getElementById('dni-label').textContent = 'Ingresá el DNI del promotor';
+    document.getElementById('dni-title').textContent = 'Promotor';
     document.getElementById('imei-num').textContent = '4';
     document.getElementById('upload-num').textContent = '5';
+    document.getElementById('bloque-dni').classList.add('hidden');
+    document.getElementById('bloque-promotor-select').classList.remove('hidden');
     document.getElementById('step-supervisor').classList.remove('hidden');
   }
 
@@ -319,13 +335,48 @@ function seleccionarSupervisor() {
   badge.innerHTML = `<strong style="color:var(--accent)">Supervisor:</strong> ${sup}`;
   badge.classList.remove('hidden');
 
+  // Cargar promotores de ese supervisor
+  const promotores = [...new Map(
+    todosLosIMEIs
+      .filter(r => r.supervisor === sup)
+      .map(r => [r.dni, r])
+  ).values()].sort((a, b) => a.user.localeCompare(b.user));
+
+  const select = document.getElementById('promotor-select');
+  select.innerHTML = '<option value="">— Seleccioná un promotor —</option>';
+  promotores.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.dni;
+    opt.textContent = `${p.user} — DNI: ${p.dni}`;
+    select.appendChild(opt);
+  });
+
   document.getElementById('step-dni').classList.remove('hidden');
   document.getElementById('step-imeis').classList.add('hidden');
   document.getElementById('step-upload').classList.add('hidden');
-  document.getElementById('dni-input').value = '';
   imeisSeleccionados.clear(); fotosMap = {};
 
   setTimeout(() => document.getElementById('step-dni').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+function seleccionarPromotor() {
+  const dni = document.getElementById('promotor-select').value;
+  if (!dni) return;
+
+  let encontrados = todosLosIMEIs.filter(r =>
+    r.dni === dni && r.supervisor === supervisorSeleccionado
+  );
+
+  imeisSeleccionados.clear(); fotosMap = {};
+  document.getElementById('step-upload').classList.add('hidden');
+
+  if (encontrados.length === 0) {
+    alert('No se encontraron IMEIs pendientes para este promotor.');
+    return;
+  }
+
+  imeisPromotor = encontrados;
+  mostrarIMEIs(encontrados);
 }
 
 async function buscarDNI() {
@@ -533,8 +584,20 @@ function showSuccess(constancias) {
   ['step-rol','step-supervisor','step-dni','step-imeis','step-upload'].forEach(id =>
     document.getElementById(id).classList.add('hidden'));
   document.getElementById('success-screen').style.display = 'block';
-  document.getElementById('success-msg').innerHTML =
-    `<strong>${constancias.length}</strong> constancia${constancias.length>1?'s':''} enviada${constancias.length>1?'s':''} correctamente.<br>Serán revisadas a la brevedad.`;
+
+  const lista = constancias.map(c =>
+    `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-bottom:8px;text-align:left;">
+      <div style="font-size:13px;font-weight:700;color:#166534;">📱 ${c.imei}</div>
+      <div style="font-size:11px;color:#4b7a5a;margin-top:2px;">${c.modelo} · ${c.pos}</div>
+      <div style="font-size:11px;color:#4b7a5a;">📷 Foto cargada: <strong>${c.fotoNombre}</strong></div>
+    </div>`
+  ).join('');
+
+  document.getElementById('success-msg').innerHTML = `
+    <strong>${constancias.length}</strong> constancia${constancias.length>1?'s':''} enviada${constancias.length>1?'s':''} correctamente.
+    <br><span style="font-size:12px;">Serán revisadas a la brevedad.</span>
+    <div style="margin-top:16px;">${lista}</div>
+  `;
 }
 
 function resetApp() {
