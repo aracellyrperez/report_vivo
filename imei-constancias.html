@@ -122,7 +122,7 @@
 
 <div class="hero">
   <h1>Portal de<br><span>Constancias</span></h1>
-  <p>📅 FECHA LÍMITE: <strong style="color:#fff">06-04-2026</strong></p>
+  <p>📅 Fecha límite: <span style="color:#fff">06-04-2026</span></p>
 </div>
 
 <div class="main">
@@ -236,6 +236,7 @@ const SHEETS_ID = '1jPvPa1rFndWQ8fPiJkL32VCsZI6ObAoXD_dVwUZISeo';
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1LueQaQHuYFjwdmnO88KBjzerDRsU8ad2m6HZwHN-j989AsFxe3PPcsE0nd9Cjx-3ZA/exec';
 
 let todosLosIMEIs = [];
+let constanciasStatus = {}; // { imei: 'Aprobado' | 'Rechazado' | 'Pendiente' }
 let rolSeleccionado = null;
 let supervisorSeleccionado = null;
 let imeisPromotor = [];
@@ -276,6 +277,24 @@ async function cargarDatos() {
       modelo: r.c[i.modelo]?.v || '',
       imei: String(r.c[i.imei]?.v || '').trim(),
     }));
+
+    // Cargar estados de Constancias
+    try {
+      const urlC = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=Constancias`;
+      const resC = await fetch(urlC, { mode: 'cors' });
+      const textC = await resC.text();
+      const jsonC = JSON.parse(textC.substring(textC.indexOf('{'), textC.lastIndexOf('}') + 1));
+      const colsC = jsonC.table.cols.map(c => c.label);
+      const rowsC = jsonC.table.rows;
+      const idxImei   = colsC.findIndex(c => c.toLowerCase() === 'imei');
+      const idxEstado = colsC.findIndex(c => c.toLowerCase() === 'estado');
+      constanciasStatus = {};
+      rowsC.forEach(r => {
+        if (r.c[idxImei]?.v && r.c[idxEstado]?.v) {
+          constanciasStatus[String(r.c[idxImei].v).trim()] = r.c[idxEstado].v;
+        }
+      });
+    } catch(e) { /* si falla no bloqueamos */ }
 
     const supervisores = [...new Set(todosLosIMEIs.map(r => r.supervisor).filter(Boolean))].sort();
     const select = document.getElementById('supervisor-select');
@@ -418,10 +437,16 @@ function mostrarIMEIs(imeis) {
   const list = document.getElementById('imei-list');
   list.innerHTML = '';
   imeis.forEach((item, i) => {
+    const estado = constanciasStatus[item.imei] || 'Pendiente';
+    const esAprobado = estado === 'Aprobado';
+    const statusColor = esAprobado ? '#16a34a' : estado === 'Rechazado' ? '#dc2626' : '#d97706';
+    const statusBg = esAprobado ? '#f0fdf4' : estado === 'Rechazado' ? '#fef2f2' : '#fff7ed';
+
     const card = document.createElement('div');
-    card.className = 'imei-card';
+    card.className = 'imei-card' + (esAprobado ? ' aprobado' : '');
     card.id = `imei-card-${i}`;
-    card.onclick = () => toggleIMEI(i);
+    if (!esAprobado) card.onclick = () => toggleIMEI(i);
+    card.style.opacity = esAprobado ? '0.7' : '1';
     card.innerHTML = `
       <div class="imei-header">
         <div class="imei-check" id="check-${i}">✓</div>
@@ -429,7 +454,7 @@ function mostrarIMEIs(imeis) {
           <div class="imei-number">${item.imei}</div>
           <div class="imei-meta">${item.modelo} · ${item.pos}${item.fecha ? ' · ' + item.fecha : ''}</div>
         </div>
-        <span class="imei-status">Pendiente</span>
+        <span class="imei-status" style="background:${statusBg};color:${statusColor}">${estado}</span>
       </div>`;
     list.appendChild(card);
   });
