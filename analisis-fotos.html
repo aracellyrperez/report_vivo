@@ -466,8 +466,8 @@ async function irAUpload() {
     const linkMap = {};
     rows.forEach(r => {
       const imei   = String(r.c?.[4]?.v || '').trim();
-      const link   = String(r.c?.[8]?.v || '').trim();
-      const base64 = String(r.c?.[11]?.v || '').trim(); // columna L
+      const link   = String(r.c?.[8]?.v || '').trim();   // columna I
+      const base64 = String(r.c?.[11]?.v || '').trim();  // columna L
       if (imei) linkMap[imei] = { link, base64 };
     });
 
@@ -494,10 +494,17 @@ async function irAUpload() {
         );
         if (found) entry = linkMap[found];
       }
-      if (entry && entry.link) {
-        fotoUrl = entry.link;
-        encontradas++;
-        fotosMap[idx] = { type: 'url', url: fotoUrl, name: imeiKey };
+      if (entry) {
+        if (entry.base64 && entry.base64.startsWith('data:image')) {
+          // Usar base64 directo — sin CORS
+          encontradas++;
+          fotosMap[idx] = { type: 'base64', base64: entry.base64, name: imeiKey };
+          fotoUrl = 'base64'; // señal para el render
+        } else if (entry.link) {
+          fotoUrl = entry.link;
+          encontradas++;
+          fotosMap[idx] = { type: 'url', url: fotoUrl, name: imeiKey };
+        }
       }
 
       const div = document.createElement('div');
@@ -601,8 +608,15 @@ async function analizarTodo() {
     try {
       let base64, mediaType;
 
-      if (fotoData.type === 'url') {
-        // URL directa a la API de Anthropic (sin descargar en el browser)
+      if (fotoData.type === 'base64') {
+        // Base64 directo desde columna L del Sheet — sin CORS
+        const b64 = fotoData.base64.includes(',') ? fotoData.base64.split(',')[1] : fotoData.base64;
+        const resultado = await analizarConDatos({ type: 'image/jpeg' }, b64, item);
+        resultadosMap[idx] = resultado;
+        renderResultado(idx, resultado, item);
+        continue;
+      } else if (fotoData.type === 'url') {
+        // URL directa a la API de Anthropic
         const resultado = await analizarConUrl(fotoData.url, item);
         resultadosMap[idx] = resultado;
         renderResultado(idx, resultado, item);
