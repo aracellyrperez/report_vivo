@@ -180,11 +180,10 @@
     </div>
     <div class="login-field">
       <label>API Key de Anthropic</label>
-      <input type="password" id="loginApiKey" placeholder="sk-ant-api03-..."
-        onkeydown="if(event.key==='Enter') verificarEmail()" />
+      <input type="password" id="loginApiKey" placeholder="sk-ant-api03-..." />
       <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:5px;">Obtené tu key en console.anthropic.com</div>
     </div>
-    <button class="login-btn" onclick="verificarEmail()">Ingresar &rarr;</button>
+    <button class="login-btn" id="btnLogin">Ingresar &rarr;</button>
     <div class="login-error" id="loginError">&#9888; Email no autorizado o API Key inválida.</div>
   </div>
 </div>
@@ -831,24 +830,19 @@ const EMAILS_AUTORIZADOS = [
   'carlosfernandezc@salesland.net'
 ];
 
-function verificarEmail() {
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const apiKey = document.getElementById('loginApiKey').value.trim();
+function doLogin() {
+  const email   = (document.getElementById('loginEmail').value || '').trim().toLowerCase();
+  const apiKey  = (document.getElementById('loginApiKey').value || '').trim();
   const errorEl = document.getElementById('loginError');
 
   if (!EMAILS_AUTORIZADOS.includes(email)) {
-    errorEl.textContent = '⚠ Email no autorizado. Solicitá acceso a tu supervisor.';
+    errorEl.textContent = '⚠ Email no autorizado.';
     errorEl.style.display = 'block';
-    document.getElementById('loginEmail').style.borderColor = '#dc2626';
-    setTimeout(() => { document.getElementById('loginEmail').style.borderColor = ''; }, 2000);
     return;
   }
-
   if (!apiKey.startsWith('sk-ant-')) {
     errorEl.textContent = '⚠ API Key inválida. Debe empezar con sk-ant-';
     errorEl.style.display = 'block';
-    document.getElementById('loginApiKey').style.borderColor = '#dc2626';
-    setTimeout(() => { document.getElementById('loginApiKey').style.borderColor = ''; }, 2000);
     return;
   }
 
@@ -858,21 +852,30 @@ function verificarEmail() {
 
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appContent').style.display = 'block';
-  const dateEl = document.getElementById('topbar-date');
-  dateEl.innerHTML = `<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ${email}</span>`;
-  errorEl.style.display = 'none';
+  document.getElementById('topbar-date').innerHTML =
+    `<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ${email}</span>`;
 }
 
-// Verificar si ya hay sesión activa
-window.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+  // Botón login
+  document.getElementById('btnLogin').addEventListener('click', doLogin);
+
+  // Enter en cualquier campo del login
+  ['loginEmail','loginApiKey'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doLogin();
+    });
+  });
+
+  // Sesión guardada
   const savedEmail = sessionStorage.getItem('vivo_auth');
-  const savedKey = sessionStorage.getItem('vivo_apikey');
+  const savedKey   = sessionStorage.getItem('vivo_apikey');
   if (savedEmail && EMAILS_AUTORIZADOS.includes(savedEmail) && savedKey) {
     ANTHROPIC_KEY = savedKey;
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appContent').style.display = 'block';
-    const dateEl = document.getElementById('topbar-date');
-    dateEl.innerHTML = `<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ${savedEmail}</span>`;
+    document.getElementById('topbar-date').innerHTML =
+      `<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ${savedEmail}</span>`;
   }
 });
 
