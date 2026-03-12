@@ -3,99 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIVO — Analizador</title>
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
+<title>VIVO — Análisis de Fotos</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body { font-family: 'Exo 2', sans-serif; background: #f4f6ff; margin: 0; padding: 20px; text-align: center; }
-  .card { background: white; max-width: 600px; margin: 0 auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-  textarea { width: 100%; height: 100px; margin: 15px 0; padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; resize: none; }
-  button { background: #1e46e6; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
-  button:hover { background: #0f2a9e; }
-  .results { margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-  .photo-card { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #e2e8f0; padding-bottom: 10px; }
-  .photo-img { width: 100%; height: 350px; object-fit: contain; background: #f8fafc; cursor: pointer; }
-  #status { margin-top: 10px; font-weight: bold; color: #1e46e6; }
-</style>
-</head>
-<body>
-
-<div class="card">
-  <h2>VIVO ANALYZER</h2>
-  <p>Pega los IMEIs aquí:</p>
-  <textarea id="imeiInput" placeholder="Ej: 351336920155021"></textarea>
-  <button id="btnBuscar">CONSULTAR AHORA</button>
-  <div id="status"></div>
-</div>
-
-<div id="resultsContainer" class="results"></div>
-
-<script>
-document.getElementById('btnBuscar').addEventListener('click', async function() {
-  const input = document.getElementById('imeiInput').value;
-  const container = document.getElementById('resultsContainer');
-  const status = document.getElementById('status');
-  
-  const imeis = input.split(/[\n, ]+/).map(i => i.replace(/\D/g, '')).filter(i => i.length > 5);
-  
-  if (imeis.length === 0) {
-    alert("Ingresa un IMEI válido");
-    return;
+  :root {
+    --accent: #1e46e6;
+    --accent2: #0f2a9e;
+    --ink: #0a0a0f;
+    --ink2: #1a1a2e;
+    --bg: #f4f6ff;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --muted: #94a3b8;
+    --success: #16a34a;
+    --error: #dc2626;
   }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink2); min-height: 100vh; overflow: hidden; }
 
-  status.innerText = "Buscando en Google Sheets...";
-  container.innerHTML = "";
-
-  try {
-    const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
-    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&t=${Date.now()}`;
-
-    const resp = await fetch(URL);
-    const text = await resp.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
-    const rows = json.table.rows;
-
-    const db = {};
-    rows.forEach(r => {
-      let imeiExcel = r.c?.[4]?.v ? String(r.c[4].v).replace(/\D/g, '') : "";
-      let link = r.c?.[8]?.v || "";
-      let b64 = r.c?.[11]?.v || "";
-      
-      if (imeiExcel) db[imeiExcel] = { link, b64 };
-    });
-
-    imeis.forEach(imei => {
-      const info = db[imei];
-      let img = 'https://via.placeholder.com/300x400?text=No+Encontrado';
-      let msg = '<span style="color:red">No registrado</span>';
-
-      if (info) {
-        if (info.b64 && info.b64.length > 100) {
-          img = info.b64;
-          msg = '<span style="color:green">✔ Foto Servidor</span>';
-        } else if (info.link) {
-          img = info.link;
-          msg = '<span style="color:blue">● Link Drive</span>';
-        }
-      }
-
-      const card = document.createElement('div');
-      card.className = 'photo-card';
-      card.innerHTML = `
-        <img src="${img}" class="photo-img" onclick="window.open(this.src)">
-        <div style="padding:10px">
-          <strong>IMEI:</strong> ${imei}<br>${msg}
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-    status.innerText = "";
-
-  } catch (e) {
-    console.error(e);
-    status.innerText = "Error de conexión. ¿El Excel es público?";
-  }
-});
-</script>
-</body>
-</html>
+  /* Estructura Original */
+  .app-layout { display: flex; height: 100vh; }
+  
+  /* Sidebar de Búsqueda */
+  .sidebar { width: 350px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; z-index: 10; }
+  .logo-area { margin-bottom: 32px; font-weight: 800; font-size: 20px; letter-spacing: 1px; color: #000; }
+  
+  .search-box { flex: 1; display: flex; flex-direction: column; }
+  label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  textarea { flex: 1; width: 100%; padding: 16px; border-radius: 1
