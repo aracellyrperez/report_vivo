@@ -176,11 +176,16 @@
     <p>Ingresá tu email para continuar</p>
     <div class="login-field">
       <label>Email</label>
-      <input type="email" id="loginEmail" placeholder="tu@email.com"
+      <input type="email" id="loginEmail" placeholder="tu@email.com" />
+    </div>
+    <div class="login-field">
+      <label>API Key de Anthropic</label>
+      <input type="password" id="loginApiKey" placeholder="sk-ant-api03-..."
         onkeydown="if(event.key==='Enter') verificarEmail()" />
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:5px;">Obtené tu key en console.anthropic.com</div>
     </div>
     <button class="login-btn" onclick="verificarEmail()">Ingresar &rarr;</button>
-    <div class="login-error" id="loginError">&#9888; Email no autorizado. Solicitá acceso a tu supervisor.</div>
+    <div class="login-error" id="loginError">&#9888; Email no autorizado o API Key inválida.</div>
   </div>
 </div>
 
@@ -263,6 +268,7 @@
 </div>
 
 <script>
+let ANTHROPIC_KEY = '';
 const SHEETS_ID = '1jPvPa1rFndWQ8fPiJkL32VCsZI6ObAoXD_dVwUZISeo';
 
 let todosLosIMEIs = [];
@@ -647,7 +653,7 @@ Respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': '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',
+      'x-api-key': ANTHROPIC_KEY,
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
@@ -739,29 +745,42 @@ const EMAILS_AUTORIZADOS = [
 
 function verificarEmail() {
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const apiKey = document.getElementById('loginApiKey').value.trim();
   const errorEl = document.getElementById('loginError');
 
-  if (EMAILS_AUTORIZADOS.includes(email)) {
-    sessionStorage.setItem('vivo_auth', email);
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appContent').style.display = 'block';
-    // Mostrar email del usuario en topbar
-    const dateEl = document.getElementById('topbar-date');
-    dateEl.innerHTML = `<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ${email}</span>`;
-    errorEl.style.display = 'none';
-  } else {
+  if (!EMAILS_AUTORIZADOS.includes(email)) {
+    errorEl.textContent = '⚠ Email no autorizado. Solicitá acceso a tu supervisor.';
     errorEl.style.display = 'block';
     document.getElementById('loginEmail').style.borderColor = '#dc2626';
-    setTimeout(() => {
-      document.getElementById('loginEmail').style.borderColor = '';
-    }, 2000);
+    setTimeout(() => { document.getElementById('loginEmail').style.borderColor = ''; }, 2000);
+    return;
   }
+
+  if (!apiKey.startsWith('sk-ant-')) {
+    errorEl.textContent = '⚠ API Key inválida. Debe empezar con sk-ant-';
+    errorEl.style.display = 'block';
+    document.getElementById('loginApiKey').style.borderColor = '#dc2626';
+    setTimeout(() => { document.getElementById('loginApiKey').style.borderColor = ''; }, 2000);
+    return;
+  }
+
+  sessionStorage.setItem('vivo_auth', email);
+  sessionStorage.setItem('vivo_apikey', apiKey);
+  ANTHROPIC_KEY = apiKey;
+
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+  const dateEl = document.getElementById('topbar-date');
+  dateEl.innerHTML = `<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ${email}</span>`;
+  errorEl.style.display = 'none';
 }
 
 // Verificar si ya hay sesión activa
 window.addEventListener('DOMContentLoaded', () => {
   const savedEmail = sessionStorage.getItem('vivo_auth');
-  if (savedEmail && EMAILS_AUTORIZADOS.includes(savedEmail)) {
+  const savedKey = sessionStorage.getItem('vivo_apikey');
+  if (savedEmail && EMAILS_AUTORIZADOS.includes(savedEmail) && savedKey) {
+    ANTHROPIC_KEY = savedKey;
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appContent').style.display = 'block';
     const dateEl = document.getElementById('topbar-date');
