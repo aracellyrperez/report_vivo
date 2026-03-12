@@ -462,12 +462,13 @@ async function irAUpload() {
     const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
     const rows = json.table.rows;
 
-    // Construir mapa IMEI -> link desde Constancias
+    // Construir mapa IMEI -> {link, base64} desde Constancias
     const linkMap = {};
     rows.forEach(r => {
-      const imei = String(r.c?.[4]?.v || '').trim();
-      const link = String(r.c?.[8]?.v || '').trim();
-      if (imei && link) linkMap[imei] = link;
+      const imei   = String(r.c?.[4]?.v || '').trim();
+      const link   = String(r.c?.[8]?.v || '').trim();
+      const base64 = String(r.c?.[11]?.v || '').trim(); // columna L
+      if (imei) linkMap[imei] = { link, base64 };
     });
 
     const indices = [...imeisSeleccionados].sort((a,b) => a-b);
@@ -480,34 +481,15 @@ async function irAUpload() {
       const item = imeisFiltrados[idx];
       const imeiKey = String(item.imei || '').trim();
 
-      // Buscar link por IMEI exacto o parcial
-      let linkFound = linkMap[imeiKey] || null;
-      if (!linkFound) {
-        const key = Object.keys(linkMap).find(k =>
-          k.replace(/\s/g,'').includes(imeiKey.replace(/\s/g,'')) ||
-          imeiKey.replace(/\s/g,'').includes(k.replace(/\s/g,''))
-        );
-        if (key) linkFound = linkMap[key];
-      }
-
-      // Convertir link de Google Drive a link directo de imagen
-      let imgUrl = null;
-      if (linkFound) {
-        const matchId = linkFound.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        if (matchId) {
-          imgUrl = `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w1200`;
-        } else if (linkFound.includes('id=')) {
-          const idParam = new URL(linkFound).searchParams.get('id');
-          if (idParam) imgUrl = `https://drive.google.com/thumbnail?id=${idParam}&sz=w1200`;
-        }
-      }
-
-      if (imgUrl) {
+      // Buscar link en columna I por IMEI (columna E = idx 4, link = idx 8)
+      let fotoUrl = null;
+      const entry = linkMap[imeiKey] || null;
+      if (entry && entry.link) {
+        fotoUrl = entry.link;
         encontradas++;
-        fotosMap[idx] = { type: 'url', url: imgUrl, name: imeiKey };
+        fotosMap[idx] = { type: 'url', url: fotoUrl, name: imeiKey };
       }
 
-      // Renderizar card con preview o zona de carga manual como fallback
       const div = document.createElement('div');
       div.className = 'imei-upload-item';
       div.id = `upload-item-${idx}`;
@@ -518,36 +500,30 @@ async function irAUpload() {
             <div class="imei-det">${item.modelo}${item.fecha ? ' · ' + item.fecha : ''}${item.pos ? ' · ' + item.pos : ''}</div>
           </div>
         </div>
-        ${imgUrl
-          ? `<div style="padding:0 14px 14px;">
-               <div style="font-size:11px;color:var(--success);font-weight:700;margin-bottom:8px;">✅ Foto encontrada en el Sheet</div>
-               <img src="${imgUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--border);"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
-               <div style="display:none;font-size:12px;color:var(--warn);padding:8px;">⚠ No se pudo cargar la imagen. Verificá que el archivo en Drive es público.</div>
-             </div>`
-          : `<div style="padding:0 14px 14px;">
-               <div style="font-size:11px;color:var(--warn);font-weight:700;margin-bottom:8px;">⚠ No encontrada en el Sheet — subí la foto manualmente</div>
-               <label class="upload-zone" id="zone-${idx}" style="cursor:pointer;">
-                 <span style="font-size:22px;">📷</span>
-                 <span style="font-weight:600;font-size:14px;">Tocar para subir foto</span>
-                 <span style="font-size:12px;color:var(--muted);">JPG, PNG — máx. 10MB</span>
-                 <input type="file" accept="image/*" style="display:none" onchange="onFileChange(event,${idx})" />
-               </label>
-             </div>`
-        }
+        <div style="padding:0 14px 14px;">
+          ${fotoUrl
+            ? `<div style="font-size:11px;color:var(--success);font-weight:700;margin-bottom:8px;">✅ Foto encontrada en el Sheet</div>`
+            : `<div style="font-size:11px;color:var(--warn);font-weight:700;margin-bottom:8px;">⚠ No encontrada — subí la foto manualmente</div>`
+          }
+          <label class="upload-zone" id="zone-${idx}" style="cursor:pointer;display:block;${fotoUrl ? 'border-color:var(--success);background:#f0fdf4;' : ''}">
+            <span style="font-size:22px;">📷</span>
+            <span style="font-weight:600;font-size:14px;display:block;margin-top:4px;">${fotoUrl ? 'Reemplazar foto' : 'Subir foto de constancia'}</span>
+            <span style="font-size:12px;color:var(--muted);">JPG, PNG — máx. 10MB</span>
+            <input type="file" accept="image/*" style="display:none" onchange="onFileChange(event,${idx})" />
+          </label>
+          <img id="preview-${idx}" src="" style="display:none;width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:8px;" />
+        </div>
         <div class="result-box hidden" id="result-${idx}"></div>`;
       container.appendChild(div);
     });
 
     const sinFoto = indices.length - encontradas;
     statusEl.innerHTML = `
-      <span style="color:var(--success);font-weight:700;">✅ ${encontradas} foto${encontradas!==1?'s':''} encontrada${encontradas!==1?'s':''} automáticamente</span>
-      ${sinFoto > 0 ? `<span style="color:var(--warn);margin-left:8px;">· ${sinFoto} sin foto en el Sheet</span>` : ''}
+      ${encontradas > 0 ? `<span style="color:var(--success);font-weight:700;">✅ ${encontradas} foto${encontradas!==1?'s':''} encontrada${encontradas!==1?'s':''} en el Sheet</span>` : ''}
+      ${sinFoto > 0 ? `<span style="color:var(--warn);font-weight:700;margin-left:${encontradas>0?'12px':'0'};">⚠ ${sinFoto} sin foto — subí manualmente</span>` : ''}
     `;
 
-    if (encontradas > 0) {
-      document.getElementById('btn-analizar').disabled = false;
-    }
+    document.getElementById('btn-analizar').disabled = false;
 
   } catch(err) {
     statusEl.innerHTML = `<span style="color:var(--error);">⚠ Error al cargar el Sheet de Constancias: ${err.message}</span>`;
@@ -556,6 +532,37 @@ async function irAUpload() {
 
 
 // ─── ANALIZAR TODO ───────────────────────────────────────────────────────────
+// ─── CARGA MANUAL DE FOTO ────────────────────────────────────────────────────
+function onFileChange(event, idx) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { alert('La foto es muy grande. Máximo 10MB.'); return; }
+
+  fotosMap[idx] = file;
+
+  // Mostrar preview
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('preview-' + idx);
+    if (preview) {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    }
+    const zone = document.getElementById('zone-' + idx);
+    if (zone) {
+      zone.style.borderColor = 'var(--success)';
+      zone.style.background = '#f0fdf4';
+      const txt = zone.querySelector('span');
+      if (txt) txt.textContent = '✅ ' + file.name;
+    }
+  };
+  reader.readAsDataURL(file);
+
+  // Habilitar botón si hay al menos una foto
+  const hayFotos = Object.keys(fotosMap).length > 0;
+  document.getElementById('btn-analizar').disabled = !hayFotos;
+}
+
 async function analizarTodo() {
   const btn = document.getElementById('btn-analizar');
   btn.disabled = true;
@@ -585,7 +592,7 @@ async function analizarTodo() {
       let base64, mediaType;
 
       if (fotoData.type === 'url') {
-        // Enviar URL directamente a la API (sin descargar)
+        // URL directa a la API de Anthropic (sin descargar en el browser)
         const resultado = await analizarConUrl(fotoData.url, item);
         resultadosMap[idx] = resultado;
         renderResultado(idx, resultado, item);
