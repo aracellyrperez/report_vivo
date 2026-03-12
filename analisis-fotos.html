@@ -13,7 +13,7 @@
   button:hover { background: #0f2a9e; }
   .results { margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
   .photo-card { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #e2e8f0; padding-bottom: 10px; }
-  .photo-img { width: 100%; height: 350px; object-fit: contain; background: #f8fafc; }
+  .photo-img { width: 100%; height: 350px; object-fit: contain; background: #f8fafc; cursor: pointer; }
   #status { margin-top: 10px; font-weight: bold; color: #1e46e6; }
 </style>
 </head>
@@ -30,13 +30,11 @@
 <div id="resultsContainer" class="results"></div>
 
 <script>
-// Usamos el evento de clic de forma más directa
 document.getElementById('btnBuscar').addEventListener('click', async function() {
   const input = document.getElementById('imeiInput').value;
   const container = document.getElementById('resultsContainer');
   const status = document.getElementById('status');
   
-  // Limpiar IMEIs (solo números)
   const imeis = input.split(/[\n, ]+/).map(i => i.replace(/\D/g, '')).filter(i => i.length > 5);
   
   if (imeis.length === 0) {
@@ -49,7 +47,6 @@ document.getElementById('btnBuscar').addEventListener('click', async function() 
 
   try {
     const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
-    // Forzamos que no use caché de Google con un número aleatorio al final
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&t=${Date.now()}`;
 
     const resp = await fetch(URL);
@@ -59,7 +56,6 @@ document.getElementById('btnBuscar').addEventListener('click', async function() 
 
     const db = {};
     rows.forEach(r => {
-      // IMEI en Columna E (índice 4) - Limpiamos el número de cualquier formato
       let imeiExcel = r.c?.[4]?.v ? String(r.c[4].v).replace(/\D/g, '') : "";
       let link = r.c?.[8]?.v || "";
       let b64 = r.c?.[11]?.v || "";
