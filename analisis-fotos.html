@@ -481,9 +481,19 @@ async function irAUpload() {
       const item = imeisFiltrados[idx];
       const imeiKey = String(item.imei || '').trim();
 
-      // Buscar link en columna I por IMEI (columna E = idx 4, link = idx 8)
+      // Buscar link en columna I por IMEI (exacto o parcial)
       let fotoUrl = null;
-      const entry = linkMap[imeiKey] || null;
+      let entry = linkMap[imeiKey] || null;
+      if (!entry) {
+        // Búsqueda flexible sin espacios
+        const keyClean = imeiKey.replace(/\s/g, '');
+        const found = Object.keys(linkMap).find(k =>
+          k.replace(/\s/g,'') === keyClean ||
+          k.replace(/\s/g,'').includes(keyClean) ||
+          keyClean.includes(k.replace(/\s/g,''))
+        );
+        if (found) entry = linkMap[found];
+      }
       if (entry && entry.link) {
         fotoUrl = entry.link;
         encontradas++;
