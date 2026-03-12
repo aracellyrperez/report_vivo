@@ -585,17 +585,11 @@ async function analizarTodo() {
       let base64, mediaType;
 
       if (fotoData.type === 'url') {
-        // Descargar imagen desde Drive como blob
-        const resp = await fetch(fotoData.url);
-        if (!resp.ok) throw new Error('No se pudo descargar la imagen desde Drive');
-        const blob = await resp.blob();
-        mediaType = blob.type || 'image/jpeg';
-        base64 = await new Promise((res, rej) => {
-          const r = new FileReader();
-          r.onload = () => res(r.result.split(',')[1]);
-          r.onerror = rej;
-          r.readAsDataURL(blob);
-        });
+        // Enviar URL directamente a la API (sin descargar)
+        const resultado = await analizarConUrl(fotoData.url, item);
+        resultadosMap[idx] = resultado;
+        renderResultado(idx, resultado, item);
+        continue;
       } else {
         // Archivo subido manualmente
         mediaType = fotoData.type || 'image/jpeg';
@@ -617,52 +611,90 @@ async function analizarTodo() {
   mostrarResumen();
 }
 
-// ─── ANÁLISIS COMBINADO (1 sola llamada) ─────────────────────────────────────
-async function analizarConDatos(file, base64, item) {
-  const prompt = `Eres un experto en análisis forense de imágenes y en lectura de constancias/boletas de venta de celulares VIVO en Perú.
+// ─── ANÁLISIS CON URL DIRECTA (Google Drive) ────────────────────────────────
+async function analizarConUrl(imgUrl, item) {
+  const prompt = buildPrompt(item);
 
-Realizá DOS tareas sobre esta imagen:
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'url', url: imgUrl } },
+          { type: 'text', text: prompt }
+        ]
+      }]
+    })
+  });
 
-═══ TAREA 1 — AUTENTICIDAD ═══
-Determiná si la imagen fue editada, modificada o alterada digitalmente.
-Buscá específicamente:
-- Textos con bordes irregulares, difusos o con halos (señal de que fueron pegados encima)
-- Inconsistencias de fuente, tamaño o color entre partes del texto
-- Zonas borrosas alrededor de números o palabras específicas
-- Sombras o iluminación inconsistente en distintas partes del documento
-- Pixelación diferente entre áreas del mismo documento
-- Colores artificiales o saturación inusual en zonas puntuales
-
-═══ TAREA 2 — EXTRACCIÓN DE DATOS ═══
-Esta es una boleta/constancia de venta de celular VIVO. Buscá con atención:
-
-▶ IMEI (número de 15 dígitos):
-  - Puede estar en la parte DERECHA de la imagen, en una etiqueta con código de barras
-  - Puede aparecer como "IMEI1:" o "IMEI:" seguido del número
-  - El IMEI esperado es: ${item.imei} — buscá este número específicamente
-  - Leé el número con MUCHO cuidado dígito por dígito
-
-▶ MODELO del celular:
-  - Suele estar en la descripción del producto, en el centro de la boleta
-  - Formato típico: "VIVO Y39 5G 256GB", "VIVO Y04 128GB", "VIVO V29e", etc.
-  - Leé EXACTAMENTE lo que dice, sin asumir ni completar
-  - Prestá atención a si dice Y39, Y35, Y17, Y04, etc. — son modelos diferentes
-
-▶ FECHA de la venta:
-  - Puede estar en el encabezado o pie de la boleta
-  - Puede estar en formato DD/MM/YYYY, YYYY-MM-DD, o similar
-
-Respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
-{
-  "veredicto": "ORIGINAL" | "EDITADA" | "SOSPECHOSA",
-  "confianza": <número 0-100>,
-  "resumen": "<2-3 oraciones en español explicando qué encontraste>",
-  "datos": {
-    "imei": "<IMEI de 15 dígitos encontrado, o null si no se ve>",
-    "modelo": "<modelo exacto leído de la imagen, o null si no se ve>",
-    "fecha": "<fecha encontrada, o null si no se ve>"
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error?.message || 'Error HTTP ' + response.status);
   }
-}`;
+
+  const data = await response.json();
+  const text = data.content?.find(b => b.type === 'text')?.text || '';
+  try {
+    const fence = '```';
+    const clean = text.replace(new RegExp(fence + 'json|' + fence, 'g'), '').trim();
+    return JSON.parse(clean);
+  } catch {
+    throw new Error('No se pudo interpretar la respuesta de la IA');
+  }
+}
+
+// ─── ANÁLISIS COMBINADO (1 sola llamada) ─────────────────────────────────────
+function buildPrompt(item) {
+  return 'Eres un experto en análisis forense de imágenes y en lectura de constancias/boletas de venta de celulares VIVO en Perú.\n\n' +
+    'Realizá DOS tareas sobre esta imagen:\n\n' +
+    '\u2550\u2550\u2550 TAREA 1 \u2014 AUTENTICIDAD \u2550\u2550\u2550\n' +
+    'Determiná si la imagen fue editada, modificada o alterada digitalmente.\nBuscá específicamente:\n' +
+    '- Textos con bordes irregulares, difusos o con halos\n' +
+    '- Inconsistencias de fuente, tamaño o color entre partes del texto\n' +
+    '- Zonas borrosas alrededor de números o palabras específicas\n' +
+    '- Sombras o iluminación inconsistente en distintas partes del documento\n' +
+    '- Pixelación diferente entre áreas del mismo documento\n' +
+    '- Colores artificiales o saturación inusual en zonas puntuales\n\n' +
+    '\u2550\u2550\u2550 TAREA 2 \u2014 EXTRACCIÓN DE DATOS \u2550\u2550\u2550\n' +
+    'Esta es una boleta/constancia de venta de celular VIVO. Buscá con atención:\n\n' +
+    '\u25b6 IMEI (número de 15 dígitos):\n' +
+    '  - Puede estar en la parte DERECHA, en una etiqueta con código de barras\n' +
+    '  - Puede aparecer como "IMEI1:" o "IMEI:" seguido del número\n' +
+    '  - El IMEI esperado es: ' + item.imei + ' \u2014 buscá este número específicamente\n' +
+    '  - Leé el número con MUCHO cuidado dígito por dígito\n\n' +
+    '\u25b6 MODELO del celular:\n' +
+    '  - Suele estar en la descripción del producto, en el centro de la boleta\n' +
+    '  - Formato típico: "VIVO Y39 5G 256GB", "VIVO Y04 128GB", "VIVO V29e", etc.\n' +
+    '  - Leé EXACTAMENTE lo que dice, sin asumir ni completar\n' +
+    '  - Prestá atención a si dice Y39, Y35, Y17, Y04, etc. \u2014 son modelos diferentes\n\n' +
+    '\u25b6 FECHA de la venta:\n' +
+    '  - Puede estar en el encabezado o pie de la boleta\n' +
+    '  - Puede estar en formato DD/MM/YYYY, YYYY-MM-DD, o similar\n\n' +
+    'Respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):\n' +
+    '{\n' +
+    '  "veredicto": "ORIGINAL" | "EDITADA" | "SOSPECHOSA",\n' +
+    '  "confianza": <número 0-100>,\n' +
+    '  "resumen": "<2-3 oraciones en español explicando qué encontraste>",\n' +
+    '  "datos": {\n' +
+    '    "imei": "<IMEI de 15 dígitos encontrado, o null si no se ve>",\n' +
+    '    "modelo": "<modelo exacto leído de la imagen, o null si no se ve>",\n' +
+    '    "fecha": "<fecha encontrada, o null si no se ve>"\n' +
+    '  }\n' +
+    '}';
+}
+
+
+async function analizarConDatos(file, base64, item) {
+  const prompt = buildPrompt(item);
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -687,13 +719,15 @@ Respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `Error HTTP ${response.status}`);
+    throw new Error(err?.error?.message || 'Error HTTP ' + response.status);
   }
 
   const data = await response.json();
   const text = data.content?.find(b => b.type === 'text')?.text || '';
   try {
-    return JSON.parse(text.replace(/```json|```/g, '').trim());
+    const fence = String.fromCharCode(96);
+    const clean = text.replace(new RegExp(fence+fence+fence+'json|'+fence+fence+fence,'g'),'').trim();
+    return JSON.parse(clean);
   } catch {
     throw new Error('No se pudo interpretar la respuesta de la IA');
   }
