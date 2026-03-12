@@ -3,92 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIVO — Análisis de Fotos</title>
+<title>VIVO — Analizador</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --accent: #1e46e6;
-    --accent2: #0f2a9e;
-    --bg: #f4f6ff;
-    --surface: #ffffff;
-    --border: #e2e8f0;
-    --muted: #94a3b8;
-    --success: #16a34a;
-    --error: #dc2626;
-  }
+  :root { --accent: #1e46e6; --accent2: #0f2a9e; --bg: #f4f6ff; --surface: #ffffff; --border: #e2e8f0; --muted: #94a3b8; --success: #16a34a; --error: #dc2626; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: #000; min-height: 100vh; }
-
-  /* Topbar */
-  .topbar { background: #000; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .logo { color: #fff; font-weight: 800; font-size: 20px; letter-spacing: 1px; }
-  
+  .topbar { background: #000; padding: 12px 24px; color: #fff; font-weight: 800; font-size: 20px; text-align: center; }
   .main-container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-  
-  /* Tarjeta de Búsqueda */
   .card { background: var(--surface); border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid var(--border); text-align: center; }
-  h1 { font-size: 28px; margin-bottom: 8px; font-weight: 800; }
-  .subtitle { color: var(--muted); margin-bottom: 24px; font-size: 15px; }
-  
-  textarea { width: 100%; height: 120px; padding: 18px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 15px; transition: 0.3s; resize: none; background: #fcfdfe; margin-bottom: 16px; }
-  textarea:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(30, 70, 230, 0.1); }
-  
-  .btn { background: var(--accent); color: #fff; border: none; padding: 15px 40px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 16px; width: 100%; max-width: 350px; text-transform: uppercase; }
-  .btn:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30, 70, 230, 0.3); }
-  
-  /* Resultados */
+  textarea { width: 100%; height: 120px; padding: 18px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 15px; margin-bottom: 16px; background: #fcfdfe; resize: none; }
+  .btn { background: var(--accent); color: #fff; border: none; padding: 15px 40px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; max-width: 350px; text-transform: uppercase; }
   .results { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-  .photo-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; animation: slideUp 0.4s ease-out; }
-  .photo-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
-  .photo-img { width: 100%; height: 350px; object-fit: cover; background: #f1f5f9; cursor: pointer; border-bottom: 1px solid var(--border); }
-  .photo-info { padding: 18px; text-align: left; }
-  .photo-imei { font-weight: 700; font-size: 16px; color: #000; display: block; }
-  .photo-status { font-size: 12px; font-weight: 600; text-transform: uppercase; margin-top: 6px; display: block; }
-
-  #loading { display: none; margin-top: 20px; color: var(--accent); font-weight: 800; }
-
+  .photo-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); animation: slideUp 0.4s ease-out; }
+  .photo-img { width: 100%; height: 350px; object-fit: cover; background: #f1f5f9; cursor: pointer; }
+  .photo-info { padding: 18px; }
+  .photo-imei { font-weight: 700; font-size: 16px; display: block; }
+  #loading { display: none; margin-top: 20px; font-weight: 800; color: var(--accent); }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="logo">VIVO ANALYZER</div>
-</div>
+<div class="topbar">VIVO ANALYZER</div>
 
 <div class="main-container">
   <div class="card">
     <h1>Analizador de Constancias</h1>
-    <p class="subtitle">Ingresa los IMEIs para recuperar las fotos directamente desde el Excel.</p>
-    
-    <textarea id="imeiInput" placeholder="Pega los IMEIs aquí (ej: 35248...)"></textarea>
+    <p style="color:var(--muted); margin-bottom: 20px;">Pega los IMEIs abajo</p>
+    <textarea id="imeiInput" placeholder="Pega los IMEIs aquí..."></textarea>
     <br>
-    <button class="btn" onclick="buscarFotos()">Consultar Registro</button>
-    <div id="loading">Buscando información...</div>
+    <button class="btn" onclick="buscarFotos()">CONSULTAR AHORA</button>
+    <div id="loading">Buscando en la base de datos pública...</div>
   </div>
-
   <div id="resultsContainer" class="results"></div>
 </div>
 
 <script>
-// USANDO TU SHEET PÚBLICO
-const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
-const TAB_NAME = 'Constancias';
-const URL_DATA = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${TAB_NAME}`;
-
 async function buscarFotos() {
   const input = document.getElementById('imeiInput').value;
   const container = document.getElementById('resultsContainer');
   const loading = document.getElementById('loading');
   
+  // Separar IMEIs por comas, espacios o saltos de línea
   const listaImeis = input.split(/[\n, ]+/).map(i => i.trim()).filter(i => i.length > 5);
   
-  if (listaImeis.length === 0) return alert("Ingresa al menos un IMEI.");
+  if (listaImeis.length === 0) return alert("Ingresa IMEIs válidos");
 
   loading.style.display = 'block';
   container.innerHTML = '';
 
   try {
+    // URL de tu Sheet público (Asegúrate que el ID sea correcto)
+    const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
+    const URL_DATA = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Constancias`;
+
     const resp = await fetch(URL_DATA);
     const text = await resp.text();
     const json = JSON.parse(text.substring(47).slice(0, -2));
@@ -96,48 +65,17 @@ async function buscarFotos() {
     
     const db = {};
     rows.forEach(r => {
-      const imei = String(r.c?.[4]?.v || '').trim();  // Columna E
-      const link = String(r.c?.[8]?.v || '').trim();  // Columna I
-      const b64  = String(r.c?.[11]?.v || '').trim(); // Columna L (LA CLAVE)
+      // Extraemos el valor del IMEI (Columna E = índice 4)
+      let imeiValue = r.c?.[4]?.v ? String(r.c[4].v).trim() : null;
+      // Extraemos Link (Columna I = índice 8) y Base64 (Columna L = índice 11)
+      let link = r.c?.[8]?.v || '';
+      let b64  = r.c?.[11]?.v || '';
       
-      if (imei) db[imei] = { link, b64 };
+      if (imeiValue) {
+        db[imeiValue] = { link, b64 };
+      }
     });
 
     listaImeis.forEach(imei => {
       const entry = db[imei];
-      let imgFinal = 'https://via.placeholder.com/300x400?text=No+Encontrado';
-      let statusHtml = `<span style="color:var(--error)">✖ No registrado</span>`;
-
-      if (entry) {
-        // PRIORIDAD: Columna L (Base64)
-        if (entry.b64 && entry.b64.startsWith('data:image')) {
-          imgFinal = entry.b64;
-          statusHtml = `<span style="color:var(--success)">✔ Evidencia Lista</span>`;
-        } else if (entry.link) {
-          imgFinal = entry.link;
-          statusHtml = `<span style="color:var(--accent)">● Link Drive</span>`;
-        }
-      }
-
-      const card = document.createElement('div');
-      card.className = 'photo-card';
-      card.innerHTML = `
-        <img src="${imgFinal}" class="photo-img" onclick="window.open(this.src)" title="Ver en grande" onerror="this.src='https://via.placeholder.com/300x400?text=Error+Carga'">
-        <div class="photo-info">
-          <span class="photo-imei">IMEI: ${imei}</span>
-          <span class="photo-status">${statusHtml}</span>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-  } catch (e) {
-    alert("Error: Asegúrate de que el Google Sheet siga siendo público.");
-  } finally {
-    loading.style.display = 'none';
-  }
-}
-</script>
-
-</body>
-</html>
+      let imgFinal = '
