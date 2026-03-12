@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIVO — Analizador</title>
+<title>VIVO — Analizador PRO</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --accent: #1e46e6; --accent2: #0f2a9e; --bg: #f4f6ff; --surface: #ffffff; --border: #e2e8f0; --muted: #94a3b8; --success: #16a34a; --error: #dc2626; }
+  :root { --accent: #1e46e6; --bg: #f4f6ff; --surface: #ffffff; --border: #e2e8f0; --error: #dc2626; --success: #16a34a; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: #000; min-height: 100vh; }
-  .topbar { background: #000; padding: 12px 24px; color: #fff; font-weight: 800; font-size: 20px; text-align: center; }
-  .main-container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-  .card { background: var(--surface); border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid var(--border); text-align: center; }
-  textarea { width: 100%; height: 120px; padding: 18px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 15px; margin-bottom: 16px; background: #fcfdfe; resize: none; }
-  .btn { background: var(--accent); color: #fff; border: none; padding: 15px 40px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; max-width: 350px; text-transform: uppercase; }
-  .results { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-  .photo-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); animation: slideUp 0.4s ease-out; }
-  .photo-img { width: 100%; height: 400px; object-fit: contain; background: #f1f5f9; cursor: pointer; }
-  .photo-info { padding: 18px; border-top: 1px solid var(--border); }
-  #loading { display: none; margin-top: 20px; font-weight: 800; color: var(--accent); }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  body { font-family: 'Exo 2', sans-serif; background: var(--bg); padding-bottom: 40px; }
+  .topbar { background: #000; padding: 15px; color: #fff; text-align: center; font-weight: 800; font-size: 22px; }
+  .main-container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+  .card { background: var(--surface); border-radius: 20px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); text-align: center; }
+  textarea { width: 100%; height: 100px; padding: 15px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; margin-bottom: 15px; resize: none; }
+  .btn { background: var(--accent); color: #fff; border: none; padding: 15px 30px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; font-size: 16px; }
+  .btn:active { transform: scale(0.98); }
+  .results { margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+  .photo-card { background: #fff; border-radius: 15px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+  .photo-img { width: 100%; height: 350px; object-fit: contain; background: #f8fafc; }
+  .photo-info { padding: 15px; font-size: 14px; border-top: 1px solid var(--border); }
+  #status-msg { margin-top: 15px; font-weight: 700; color: var(--accent); display: none; }
 </style>
 </head>
 <body>
@@ -28,83 +28,87 @@
 
 <div class="main-container">
   <div class="card">
-    <h1>Buscador de Evidencias</h1>
+    <h2 style="margin-bottom:15px;">Buscador de Fotos</h2>
     <textarea id="imeiInput" placeholder="Pega los IMEIs aquí..."></textarea>
-    <br>
-    <button class="btn" onclick="buscarFotos()">CONSULTAR</button>
-    <div id="loading">Conectando con Google Sheets...</div>
+    <button class="btn" onclick="buscar()">CONSULTAR AHORA</button>
+    <div id="status-msg">Cargando base de datos...</div>
   </div>
   <div id="resultsContainer" class="results"></div>
 </div>
 
 <script>
-async function buscarFotos() {
+async function buscar() {
   const input = document.getElementById('imeiInput').value;
   const container = document.getElementById('resultsContainer');
-  const loading = document.getElementById('loading');
+  const status = document.getElementById('status-msg');
   
-  // Limpiar IMEIs del buscador: quitamos todo lo que no sea número
-  const listaImeis = input.split(/[\n, ]+/).map(i => i.replace(/\D/g, '')).filter(i => i.length > 5);
+  // 1. Limpiamos los IMEIs (solo números)
+  const imeisBuscados = input.split(/[\n, ]+/).map(i => i.replace(/\D/g, '')).filter(i => i.length > 5);
   
-  if (listaImeis.length === 0) return alert("Ingresa un IMEI válido");
+  if (imeisBuscados.length === 0) {
+    alert("Por favor, ingresa IMEIs válidos.");
+    return;
+  }
 
-  loading.style.display = 'block';
+  status.style.display = 'block';
+  status.innerText = "Conectando con Google...";
   container.innerHTML = '';
 
   try {
+    // URL SIN NOMBRE DE HOJA (para que busque en la primera que encuentre)
     const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
-    const URL_DATA = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Constancias`;
+    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
-    const resp = await fetch(URL_DATA);
-    const text = await resp.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
-    const rows = json.table.rows;
-    
+    const response = await fetch(URL);
+    const rawText = await response.text();
+    const data = JSON.parse(rawText.substring(47).slice(0, -2));
+    const rows = data.table.rows;
+
     const db = {};
     rows.forEach(r => {
-      // OBTENER IMEI (Columna E = índice 4): Limpiamos comas o puntos que ponga Excel
-      let rawImei = r.c?.[4]?.v ? String(r.c[4].v).replace(/\D/g, '') : "";
+      // IMEI está en la columna E (índice 4)
+      let imeiEnExcel = r.c?.[4]?.v ? String(r.c[4].v).replace(/\D/g, '') : "";
+      // Link en I (8) y Base64 en L (11)
+      let link = r.c?.[8]?.v || "";
+      let b64 = r.c?.[11]?.v || "";
       
-      // OBTENER FOTOS
-      let link = r.c?.[8]?.v || '';
-      let b64  = r.c?.[11]?.v || '';
-      
-      if (rawImei) {
-        db[rawImei] = { link, b64 };
+      if (imeiEnExcel) {
+        db[imeiEnExcel] = { link, b64 };
       }
     });
 
-    listaImeis.forEach(imeiBuscado => {
-      const entry = db[imeiBuscado];
-      let imgFinal = 'https://via.placeholder.com/300x400?text=No+Encontrado';
-      let status = `<span style="color:var(--error)">✖ No registrado en Excel</span>`;
+    imeisBuscados.forEach(imei => {
+      const info = db[imei];
+      let img = 'https://via.placeholder.com/300x400?text=No+Encontrado';
+      let msg = `<span style="color:var(--error)">✖ No registrado</span>`;
 
-      if (entry) {
-        if (entry.b64 && entry.b64.length > 100) {
-          imgFinal = entry.b64;
-          status = `<span style="color:var(--success)">✔ Foto desde Servidor</span>`;
-        } else if (entry.link) {
-          imgFinal = entry.link;
-          status = `<span style="color:var(--accent)">● Link Drive</span>`;
+      if (info) {
+        if (info.b64 && info.b64.length > 100) {
+          img = info.b64;
+          msg = `<span style="color:var(--success)">✔ Foto OK</span>`;
+        } else if (info.link) {
+          img = info.link;
+          msg = `<span style="color:var(--accent)">● Link Drive</span>`;
         }
       }
 
       const card = document.createElement('div');
       card.className = 'photo-card';
       card.innerHTML = `
-        <img src="${imgFinal}" class="photo-img" onclick="window.open(this.src)">
+        <img src="${img}" class="photo-img" onclick="window.open(this.src)">
         <div class="photo-info">
-          <p><strong>IMEI:</strong> ${imeiBuscado}</p>
-          <p style="font-size:12px; margin-top:5px;">${status}</p>
+          <strong>IMEI:</strong> ${imei}<br>
+          ${msg}
         </div>
       `;
       container.appendChild(card);
     });
 
-  } catch (e) {
-    alert("Error al leer el Sheet público.");
-  } finally {
-    loading.style.display = 'none';
+    status.style.display = 'none';
+
+  } catch (error) {
+    console.error(error);
+    status.innerText = "Error de conexión. Verifica que el Excel sea público.";
   }
 }
 </script>
