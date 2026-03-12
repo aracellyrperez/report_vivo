@@ -610,8 +610,12 @@ async function analizarTodo() {
 
       if (fotoData.type === 'base64') {
         // Base64 directo desde columna L del Sheet — sin CORS
-        const b64 = fotoData.base64.includes(',') ? fotoData.base64.split(',')[1] : fotoData.base64;
-        const resultado = await analizarConDatos({ type: 'image/jpeg' }, b64, item);
+        const rawB64 = fotoData.base64;
+        const b64 = rawB64.includes(',') ? rawB64.split(',')[1] : rawB64;
+        // Detectar media type real desde el data URL
+        const mimeMatch = rawB64.match(/^data:(image\/[a-z]+);base64,/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        const resultado = await analizarConDatos({ type: mimeType }, b64, item);
         resultadosMap[idx] = resultado;
         renderResultado(idx, resultado, item);
         continue;
