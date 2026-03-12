@@ -22,151 +22,119 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink2); min-height: 100vh; }
 
-  .topbar { background: #000; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .topbar { background: #000; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .logo { color: #fff; font-weight: 800; font-size: 20px; letter-spacing: 1px; }
   
   .main-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
   .card { background: var(--surface); border-radius: 16px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); }
   
-  h1 { font-size: 28px; margin-bottom: 24px; font-weight: 700; color: var(--ink); }
+  h1 { font-size: 28px; margin-bottom: 8px; font-weight: 700; color: var(--ink); }
+  .subtitle { color: var(--muted); margin-bottom: 24px; font-size: 15px; }
   
-  .upload-box { border: 2px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; transition: all 0.3s; background: #fafbff; cursor: pointer; }
-  .upload-box:hover { border-color: var(--accent); background: #f0f3ff; }
+  textarea { width: 100%; height: 120px; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 14px; transition: 0.3s; resize: none; background: #fafbff; }
+  textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
   
-  textarea { width: 100%; height: 150px; padding: 16px; border-radius: 8px; border: 1px solid var(--border); font-family: inherit; font-size: 14px; margin-top: 16px; resize: none; }
-  
-  .btn { background: var(--accent); color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 15px; margin-top: 16px; }
+  .btn { background: var(--accent); color: #fff; border: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 15px; margin-top: 16px; width: 100%; }
   .btn:hover { background: var(--accent2); transform: translateY(-1px); }
   
-  .results { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
-  .photo-card { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-  .photo-img { width: 100%; height: 250px; object-fit: cover; background: #eee; }
-  .photo-info { padding: 16px; }
-  .photo-imei { font-weight: 700; font-size: 16px; display: block; margin-bottom: 4px; }
-  .photo-status { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .results { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .photo-card { background: #fff; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; }
+  .photo-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
+  .photo-img { width: 100%; height: 300px; object-fit: cover; background: #f1f5f9; cursor: pointer; }
+  .photo-info { padding: 16px; border-top: 1px solid var(--border); }
+  .photo-imei { font-weight: 700; font-size: 15px; color: var(--ink); display: block; margin-bottom: 4px; }
+  .photo-status { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
-  #loading { display: none; margin-top: 20px; color: var(--accent); font-weight: 600; }
+  #loading { display: none; text-align: center; margin-top: 20px; color: var(--accent); font-weight: 600; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="logo">VIVO PHOTO ANALYZER</div>
+  <div class="logo">VIVO ANALYZER</div>
 </div>
 
 <div class="main-container">
   <div class="card">
     <h1>Analizador de Constancias</h1>
-    <p style="color: var(--muted); margin-bottom: 20px;">Pega los IMEIs de las ventas para buscar sus fotos automáticamente.</p>
+    <p class="subtitle">Ingresa los IMEIs para recuperar las fotos del servidor.</p>
     
-    <div class="upload-box" onclick="document.getElementById('imeiInput').focus()">
-      <textarea id="imeiInput" placeholder="Pega aquí los IMEIs (uno por línea o separados por coma)..."></textarea>
-    </div>
-    
-    <button class="btn" onclick="buscarFotos()">BUSCAR FOTOS</button>
-    <div id="loading">Buscando en la base de datos de Google Sheets...</div>
+    <textarea id="imeiInput" placeholder="Pega los IMEIs aquí (separados por líneas o comas)..."></textarea>
+    <button class="btn" onclick="buscarFotos()">CONSULTAR BASE DE DATOS</button>
+    <div id="loading">Conectando con el servidor de datos...</div>
   </div>
 
-  <div id="resultsContainer" class="results">
-    </div>
+  <div id="resultsContainer" class="results"></div>
 </div>
 
 <script>
-// CONFIGURACIÓN: Reemplaza con el ID de tu Google Sheet
-const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m'; // Asegúrate que este sea tu ID
+// CONFIGURACIÓN
+const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
 const TAB_NAME = 'Constancias';
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${TAB_NAME}`;
+const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${TAB_NAME}`;
 
 async function buscarFotos() {
   const input = document.getElementById('imeiInput').value;
-  const loading = document.getElementById('loading');
   const container = document.getElementById('resultsContainer');
+  const loading = document.getElementById('loading');
   
-  // Limpiar IMEIs del input
-  const imeisBuscados = input.split(/[\n,]+/).map(i => i.trim()).filter(i => i.length > 5);
+  const listaImeis = input.split(/[\n,]+/).map(i => i.trim()).filter(i => i.length > 5);
   
-  if (imeisBuscados.length === 0) {
-    alert("Por favor, ingresa al menos un IMEI válido.");
-    return;
-  }
+  if (listaImeis.length === 0) return alert("Ingresa al menos un IMEI.");
 
   loading.style.display = 'block';
   container.innerHTML = '';
 
   try {
-    const response = await fetch(CSV_URL);
-    const text = await response.text();
-    // Limpiar el JSON que devuelve Google
-    const json = JSON.parse(text.substr(47).slice(0, -2));
+    const resp = await fetch(URL);
+    const text = await resp.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
     const rows = json.table.rows;
     
-    const linkMap = {};
-
-    // PROCESAMIENTO DE FILAS
+    // Mapeamos los datos del Excel
+    const db = {};
     rows.forEach(r => {
-      const imeiStr = String(r.c?.[4]?.v || '').trim(); // Columna E (Índice 4)
-      const linkDrive = String(r.c?.[8]?.v || '').trim(); // Columna I (Índice 8)
+      const imei = String(r.c?.[4]?.v || '').trim();  // Columna E
+      const link = String(r.c?.[8]?.v || '').trim();  // Columna I
+      const b64  = String(r.c?.[11]?.v || '').trim(); // Columna L (La importante)
       
-      // LA SOLUCIÓN: Leer Columna L (Índice 11) que tiene el Base64
-      const fotoBase64 = String(r.c?.[11]?.v || '').trim(); 
-      
-      if (imeiStr) {
-        linkMap[imeiStr] = {
-          driveUrl: linkDrive,
-          base64: fotoBase64
-        };
-      }
+      if (imei) db[imei] = { link, b64 };
     });
 
-    let encontradas = 0;
+    listaImeis.forEach(imei => {
+      const entry = db[imei];
+      let fuenteFoto = 'https://via.placeholder.com/300x400?text=No+Encontrado';
+      let msj = '<span style="color:var(--error)">No existe en registro</span>';
 
-    imeisBuscados.forEach(imei => {
-      const data = linkMap[imei];
-      const photoDiv = document.createElement('div');
-      photoDiv.className = 'photo-card';
-      
-      let fotoAMostrar = '';
-      let estado = '';
-
-      if (data) {
-        // PRIORIDAD 1: Usar Base64 (Columna L) porque no se bloquea
-        if (data.base64 && data.base64.startsWith('data:image')) {
-          fotoAMostrar = data.base64;
-          estado = `<span style="color:var(--success)">Foto recuperada (Base64)</span>`;
-        } 
-        // PRIORIDAD 2: Usar Link de Drive si no hay Base64
-        else if (data.driveUrl) {
-          fotoAMostrar = data.driveUrl;
-          estado = `<span style="color:var(--warn)">Link de Drive (Podría no cargar)</span>`;
+      if (entry) {
+        // Prioridad: Si hay Base64 en la L, usamos ese. Si no, el link de Drive.
+        if (entry.b64 && entry.b64.startsWith('data:image')) {
+          fuenteFoto = entry.b64;
+          msj = '<span style="color:var(--success)">Foto OK (Servidor)</span>';
+        } else if (entry.link) {
+          fuenteFoto = entry.link;
+          msj = '<span style="color:var(--warn)">Link Drive (Revisar)</span>';
         }
-        encontradas++;
-      } else {
-        fotoAMostrar = 'https://via.placeholder.com/300x250?text=Sin+Foto';
-        estado = `<span style="color:var(--error)">No encontrado en Excel</span>`;
       }
 
-      photoDiv.innerHTML = `
-        <img src="${fotoAMostrar}" class="photo-img" onerror="this.src='https://via.placeholder.com/300x250?text=Error+al+cargar+Drive'">
+      const card = document.createElement('div');
+      card.className = 'photo-card';
+      card.innerHTML = `
+        <img src="${fuenteFoto}" class="photo-img" onclick="window.open(this.src)" onerror="this.src='https://via.placeholder.com/300x400?text=Error+de+Carga'">
         <div class="photo-info">
           <span class="photo-imei">IMEI: ${imei}</span>
-          <span class="photo-status">${estado}</span>
+          <span class="photo-status">${msj}</span>
         </div>
       `;
-      container.appendChild(photoDiv);
+      container.appendChild(card);
     });
 
-    if (encontradas === 0) {
-      alert("No se encontró ninguno de los IMEIs ingresados.");
-    }
-
-  } catch (error) {
-    console.error(error);
-    alert("Error al conectar con Google Sheets. Verifica que el archivo sea público.");
+  } catch (e) {
+    alert("Error al leer el Excel. Asegúrate de que el archivo sea público.");
   } finally {
     loading.style.display = 'none';
   }
 }
 </script>
-
 </body>
 </html>
