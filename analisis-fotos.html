@@ -10,7 +10,6 @@
     --accent: #1e46e6;
     --accent2: #0f2a9e;
     --ink: #0a0a0f;
-    --ink2: #1a1a2e;
     --bg: #f4f6ff;
     --surface: #ffffff;
     --border: #e2e8f0;
@@ -19,37 +18,37 @@
     --error: #dc2626;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink2); min-height: 100vh; }
+  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
 
-  /* TOPBAR */
+  /* Barra Superior */
   .topbar { background: #000; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .logo { color: #fff; font-weight: 800; font-size: 20px; letter-spacing: 1px; }
   
-  .main-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+  .main-container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
   
-  /* BUSCADOR */
-  .card { background: var(--surface); border-radius: 16px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); text-align: center; }
-  h1 { font-size: 28px; margin-bottom: 8px; font-weight: 700; color: var(--ink); }
-  .subtitle { color: var(--muted); margin-bottom: 24px; }
+  /* Panel de Búsqueda */
+  .card { background: var(--surface); border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid var(--border); text-align: center; }
+  h1 { font-size: 30px; margin-bottom: 8px; font-weight: 800; color: #000; }
+  .subtitle { color: var(--muted); margin-bottom: 24px; font-weight: 400; }
   
-  textarea { width: 100%; height: 120px; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 14px; transition: 0.3s; resize: none; background: #fafbff; margin-bottom: 16px; }
-  textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
+  textarea { width: 100%; height: 120px; padding: 18px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 15px; transition: 0.3s; resize: none; background: #fcfdfe; margin-bottom: 16px; }
+  textarea:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(30, 70, 230, 0.1); }
   
-  .btn { background: var(--accent); color: #fff; border: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 15px; width: 100%; max-width: 300px; }
-  .btn:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn { background: var(--accent); color: #fff; border: none; padding: 15px 40px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 16px; width: 100%; max-width: 350px; text-transform: uppercase; letter-spacing: 1px; }
+  .btn:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30, 70, 230, 0.3); }
   
-  /* GRILLA DE RESULTADOS */
-  .results { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-  .photo-card { background: #fff; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; animation: fadeIn 0.5s ease; }
-  .photo-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
-  .photo-img { width: 100%; height: 320px; object-fit: cover; background: #f1f5f9; cursor: pointer; border-bottom: 1px solid var(--border); }
-  .photo-info { padding: 16px; text-align: left; }
-  .photo-imei { font-weight: 700; font-size: 15px; color: var(--ink); display: block; }
-  .photo-status { font-size: 11px; font-weight: 600; text-transform: uppercase; margin-top: 4px; display: block; }
+  /* Resultados */
+  .results { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+  .photo-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; animation: slideUp 0.4s ease-out; }
+  .photo-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
+  .photo-img { width: 100%; height: 350px; object-fit: cover; background: #f1f5f9; cursor: pointer; border-bottom: 1px solid var(--border); }
+  .photo-info { padding: 18px; text-align: left; }
+  .photo-imei { font-weight: 700; font-size: 16px; color: #000; display: block; }
+  .photo-status { font-size: 12px; font-weight: 600; text-transform: uppercase; margin-top: 6px; display: flex; align-items: center; gap: 6px; }
 
-  #loading { display: none; margin-top: 20px; color: var(--accent); font-weight: 700; }
+  #loading { display: none; margin-top: 20px; color: var(--accent); font-weight: 800; font-size: 18px; }
 
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
@@ -61,19 +60,19 @@
 <div class="main-container">
   <div class="card">
     <h1>Analizador de Constancias</h1>
-    <p class="subtitle">Pega los IMEIs aquí para recuperar las fotos del sistema.</p>
+    <p class="subtitle">Ingresa los IMEIs de las ventas para recuperar las evidencias del servidor.</p>
     
-    <textarea id="imeiInput" placeholder="Ejemplo: 352489001234567, 861234007894561..."></textarea>
+    <textarea id="imeiInput" placeholder="Pega aquí los IMEIs..."></textarea>
     <br>
-    <button class="btn" onclick="buscarFotos()">CONSULTAR DATOS</button>
-    <div id="loading">Buscando en la base de datos...</div>
+    <button class="btn" onclick="buscarFotos()">Consultar Base de Datos</button>
+    <div id="loading">Buscando datos en tiempo real...</div>
   </div>
 
   <div id="resultsContainer" class="results"></div>
 </div>
 
 <script>
-// CONFIGURACIÓN DEL EXCEL
+// ID de tu Google Sheet que es público
 const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
 const TAB_NAME = 'Constancias';
 const URL_DATA = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${TAB_NAME}`;
@@ -83,11 +82,10 @@ async function buscarFotos() {
   const container = document.getElementById('resultsContainer');
   const loading = document.getElementById('loading');
   
-  // Limpiar y separar IMEIs
   const listaImeis = input.split(/[\n, ]+/).map(i => i.trim()).filter(i => i.length > 5);
   
   if (listaImeis.length === 0) {
-    alert("Por favor, ingresa al menos un IMEI.");
+    alert("Por favor, ingresa al menos un IMEI válido.");
     return;
   }
 
@@ -97,16 +95,14 @@ async function buscarFotos() {
   try {
     const resp = await fetch(URL_DATA);
     const text = await resp.text();
-    // Limpieza del formato JSON de Google
     const json = JSON.parse(text.substring(47).slice(0, -2));
     const rows = json.table.rows;
     
-    // Crear mapa de búsqueda rápida
     const db = {};
     rows.forEach(r => {
       const imei = String(r.c?.[4]?.v || '').trim();  // Columna E (IMEI)
-      const link = String(r.c?.[8]?.v || '').trim();  // Columna I (Link Drive)
-      const b64  = String(r.c?.[11]?.v || '').trim(); // Columna L (FOTO BASE64)
+      const link = String(r.c?.[8]?.v || '').trim();  // Columna I (Drive)
+      const b64  = String(r.c?.[11]?.v || '').trim(); // Columna L (Foto Base64)
       
       if (imei) db[imei] = { link, b64 };
     });
@@ -114,25 +110,25 @@ async function buscarFotos() {
     listaImeis.forEach(imei => {
       const entry = db[imei];
       let imgFinal = 'https://via.placeholder.com/300x400?text=No+Encontrado';
-      let statusHtml = `<span style="color:var(--error)">Sin registro</span>`;
+      let statusHtml = `<span style="color:var(--error)">✖ No registrado</span>`;
 
       if (entry) {
-        // PRIORIDAD: Foto en Columna L (Base64)
+        // Si hay foto en Base64 (Columna L), esa es la que manda
         if (entry.b64 && entry.b64.startsWith('data:image')) {
           imgFinal = entry.b64;
-          statusHtml = `<span style="color:var(--success)">● Foto OK</span>`;
+          statusHtml = `<span style="color:var(--success)">✔ Evidencia encontrada</span>`;
         } 
-        // PLAN B: Link de Drive
+        // Si no, intentamos el link de Drive
         else if (entry.link) {
           imgFinal = entry.link;
-          statusHtml = `<span style="color:var(--accent)">● Link Drive</span>`;
+          statusHtml = `<span style="color:var(--accent)">● Link de Drive</span>`;
         }
       }
 
       const card = document.createElement('div');
       card.className = 'photo-card';
       card.innerHTML = `
-        <img src="${imgFinal}" class="photo-img" onclick="window.open(this.src)" onerror="this.src='https://via.placeholder.com/300x400?text=Error+al+cargar'">
+        <img src="${imgFinal}" class="photo-img" onclick="window.open(this.src)" title="Clic para ampliar" onerror="this.src='https://via.placeholder.com/300x400?text=Error+Carga+Drive'">
         <div class="photo-info">
           <span class="photo-imei">IMEI: ${imei}</span>
           <span class="photo-status">${statusHtml}</span>
@@ -143,7 +139,7 @@ async function buscarFotos() {
 
   } catch (e) {
     console.error(e);
-    alert("Error al conectar con la base de datos.");
+    alert("Error crítico: No se pudo acceder al Google Sheet. Revisa que el archivo sea público para 'Cualquier persona con el enlace'.");
   } finally {
     loading.style.display = 'none';
   }
