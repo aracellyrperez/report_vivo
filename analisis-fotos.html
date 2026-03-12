@@ -30,4 +30,125 @@
   
   .search-box { flex: 1; display: flex; flex-direction: column; }
   label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  textarea { flex: 1; width: 100%; padding: 16px; border-radius: 1
+  textarea { flex: 1; width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 14px; resize: none; margin-bottom: 16px; transition: 0.3s; }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  
+  .btn-search { background: var(--accent); color: #fff; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+  .btn-search:hover { background: var(--accent2); transform: translateY(-2px); }
+
+  /* Área de Contenido */
+  .content { flex: 1; overflow-y: auto; padding: 40px; }
+  .header-content { margin-bottom: 32px; }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+
+  /* Tarjetas de Fotos */
+  .photo-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; }
+  .photo-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.08); }
+  .photo-img { width: 100%; height: 380px; object-fit: cover; background: #f8fafc; cursor: pointer; }
+  .photo-footer { padding: 16px; border-top: 1px solid var(--border); }
+  .imei-label { font-weight: 800; font-size: 14px; color: #000; }
+  .status-tag { font-size: 11px; font-weight: 700; margin-top: 4px; display: block; text-transform: uppercase; }
+
+  #loader { display: none; font-weight: 700; color: var(--accent); margin-top: 10px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="logo-area">VIVO ANALYZER</div>
+    <div class="search-box">
+      <label>Ingresar IMEIs</label>
+      <textarea id="imeiInput" placeholder="Pega los IMEIs aquí (uno por línea)..."></textarea>
+      <button class="btn-search" onclick="ejecutarAnalisis()">ANALIZAR FOTOS</button>
+      <div id="loader">Consultando base de datos...</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header-content">
+      <h1 id="resumenTitle">Esperando búsqueda...</h1>
+    </div>
+    <div id="resultsGrid" class="results-grid">
+      </div>
+  </div>
+</div>
+
+<script>
+async function ejecutarAnalisis() {
+  const input = document.getElementById('imeiInput').value;
+  const grid = document.getElementById('resultsGrid');
+  const loader = document.getElementById('loader');
+  const title = document.getElementById('resumenTitle');
+  
+  const imeis = input.split(/[\n, ]+/).map(i => i.trim()).filter(i => i.length > 5);
+  
+  if (imeis.length === 0) return alert("Ingresa IMEIs válidos");
+
+  loader.style.display = 'block';
+  grid.innerHTML = '';
+  title.innerText = "Buscando...";
+
+  try {
+    const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
+    // Usamos el formato JSON de Google Sheets
+    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+    const resp = await fetch(URL);
+    const text = await resp.text();
+    const data = JSON.parse(text.substring(47).slice(0, -2));
+    const rows = data.table.rows;
+
+    const mapa = {};
+    rows.forEach(r => {
+      const imeiExcel = r.c?.[4]?.v ? String(r.c[4].v).trim() : "";
+      const linkDrive = r.c?.[8]?.v || "";
+      const base64Col = r.c?.[11]?.v || ""; // Columna L
+      
+      if (imeiExcel) {
+        mapa[imeiExcel] = { link: linkDrive, b64: base64Col };
+      }
+    });
+
+    let encontradas = 0;
+    imeis.forEach(imei => {
+      const registro = mapa[imei];
+      let fuente = 'https://via.placeholder.com/300x400?text=No+Encontrado';
+      let status = '<span style="color:var(--error)">No registrado</span>';
+
+      if (registro) {
+        encontradas++;
+        // Si hay foto en columna L (Base64), esa es la que no falla
+        if (registro.b64 && registro.b64.length > 100) {
+          fuente = registro.b64;
+          status = '<span style="color:var(--success)">✔ Foto Servidor</span>';
+        } else if (registro.link) {
+          fuente = registro.link;
+          status = '<span style="color:var(--accent)">● Link Drive</span>';
+        }
+      }
+
+      const card = document.createElement('div');
+      card.className = 'photo-card';
+      card.innerHTML = `
+        <img src="${fuente}" class="photo-img" onclick="window.open(this.src)" onerror="this.src='https://via.placeholder.com/300x400?text=Error+Carga'">
+        <div class="photo-footer">
+          <span class="imei-label">IMEI: ${imei}</span>
+          <span class="status-tag">${status}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    title.innerText = `Resultados: ${encontradas} de ${imeis.length} encontrados`;
+
+  } catch (e) {
+    alert("Error al conectar con el Excel público.");
+  } finally {
+    loader.style.display = 'none';
+  }
+}
+</script>
+
+</body>
+</html>
