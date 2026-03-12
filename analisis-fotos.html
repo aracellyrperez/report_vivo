@@ -623,29 +623,48 @@ function renderResultadoInline(idx, item, r) {
 
 // ─── ANÁLISIS COMBINADO (1 sola llamada) ─────────────────────────────────────
 async function analizarConDatos(file, base64, item) {
-  const prompt = `Eres un experto forense en imágenes digitales y también podés leer texto visible en fotos de constancias de venta de celulares.
+  const prompt = `Eres un experto en análisis forense de imágenes y en lectura de constancias/boletas de venta de celulares VIVO en Perú.
 
 Realizá DOS tareas sobre esta imagen:
 
-TAREA 1 — AUTENTICIDAD:
-Determiná si la imagen fue editada, modificada, retocada o alterada digitalmente.
-Evaluá: inconsistencias de iluminación/sombras, artefactos en bordes, clonado de áreas, ruido irregular, colores artificiales, artefactos de Photoshop o IA generativa, perspectivas inconsistentes.
+═══ TAREA 1 — AUTENTICIDAD ═══
+Determiná si la imagen fue editada, modificada o alterada digitalmente.
+Buscá específicamente:
+- Textos con bordes irregulares, difusos o con halos (señal de que fueron pegados encima)
+- Inconsistencias de fuente, tamaño o color entre partes del texto
+- Zonas borrosas alrededor de números o palabras específicas
+- Sombras o iluminación inconsistente en distintas partes del documento
+- Pixelación diferente entre áreas del mismo documento
+- Colores artificiales o saturación inusual en zonas puntuales
 
-TAREA 2 — EXTRACCIÓN DE DATOS:
-Leé el texto visible en la imagen y extraé:
-- IMEI: número de 15 dígitos (MUY IMPORTANTE: buscá el número que coincida con ${item.imei})
-- Modelo: nombre del equipo (ej: "vivo Y17s", "vivo V29e")
-- Fecha: cualquier fecha visible
+═══ TAREA 2 — EXTRACCIÓN DE DATOS ═══
+Esta es una boleta/constancia de venta de celular VIVO. Buscá con atención:
+
+▶ IMEI (número de 15 dígitos):
+  - Puede estar en la parte DERECHA de la imagen, en una etiqueta con código de barras
+  - Puede aparecer como "IMEI1:" o "IMEI:" seguido del número
+  - El IMEI esperado es: ${item.imei} — buscá este número específicamente
+  - Leé el número con MUCHO cuidado dígito por dígito
+
+▶ MODELO del celular:
+  - Suele estar en la descripción del producto, en el centro de la boleta
+  - Formato típico: "VIVO Y39 5G 256GB", "VIVO Y04 128GB", "VIVO V29e", etc.
+  - Leé EXACTAMENTE lo que dice, sin asumir ni completar
+  - Prestá atención a si dice Y39, Y35, Y17, Y04, etc. — son modelos diferentes
+
+▶ FECHA de la venta:
+  - Puede estar en el encabezado o pie de la boleta
+  - Puede estar en formato DD/MM/YYYY, YYYY-MM-DD, o similar
 
 Respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
 {
   "veredicto": "ORIGINAL" | "EDITADA" | "SOSPECHOSA",
   "confianza": <número 0-100>,
-  "resumen": "<2-3 oraciones en español>",
+  "resumen": "<2-3 oraciones en español explicando qué encontraste>",
   "datos": {
-    "imei": "<IMEI encontrado o null>",
-    "modelo": "<modelo encontrado o null>",
-    "fecha": "<fecha encontrada o null>"
+    "imei": "<IMEI de 15 dígitos encontrado, o null si no se ve>",
+    "modelo": "<modelo exacto leído de la imagen, o null si no se ve>",
+    "fecha": "<fecha encontrada, o null si no se ve>"
   }
 }`;
 
