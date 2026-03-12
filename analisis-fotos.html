@@ -920,18 +920,19 @@ function doLogin() {
     `<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ${email}</span>`;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  // Botón login
-  document.getElementById('btnLogin').addEventListener('click', doLogin);
+function initLogin() {
+  const btnLogin = document.getElementById('btnLogin');
+  if (!btnLogin) return;
 
-  // Enter en cualquier campo del login
+  btnLogin.addEventListener('click', doLogin);
+
   ['loginEmail','loginApiKey'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', function(e) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') doLogin();
     });
   });
 
-  // Sesión guardada
   const savedEmail = sessionStorage.getItem('vivo_auth');
   const savedKey   = sessionStorage.getItem('vivo_apikey');
   if (savedEmail && EMAILS_AUTORIZADOS.includes(savedEmail) && savedKey) {
@@ -939,9 +940,15 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appContent').style.display = 'block';
     document.getElementById('topbar-date').innerHTML =
-      `<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ${savedEmail}</span>`;
+      '<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ' + savedEmail + '</span>';
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLogin);
+} else {
+  initLogin();
+}
 
 </script>
 </body>
