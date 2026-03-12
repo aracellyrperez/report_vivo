@@ -7,148 +7,122 @@
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --accent: #1e46e6;
-    --accent2: #0f2a9e;
-    --ink: #0a0a0f;
-    --ink2: #1a1a2e;
-    --bg: #f4f6ff;
-    --surface: #ffffff;
-    --border: #e2e8f0;
-    --muted: #94a3b8;
-    --success: #16a34a;
-    --error: #dc2626;
+    --accent: #1e46e6; --accent2: #0f2a9e; --bg: #f4f6ff; --surface: #ffffff;
+    --border: #e2e8f0; --muted: #94a3b8; --success: #16a34a; --error: #dc2626;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink2); min-height: 100vh; overflow: hidden; }
+  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
 
-  /* Estructura Original */
-  .app-layout { display: flex; height: 100vh; }
+  /* Layout */
+  .topbar { background: #000; padding: 12px 24px; color: #fff; font-weight: 800; font-size: 20px; }
+  .main-layout { display: flex; flex: 1; overflow: hidden; }
   
   /* Sidebar de Búsqueda */
-  .sidebar { width: 350px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; z-index: 10; }
-  .logo-area { margin-bottom: 32px; font-weight: 800; font-size: 20px; letter-spacing: 1px; color: #000; }
+  .sidebar { width: 350px; background: #fff; border-right: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; }
+  textarea { flex: 1; width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; margin-bottom: 16px; resize: none; font-size: 14px; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; width: 100%; }
+  .btn-primary:hover { background: var(--accent2); }
+
+  /* Contenido */
+  .content { flex: 1; padding: 40px; overflow-y: auto; }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
   
-  .search-box { flex: 1; display: flex; flex-direction: column; }
-  label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  textarea { flex: 1; width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 14px; resize: none; margin-bottom: 16px; transition: 0.3s; }
-  textarea:focus { outline: none; border-color: var(--accent); }
+  /* Tarjetas */
+  .photo-card { background: #fff; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; transition: 0.3s; }
+  .photo-img { width: 100%; height: 350px; object-fit: contain; background: #f8fafc; cursor: pointer; }
+  .photo-info { padding: 15px; border-top: 1px solid var(--border); }
   
-  .btn-search { background: var(--accent); color: #fff; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
-  .btn-search:hover { background: var(--accent2); transform: translateY(-2px); }
-
-  /* Área de Contenido */
-  .content { flex: 1; overflow-y: auto; padding: 40px; }
-  .header-content { margin-bottom: 32px; }
-  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-
-  /* Tarjetas de Fotos */
-  .photo-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; }
-  .photo-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.08); }
-  .photo-img { width: 100%; height: 380px; object-fit: cover; background: #f8fafc; cursor: pointer; }
-  .photo-footer { padding: 16px; border-top: 1px solid var(--border); }
-  .imei-label { font-weight: 800; font-size: 14px; color: #000; }
-  .status-tag { font-size: 11px; font-weight: 700; margin-top: 4px; display: block; text-transform: uppercase; }
-
-  #loader { display: none; font-weight: 700; color: var(--accent); margin-top: 10px; text-align: center; }
+  #status-label { margin-top: 10px; font-weight: 700; color: var(--accent); display: none; text-align: center; }
 </style>
 </head>
 <body>
 
-<div class="app-layout">
+<div class="topbar">VIVO ANALYZER</div>
+
+<div class="main-layout">
   <div class="sidebar">
-    <div class="logo-area">VIVO ANALYZER</div>
-    <div class="search-box">
-      <label>Ingresar IMEIs</label>
-      <textarea id="imeiInput" placeholder="Pega los IMEIs aquí (uno por línea)..."></textarea>
-      <button class="btn-search" onclick="ejecutarAnalisis()">ANALIZAR FOTOS</button>
-      <div id="loader">Consultando base de datos...</div>
-    </div>
+    <h3 style="margin-bottom:15px">Consultar IMEIs</h3>
+    <textarea id="imeiInput" placeholder="Pega los IMEIs aquí..."></textarea>
+    <button class="btn-primary" onclick="analizarFotos()">ANALIZAR AHORA</button>
+    <div id="status-label">Consultando Excel...</div>
   </div>
 
   <div class="content">
-    <div class="header-content">
-      <h1 id="resumenTitle">Esperando búsqueda...</h1>
-    </div>
-    <div id="resultsGrid" class="results-grid">
-      </div>
+    <h2 id="result-title" style="margin-bottom:20px">Esperando búsqueda...</h2>
+    <div id="resultsGrid" class="results-grid"></div>
   </div>
 </div>
 
 <script>
-async function ejecutarAnalisis() {
+async function analizarFotos() {
   const input = document.getElementById('imeiInput').value;
   const grid = document.getElementById('resultsGrid');
-  const loader = document.getElementById('loader');
-  const title = document.getElementById('resumenTitle');
-  
-  const imeis = input.split(/[\n, ]+/).map(i => i.trim()).filter(i => i.length > 5);
-  
-  if (imeis.length === 0) return alert("Ingresa IMEIs válidos");
+  const label = document.getElementById('status-label');
+  const title = document.getElementById('result-title');
 
-  loader.style.display = 'block';
+  // Limpiar IMEIs (solo números)
+  const lista = input.split(/[\n, ]+/).map(i => i.replace(/\D/g, '')).filter(i => i.length > 5);
+  
+  if (lista.length === 0) return alert("Ingresa IMEIs válidos");
+
+  label.style.display = 'block';
   grid.innerHTML = '';
   title.innerText = "Buscando...";
 
   try {
     const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
-    // Usamos el formato JSON de Google Sheets
-    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&t=${Date.now()}`;
 
     const resp = await fetch(URL);
     const text = await resp.text();
     const data = JSON.parse(text.substring(47).slice(0, -2));
     const rows = data.table.rows;
 
-    const mapa = {};
+    // Crear mapa de datos
+    const db = {};
     rows.forEach(r => {
-      const imeiExcel = r.c?.[4]?.v ? String(r.c[4].v).trim() : "";
-      const linkDrive = r.c?.[8]?.v || "";
-      const base64Col = r.c?.[11]?.v || ""; // Columna L
-      
-      if (imeiExcel) {
-        mapa[imeiExcel] = { link: linkDrive, b64: base64Col };
-      }
+      let imeiE = r.c?.[4]?.v ? String(r.c[4].v).replace(/\D/g, '') : ""; // Columna E
+      let linkI = r.c?.[8]?.v || ""; // Columna I
+      let b64L = r.c?.[11]?.v || ""; // Columna L
+      if (imeiE) db[imeiE] = { linkI, b64L };
     });
 
-    let encontradas = 0;
-    imeis.forEach(imei => {
-      const registro = mapa[imei];
-      let fuente = 'https://via.placeholder.com/300x400?text=No+Encontrado';
-      let status = '<span style="color:var(--error)">No registrado</span>';
+    let count = 0;
+    lista.forEach(imei => {
+      const match = db[imei];
+      let src = 'https://via.placeholder.com/300x400?text=No+Encontrado';
+      let info = '<span style="color:var(--error)">✖ No registrado</span>';
 
-      if (registro) {
-        encontradas++;
-        // Si hay foto en columna L (Base64), esa es la que no falla
-        if (registro.b64 && registro.b64.length > 100) {
-          fuente = registro.b64;
-          status = '<span style="color:var(--success)">✔ Foto Servidor</span>';
-        } else if (registro.link) {
-          fuente = registro.link;
-          status = '<span style="color:var(--accent)">● Link Drive</span>';
+      if (match) {
+        count++;
+        if (match.b64L && match.b64L.length > 100) {
+          src = match.b64L;
+          info = '<span style="color:var(--success)">✔ Foto Servidor</span>';
+        } else if (match.linkI) {
+          src = match.linkI;
+          info = '<span style="color:var(--accent)">● Link Drive</span>';
         }
       }
 
       const card = document.createElement('div');
       card.className = 'photo-card';
       card.innerHTML = `
-        <img src="${fuente}" class="photo-img" onclick="window.open(this.src)" onerror="this.src='https://via.placeholder.com/300x400?text=Error+Carga'">
-        <div class="photo-footer">
-          <span class="imei-label">IMEI: ${imei}</span>
-          <span class="status-tag">${status}</span>
+        <img src="${src}" class="photo-img" onclick="window.open(this.src)">
+        <div class="photo-info">
+          <strong>IMEI:</strong> ${imei}<br>${info}
         </div>
       `;
       grid.appendChild(card);
     });
 
-    title.innerText = `Resultados: ${encontradas} de ${imeis.length} encontrados`;
+    title.innerText = `Resultados: ${count} encontrados`;
 
   } catch (e) {
-    alert("Error al conectar con el Excel público.");
+    alert("Error al conectar con el Excel.");
   } finally {
-    loader.style.display = 'none';
+    label.style.display = 'none';
   }
 }
 </script>
-
 </body>
 </html>
