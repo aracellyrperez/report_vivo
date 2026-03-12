@@ -16,9 +16,8 @@
   .btn { background: var(--accent); color: #fff; border: none; padding: 15px 40px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; max-width: 350px; text-transform: uppercase; }
   .results { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
   .photo-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); animation: slideUp 0.4s ease-out; }
-  .photo-img { width: 100%; height: 350px; object-fit: cover; background: #f1f5f9; cursor: pointer; }
-  .photo-info { padding: 18px; }
-  .photo-imei { font-weight: 700; font-size: 16px; display: block; }
+  .photo-img { width: 100%; height: 400px; object-fit: contain; background: #f1f5f9; cursor: pointer; }
+  .photo-info { padding: 18px; border-top: 1px solid var(--border); }
   #loading { display: none; margin-top: 20px; font-weight: 800; color: var(--accent); }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
@@ -29,12 +28,11 @@
 
 <div class="main-container">
   <div class="card">
-    <h1>Analizador de Constancias</h1>
-    <p style="color:var(--muted); margin-bottom: 20px;">Pega los IMEIs abajo</p>
+    <h1>Buscador de Evidencias</h1>
     <textarea id="imeiInput" placeholder="Pega los IMEIs aquí..."></textarea>
     <br>
-    <button class="btn" onclick="buscarFotos()">CONSULTAR AHORA</button>
-    <div id="loading">Buscando en la base de datos pública...</div>
+    <button class="btn" onclick="buscarFotos()">CONSULTAR</button>
+    <div id="loading">Conectando con Google Sheets...</div>
   </div>
   <div id="resultsContainer" class="results"></div>
 </div>
@@ -45,16 +43,15 @@ async function buscarFotos() {
   const container = document.getElementById('resultsContainer');
   const loading = document.getElementById('loading');
   
-  // Separar IMEIs por comas, espacios o saltos de línea
-  const listaImeis = input.split(/[\n, ]+/).map(i => i.trim()).filter(i => i.length > 5);
+  // Limpiar IMEIs del buscador: quitamos todo lo que no sea número
+  const listaImeis = input.split(/[\n, ]+/).map(i => i.replace(/\D/g, '')).filter(i => i.length > 5);
   
-  if (listaImeis.length === 0) return alert("Ingresa IMEIs válidos");
+  if (listaImeis.length === 0) return alert("Ingresa un IMEI válido");
 
   loading.style.display = 'block';
   container.innerHTML = '';
 
   try {
-    // URL de tu Sheet público (Asegúrate que el ID sea correcto)
     const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
     const URL_DATA = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Constancias`;
 
@@ -65,17 +62,51 @@ async function buscarFotos() {
     
     const db = {};
     rows.forEach(r => {
-      // Extraemos el valor del IMEI (Columna E = índice 4)
-      let imeiValue = r.c?.[4]?.v ? String(r.c[4].v).trim() : null;
-      // Extraemos Link (Columna I = índice 8) y Base64 (Columna L = índice 11)
+      // OBTENER IMEI (Columna E = índice 4): Limpiamos comas o puntos que ponga Excel
+      let rawImei = r.c?.[4]?.v ? String(r.c[4].v).replace(/\D/g, '') : "";
+      
+      // OBTENER FOTOS
       let link = r.c?.[8]?.v || '';
       let b64  = r.c?.[11]?.v || '';
       
-      if (imeiValue) {
-        db[imeiValue] = { link, b64 };
+      if (rawImei) {
+        db[rawImei] = { link, b64 };
       }
     });
 
-    listaImeis.forEach(imei => {
-      const entry = db[imei];
-      let imgFinal = '
+    listaImeis.forEach(imeiBuscado => {
+      const entry = db[imeiBuscado];
+      let imgFinal = 'https://via.placeholder.com/300x400?text=No+Encontrado';
+      let status = `<span style="color:var(--error)">✖ No registrado en Excel</span>`;
+
+      if (entry) {
+        if (entry.b64 && entry.b64.length > 100) {
+          imgFinal = entry.b64;
+          status = `<span style="color:var(--success)">✔ Foto desde Servidor</span>`;
+        } else if (entry.link) {
+          imgFinal = entry.link;
+          status = `<span style="color:var(--accent)">● Link Drive</span>`;
+        }
+      }
+
+      const card = document.createElement('div');
+      card.className = 'photo-card';
+      card.innerHTML = `
+        <img src="${imgFinal}" class="photo-img" onclick="window.open(this.src)">
+        <div class="photo-info">
+          <p><strong>IMEI:</strong> ${imeiBuscado}</p>
+          <p style="font-size:12px; margin-top:5px;">${status}</p>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+  } catch (e) {
+    alert("Error al leer el Sheet público.");
+  } finally {
+    loading.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>
