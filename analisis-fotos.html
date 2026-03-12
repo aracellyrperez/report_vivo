@@ -260,7 +260,11 @@
   <div class="card hidden" id="step-resumen">
     <div class="card-title"><span class="section-num">4</span> Resumen del análisis</div>
     <div class="summary-row" id="summary-row"></div>
-    <div style="margin-top:8px;">
+    <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
+      <button class="btn-primary" onclick="descargarExcel()" id="btn-excel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Descargar Excel
+      </button>
       <button class="btn-secondary" onclick="resetApp()">Nuevo análisis</button>
     </div>
   </div>
@@ -743,6 +747,69 @@ function mostrarResumen() {
   `;
 
   step.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+
+// ─── DESCARGAR EXCEL ─────────────────────────────────────────────────────────
+function descargarExcel() {
+  // Cabeceras
+  const headers = [
+    'IMEI Esperado', 'IMEI Encontrado', 'IMEI Coincide',
+    'Modelo Esperado', 'Modelo Encontrado', 'Modelo Coincide',
+    'Fecha Esperada', 'Fecha Encontrada',
+    'Veredicto', 'Confianza (%)', 'Resumen IA'
+  ];
+
+  const rows = Object.entries(resultadosMap).map(([idxStr, r]) => {
+    const idx = Number(idxStr);
+    const item = imeisFiltrados[idx] || {};
+
+    const imeiEsp = String(item.imei || '').trim();
+    const imeiEnc = r.error ? '' : String(r.datos?.imei || '').trim();
+    const imeiOk  = imeiEsp && imeiEnc
+      ? (imeiEnc.replace(/\s/g,'').includes(imeiEsp.replace(/\s/g,'')) ||
+         imeiEsp.replace(/\s/g,'').includes(imeiEnc.replace(/\s/g,''))) ? 'SÍ' : 'NO'
+      : 'Sin dato';
+
+    const modeloEsp = String(item.modelo || '').trim();
+    const modeloEnc = r.error ? '' : String(r.datos?.modelo || '').trim();
+    const modeloOk  = modeloEsp && modeloEnc
+      ? (modeloEnc.toLowerCase().replace(/\s/g,'').includes(modeloEsp.toLowerCase().replace(/\s/g,'')) ||
+         modeloEsp.toLowerCase().replace(/\s/g,'').includes(modeloEnc.toLowerCase().replace(/\s/g,''))) ? 'SÍ' : 'NO'
+      : 'Sin dato';
+
+    const fechaEsp = String(item.fecha || '').trim();
+    const fechaEnc = r.error ? '' : String(r.datos?.fecha || '').trim();
+
+    return [
+      imeiEsp, imeiEnc, imeiOk,
+      modeloEsp, modeloEnc, modeloOk,
+      fechaEsp, fechaEnc,
+      r.error ? 'ERROR' : (r.veredicto || ''),
+      r.error ? '' : (r.confianza ?? ''),
+      r.error ? r.error : (r.resumen || '')
+    ];
+  });
+
+  // Construir CSV con BOM para que Excel abra bien los tildes
+  const BOM = '﻿';
+  const escape = v => {
+    const s = String(v ?? '');
+    return s.includes(',') || s.includes('"') || s.includes('
+')
+      ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = BOM + [headers, ...rows].map(r => r.map(escape).join(',')).join('
+');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  const fecha = new Date().toISOString().slice(0,10);
+  a.download = `analisis-vivo-${fecha}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ─── RESET ───────────────────────────────────────────────────────────────────
