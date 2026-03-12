@@ -7,122 +7,79 @@
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --accent: #1e46e6; --accent2: #0f2a9e; --bg: #f4f6ff; --surface: #ffffff;
-    --border: #e2e8f0; --muted: #94a3b8; --success: #16a34a; --error: #dc2626;
+    --accent: #1e46e6;
+    --accent2: #0f2a9e;
+    --ink: #0a0a0f;
+    --ink2: #1a1a2e;
+    --bg: #f4f6ff;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --muted: #94a3b8;
+    --success: #16a34a;
+    --error: #dc2626;
+    --warn: #d97706;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink2); min-height: 100vh; }
 
-  /* Layout */
-  .topbar { background: #000; padding: 12px 24px; color: #fff; font-weight: 800; font-size: 20px; }
-  .main-layout { display: flex; flex: 1; overflow: hidden; }
+  .topbar { background: #000; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { color: #fff; font-weight: 800; font-size: 20px; letter-spacing: 1px; }
   
-  /* Sidebar de Búsqueda */
-  .sidebar { width: 350px; background: #fff; border-right: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; }
-  textarea { flex: 1; width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; margin-bottom: 16px; resize: none; font-size: 14px; }
-  .btn-primary { background: var(--accent); color: #fff; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; width: 100%; }
-  .btn-primary:hover { background: var(--accent2); }
+  .app-container { display: flex; height: calc(100vh - 52px); }
+  
+  /* SIDEBAR */
+  .sidebar { width: 320px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; }
+  .search-area { flex: 1; display: flex; flex-direction: column; }
+  textarea { flex: 1; width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 14px; resize: none; margin-bottom: 16px; }
+  .btn-run { background: var(--accent); color: #fff; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+  .btn-run:hover { background: var(--accent2); transform: translateY(-2px); }
 
-  /* Contenido */
-  .content { flex: 1; padding: 40px; overflow-y: auto; }
-  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+  /* MAIN CONTENT */
+  .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
   
-  /* Tarjetas */
   .photo-card { background: #fff; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; transition: 0.3s; }
-  .photo-img { width: 100%; height: 350px; object-fit: contain; background: #f8fafc; cursor: pointer; }
-  .photo-info { padding: 15px; border-top: 1px solid var(--border); }
+  .photo-img { width: 100%; height: 380px; object-fit: cover; background: #f8fafc; cursor: pointer; }
+  .photo-footer { padding: 16px; border-top: 1px solid var(--border); }
   
-  #status-label { margin-top: 10px; font-weight: 700; color: var(--accent); display: none; text-align: center; }
+  /* LOGIN SCREEN */
+  #loginScreen { position: fixed; inset: 0; background: #000; z-index: 999; display: flex; align-items: center; justify-content: center; color: #fff; }
+  .login-card { width: 100%; max-width: 400px; padding: 40px; text-align: center; }
+  .login-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; }
 </style>
 </head>
 <body>
 
-<div class="topbar">VIVO ANALYZER</div>
+<div id="loginScreen">
+  <div class="login-card">
+    <h2>VIVO SECURITY</h2>
+    <p style="margin-bottom:20px; color:rgba(255,255,255,0.6)">Ingresa tus credenciales</p>
+    <input type="email" id="loginEmail" class="login-input" placeholder="Correo corporativo">
+    <input type="password" id="loginApiKey" class="login-input" placeholder="Anthropic API Key">
+    <button onclick="doLogin()" class="btn-run" style="width:100%; margin-top:10px">ENTRAR</button>
+  </div>
+</div>
 
-<div class="main-layout">
-  <div class="sidebar">
-    <h3 style="margin-bottom:15px">Consultar IMEIs</h3>
-    <textarea id="imeiInput" placeholder="Pega los IMEIs aquí..."></textarea>
-    <button class="btn-primary" onclick="analizarFotos()">ANALIZAR AHORA</button>
-    <div id="status-label">Consultando Excel...</div>
+<div id="appContent" style="display:none">
+  <div class="topbar">
+    <div class="logo">VIVO ANALYZER</div>
+    <div id="topbar-date" style="color:white"></div>
   </div>
 
-  <div class="content">
-    <h2 id="result-title" style="margin-bottom:20px">Esperando búsqueda...</h2>
-    <div id="resultsGrid" class="results-grid"></div>
+  <div class="app-container">
+    <div class="sidebar">
+      <div class="search-area">
+        <label style="font-weight:700; font-size:12px; margin-bottom:8px">IMEIS A CONSULTAR</label>
+        <textarea id="imeiInput" placeholder="Pega los IMEIs aquí..."></textarea>
+        <button class="btn-run" onclick="ejecutarBusqueda()">ANALIZAR FOTOS</button>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <h2 id="statusTitle" style="margin-bottom:24px">Esperando consulta...</h2>
+      <div id="resultsGrid" class="results-grid"></div>
+    </div>
   </div>
 </div>
 
 <script>
-async function analizarFotos() {
-  const input = document.getElementById('imeiInput').value;
-  const grid = document.getElementById('resultsGrid');
-  const label = document.getElementById('status-label');
-  const title = document.getElementById('result-title');
-
-  // Limpiar IMEIs (solo números)
-  const lista = input.split(/[\n, ]+/).map(i => i.replace(/\D/g, '')).filter(i => i.length > 5);
-  
-  if (lista.length === 0) return alert("Ingresa IMEIs válidos");
-
-  label.style.display = 'block';
-  grid.innerHTML = '';
-  title.innerText = "Buscando...";
-
-  try {
-    const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
-    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&t=${Date.now()}`;
-
-    const resp = await fetch(URL);
-    const text = await resp.text();
-    const data = JSON.parse(text.substring(47).slice(0, -2));
-    const rows = data.table.rows;
-
-    // Crear mapa de datos
-    const db = {};
-    rows.forEach(r => {
-      let imeiE = r.c?.[4]?.v ? String(r.c[4].v).replace(/\D/g, '') : ""; // Columna E
-      let linkI = r.c?.[8]?.v || ""; // Columna I
-      let b64L = r.c?.[11]?.v || ""; // Columna L
-      if (imeiE) db[imeiE] = { linkI, b64L };
-    });
-
-    let count = 0;
-    lista.forEach(imei => {
-      const match = db[imei];
-      let src = 'https://via.placeholder.com/300x400?text=No+Encontrado';
-      let info = '<span style="color:var(--error)">✖ No registrado</span>';
-
-      if (match) {
-        count++;
-        if (match.b64L && match.b64L.length > 100) {
-          src = match.b64L;
-          info = '<span style="color:var(--success)">✔ Foto Servidor</span>';
-        } else if (match.linkI) {
-          src = match.linkI;
-          info = '<span style="color:var(--accent)">● Link Drive</span>';
-        }
-      }
-
-      const card = document.createElement('div');
-      card.className = 'photo-card';
-      card.innerHTML = `
-        <img src="${src}" class="photo-img" onclick="window.open(this.src)">
-        <div class="photo-info">
-          <strong>IMEI:</strong> ${imei}<br>${info}
-        </div>
-      `;
-      grid.appendChild(card);
-    });
-
-    title.innerText = `Resultados: ${count} encontrados`;
-
-  } catch (e) {
-    alert("Error al conectar con el Excel.");
-  } finally {
-    label.style.display = 'none';
-  }
-}
-</script>
-</body>
-</html>
