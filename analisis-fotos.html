@@ -3,92 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIVO — Analizador PRO</title>
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>VIVO — Analizador</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root { --accent: #1e46e6; --bg: #f4f6ff; --surface: #ffffff; --border: #e2e8f0; --error: #dc2626; --success: #16a34a; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Exo 2', sans-serif; background: var(--bg); padding-bottom: 40px; }
-  .topbar { background: #000; padding: 15px; color: #fff; text-align: center; font-weight: 800; font-size: 22px; }
-  .main-container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
-  .card { background: var(--surface); border-radius: 20px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); text-align: center; }
-  textarea { width: 100%; height: 100px; padding: 15px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; margin-bottom: 15px; resize: none; }
-  .btn { background: var(--accent); color: #fff; border: none; padding: 15px 30px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; font-size: 16px; }
-  .btn:active { transform: scale(0.98); }
-  .results { margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-  .photo-card { background: #fff; border-radius: 15px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+  body { font-family: 'Exo 2', sans-serif; background: #f4f6ff; margin: 0; padding: 20px; text-align: center; }
+  .card { background: white; max-width: 600px; margin: 0 auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+  textarea { width: 100%; height: 100px; margin: 15px 0; padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; resize: none; }
+  button { background: #1e46e6; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
+  button:hover { background: #0f2a9e; }
+  .results { margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+  .photo-card { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #e2e8f0; padding-bottom: 10px; }
   .photo-img { width: 100%; height: 350px; object-fit: contain; background: #f8fafc; }
-  .photo-info { padding: 15px; font-size: 14px; border-top: 1px solid var(--border); }
-  #status-msg { margin-top: 15px; font-weight: 700; color: var(--accent); display: none; }
+  #status { margin-top: 10px; font-weight: bold; color: #1e46e6; }
 </style>
 </head>
 <body>
 
-<div class="topbar">VIVO ANALYZER</div>
-
-<div class="main-container">
-  <div class="card">
-    <h2 style="margin-bottom:15px;">Buscador de Fotos</h2>
-    <textarea id="imeiInput" placeholder="Pega los IMEIs aquí..."></textarea>
-    <button class="btn" onclick="buscar()">CONSULTAR AHORA</button>
-    <div id="status-msg">Cargando base de datos...</div>
-  </div>
-  <div id="resultsContainer" class="results"></div>
+<div class="card">
+  <h2>VIVO ANALYZER</h2>
+  <p>Pega los IMEIs aquí:</p>
+  <textarea id="imeiInput" placeholder="Ej: 351336920155021"></textarea>
+  <button id="btnBuscar">CONSULTAR AHORA</button>
+  <div id="status"></div>
 </div>
 
+<div id="resultsContainer" class="results"></div>
+
 <script>
-async function buscar() {
+// Usamos el evento de clic de forma más directa
+document.getElementById('btnBuscar').addEventListener('click', async function() {
   const input = document.getElementById('imeiInput').value;
   const container = document.getElementById('resultsContainer');
-  const status = document.getElementById('status-msg');
+  const status = document.getElementById('status');
   
-  // 1. Limpiamos los IMEIs (solo números)
-  const imeisBuscados = input.split(/[\n, ]+/).map(i => i.replace(/\D/g, '')).filter(i => i.length > 5);
+  // Limpiar IMEIs (solo números)
+  const imeis = input.split(/[\n, ]+/).map(i => i.replace(/\D/g, '')).filter(i => i.length > 5);
   
-  if (imeisBuscados.length === 0) {
-    alert("Por favor, ingresa IMEIs válidos.");
+  if (imeis.length === 0) {
+    alert("Ingresa un IMEI válido");
     return;
   }
 
-  status.style.display = 'block';
-  status.innerText = "Conectando con Google...";
-  container.innerHTML = '';
+  status.innerText = "Buscando en Google Sheets...";
+  container.innerHTML = "";
 
   try {
-    // URL SIN NOMBRE DE HOJA (para que busque en la primera que encuentre)
     const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
-    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+    // Forzamos que no use caché de Google con un número aleatorio al final
+    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&t=${Date.now()}`;
 
-    const response = await fetch(URL);
-    const rawText = await response.text();
-    const data = JSON.parse(rawText.substring(47).slice(0, -2));
-    const rows = data.table.rows;
+    const resp = await fetch(URL);
+    const text = await resp.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const rows = json.table.rows;
 
     const db = {};
     rows.forEach(r => {
-      // IMEI está en la columna E (índice 4)
-      let imeiEnExcel = r.c?.[4]?.v ? String(r.c[4].v).replace(/\D/g, '') : "";
-      // Link en I (8) y Base64 en L (11)
+      // IMEI en Columna E (índice 4) - Limpiamos el número de cualquier formato
+      let imeiExcel = r.c?.[4]?.v ? String(r.c[4].v).replace(/\D/g, '') : "";
       let link = r.c?.[8]?.v || "";
       let b64 = r.c?.[11]?.v || "";
       
-      if (imeiEnExcel) {
-        db[imeiEnExcel] = { link, b64 };
-      }
+      if (imeiExcel) db[imeiExcel] = { link, b64 };
     });
 
-    imeisBuscados.forEach(imei => {
+    imeis.forEach(imei => {
       const info = db[imei];
       let img = 'https://via.placeholder.com/300x400?text=No+Encontrado';
-      let msg = `<span style="color:var(--error)">✖ No registrado</span>`;
+      let msg = '<span style="color:red">No registrado</span>';
 
       if (info) {
         if (info.b64 && info.b64.length > 100) {
           img = info.b64;
-          msg = `<span style="color:var(--success)">✔ Foto OK</span>`;
+          msg = '<span style="color:green">✔ Foto Servidor</span>';
         } else if (info.link) {
           img = info.link;
-          msg = `<span style="color:var(--accent)">● Link Drive</span>`;
+          msg = '<span style="color:blue">● Link Drive</span>';
         }
       }
 
@@ -96,21 +86,20 @@ async function buscar() {
       card.className = 'photo-card';
       card.innerHTML = `
         <img src="${img}" class="photo-img" onclick="window.open(this.src)">
-        <div class="photo-info">
-          <strong>IMEI:</strong> ${imei}<br>
-          ${msg}
+        <div style="padding:10px">
+          <strong>IMEI:</strong> ${imei}<br>${msg}
         </div>
       `;
       container.appendChild(card);
     });
 
-    status.style.display = 'none';
+    status.innerText = "";
 
-  } catch (error) {
-    console.error(error);
-    status.innerText = "Error de conexión. Verifica que el Excel sea público.";
+  } catch (e) {
+    console.error(e);
+    status.innerText = "Error de conexión. ¿El Excel es público?";
   }
-}
+});
 </script>
 </body>
 </html>
