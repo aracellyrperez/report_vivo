@@ -7,140 +7,219 @@
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --accent: #1e46e6; --accent2: #0f2a9e; --ink: #0a0a0f; --ink2: #1a1a2e;
-    --bg: #f4f6ff; --surface: #ffffff; --border: #e2e8f0; --muted: #94a3b8;
-    --success: #16a34a; --error: #dc2626; --warn: #d97706;
+    --accent: #1e46e6;
+    --accent2: #0f2a9e;
+    --ink: #0a0a0f;
+    --ink2: #1a1a2e;
+    --bg: #f4f6ff;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --muted: #94a3b8;
+    --success: #16a34a;
+    --error: #dc2626;
+    --warn: #d97706;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink2); min-height: 100vh; }
 
-  /* TOPBAR */
-  .topbar { background: #000; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .logo { color: #fff; font-weight: 800; font-size: 20px; letter-spacing: 1px; }
-  
-  .app-container { display: flex; height: calc(100vh - 52px); }
-  
-  /* SIDEBAR */
-  .sidebar { width: 350px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; }
-  .search-area { flex: 1; display: flex; flex-direction: column; }
-  textarea { flex: 1; width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 14px; resize: none; margin-bottom: 16px; transition: 0.3s; }
-  textarea:focus { outline: none; border-color: var(--accent); }
-  .btn-run { background: var(--accent); color: #fff; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
-  .btn-run:hover { background: var(--accent2); transform: translateY(-2px); }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-  /* CONTENT */
-  .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-  
-  .photo-card { background: #fff; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; transition: 0.3s; animation: slideUp 0.4s ease-out; }
-  .photo-img { width: 100%; height: 380px; object-fit: cover; background: #f8fafc; cursor: pointer; }
-  .photo-footer { padding: 16px; border-top: 1px solid var(--border); }
-  
-  /* LOGIN */
-  #loginScreen { position: fixed; inset: 0; background: #000; z-index: 999; display: flex; align-items: center; justify-content: center; color: #fff; }
-  .login-card { width: 100%; max-width: 400px; padding: 40px; text-align: center; }
-  .login-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #222; color: #fff; }
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: var(--bg);
+    color: var(--ink2);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  /* Login Screen */
+  #loginScreen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .login-card {
+    background: #000;
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    text-align: center;
+    border: 1px solid #333;
+    border-radius: 24px;
+  }
+
+  /* Topbar */
+  .topbar {
+    background: #000;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    color: #fff;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+
+  /* Main Layout */
+  .app-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 350px;
+    background: #fff;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    flex-shrink: 0;
+  }
+
+  .search-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  textarea {
+    flex: 1;
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    font-family: inherit;
+    font-size: 14px;
+    resize: none;
+    transition: 0.3s;
+  }
+
+  .btn-run {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+
+  /* Content Area */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .photo-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .photo-img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    background: #f8fafc;
+  }
 </style>
 </head>
 <body>
 
 <div id="loginScreen">
-  <div class="login-card">
-    <h2 style="font-weight: 800; font-size: 24px; margin-bottom: 8px;">VIVO SECURITY</h2>
-    <p style="color: rgba(255,255,255,0.5); margin-bottom: 24px;">Ingresa tus credenciales para continuar</p>
-    <input type="email" id="loginEmail" class="login-input" placeholder="Correo corporativo">
-    <input type="password" id="loginApiKey" class="login-input" placeholder="Anthropic API Key">
-    <button onclick="doLogin()" class="btn-run" style="width: 100%; margin-top: 12px;">ENTRAR AL SISTEMA</button>
-  </div>
+    <div class="login-card">
+        <h2 style="color: #fff; margin-bottom: 8px;">VIVO SECURITY</h2>
+        <input type="email" id="loginEmail" placeholder="Correo" style="width:100%; padding:12px; margin:10px 0; border-radius:8px; border:none;">
+        <input type="password" id="loginApiKey" placeholder="API Key" style="width:100%; padding:12px; margin:10px 0; border-radius:8px; border:none;">
+        <button onclick="handleLogin()" class="btn-run" style="width:100%; margin-top:10px;">Entrar</button>
+    </div>
 </div>
 
-<div id="appContent" style="display:none">
-  <div class="topbar">
-    <div class="logo">VIVO ANALYZER</div>
-    <div id="topbar-date" style="color: #fff; font-size: 13px;"></div>
-  </div>
-
-  <div class="app-container">
-    <div class="sidebar">
-      <div class="search-area">
-        <label style="font-weight: 700; font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">IMEIs a procesar</label>
-        <textarea id="imeiInput" placeholder="Pega los IMEIs aquí..."></textarea>
-        <button class="btn-run" onclick="ejecutarAnalisis()">Analizar Fotos</button>
-      </div>
+<div id="appContent" style="display:none; flex-direction:column; height:100vh;">
+    <div class="topbar">
+        <div class="logo">VIVO ANALYZER</div>
     </div>
-
-    <div class="main-content">
-      <h2 id="statusTitle" style="margin-bottom: 24px; font-weight: 800;">Esperando consulta...</h2>
-      <div id="resultsGrid" class="results-grid"></div>
+    <div class="app-layout">
+        <div class="sidebar">
+            <div class="search-area">
+                <textarea id="imeiInput" placeholder="Pega los IMEIs aquí..."></textarea>
+                <button class="btn-run" onclick="processPhotos()">Analizar Fotos</button>
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="resultsGrid" class="results-grid"></div>
+        </div>
     </div>
-  </div>
 </div>
 
 <script>
-// Lista de correos que ya tenías
-const EMAILS_AUTORIZADOS = ['benjamin.rojas@mail.com', 'admin@vivo.com'];
-
-function doLogin() {
-  const email = document.getElementById('loginEmail').value;
-  if (EMAILS_AUTORIZADOS.includes(email)) {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appContent').style.display = 'block';
-  } else {
-    alert("Acceso denegado.");
-  }
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value;
+    if(email.includes('@')) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appContent').style.display = 'flex';
+    }
 }
 
-async function ejecutarAnalisis() {
-  const input = document.getElementById('imeiInput').value;
-  const grid = document.getElementById('resultsGrid');
-  const title = document.getElementById('statusTitle');
-  
-  const imeis = input.split(/[\n, ]+/).map(i => i.trim()).filter(i => i.length > 5);
-  if (imeis.length === 0) return;
+async function processPhotos() {
+    const input = document.getElementById('imeiInput').value;
+    const grid = document.getElementById('resultsGrid');
+    const imeis = input.split('\n').filter(i => i.trim());
+    
+    grid.innerHTML = 'Cargando...';
 
-  grid.innerHTML = '';
-  title.innerText = "Buscando en base de datos...";
+    try {
+        const response = await fetch('https://docs.google.com/spreadsheets/d/1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m/gviz/tq?tqx=out:json');
+        const text = await response.text();
+        const data = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = data.table.rows;
 
-  try {
-    const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
-    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+        grid.innerHTML = '';
+        
+        imeis.forEach(imei => {
+            const row = rows.find(r => r.c[4] && String(r.c[4].v).includes(imei.trim()));
+            const card = document.createElement('div');
+            card.className = 'photo-card';
+            
+            let imgUrl = 'https://via.placeholder.com/300x400?text=No+Encontrado';
+            if(row && row.c[8]) imgUrl = row.c[8].v;
 
-    const resp = await fetch(URL);
-    const text = await resp.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
-    const rows = json.table.rows;
-
-    const db = {};
-    rows.forEach(r => {
-      let imei = r.c?.[4]?.v ? String(r.c[4].v).trim() : "";
-      let link = r.c?.[8]?.v || "";
-      let b64 = r.c?.[11]?.v || ""; // Columna L
-      if (imei) db[imei] = { link, b64 };
-    });
-
-    imeis.forEach(imei => {
-      const registro = db[imei];
-      let fotoUrl = 'https://via.placeholder.com/300x400?text=No+Encontrado';
-      
-      if (registro) {
-        // Usa la columna L si existe, si no el link de Drive
-        fotoUrl = (registro.b64 && registro.b64.length > 100) ? registro.b64 : registro.link;
-      }
-
-      const card = document.createElement('div');
-      card.className = 'photo-card';
-      card.innerHTML = `
-        <img src="${fotoUrl}" class="photo-img" onclick="window.open(this.src)" onerror="this.src='https://via.placeholder.com/300x400?text=Error+Carga'">
-        <div class="photo-footer"><strong>IMEI:</strong> ${imei}</div>
-      `;
-      grid.appendChild(card);
-    });
-    title.innerText = "Resultados cargados";
-  } catch (e) {
-    title.innerText = "Error de conexión";
-  }
+            card.innerHTML = `<img src="${imgUrl}" class="photo-img"><div style="padding:15px;">IMEI: ${imei}</div>`;
+            grid.appendChild(card);
+        });
+    } catch (e) {
+        grid.innerHTML = 'Error al cargar datos';
+    }
 }
 </script>
 </body>
