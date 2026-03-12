@@ -17,35 +17,39 @@
     --muted: #94a3b8;
     --success: #16a34a;
     --error: #dc2626;
-    --warn: #d97706;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink2); min-height: 100vh; }
 
+  /* TOPBAR */
   .topbar { background: #000; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .logo { color: #fff; font-weight: 800; font-size: 20px; letter-spacing: 1px; }
   
   .main-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
-  .card { background: var(--surface); border-radius: 16px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); }
   
+  /* BUSCADOR */
+  .card { background: var(--surface); border-radius: 16px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); text-align: center; }
   h1 { font-size: 28px; margin-bottom: 8px; font-weight: 700; color: var(--ink); }
-  .subtitle { color: var(--muted); margin-bottom: 24px; font-size: 15px; }
+  .subtitle { color: var(--muted); margin-bottom: 24px; }
   
-  textarea { width: 100%; height: 120px; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 14px; transition: 0.3s; resize: none; background: #fafbff; }
+  textarea { width: 100%; height: 120px; padding: 16px; border-radius: 12px; border: 2px solid var(--border); font-family: inherit; font-size: 14px; transition: 0.3s; resize: none; background: #fafbff; margin-bottom: 16px; }
   textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
   
-  .btn { background: var(--accent); color: #fff; border: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 15px; margin-top: 16px; width: 100%; }
+  .btn { background: var(--accent); color: #fff; border: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 15px; width: 100%; max-width: 300px; }
   .btn:hover { background: var(--accent2); transform: translateY(-1px); }
   
+  /* GRILLA DE RESULTADOS */
   .results { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-  .photo-card { background: #fff; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; }
+  .photo-card { background: #fff; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; animation: fadeIn 0.5s ease; }
   .photo-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
-  .photo-img { width: 100%; height: 300px; object-fit: cover; background: #f1f5f9; cursor: pointer; }
-  .photo-info { padding: 16px; border-top: 1px solid var(--border); }
-  .photo-imei { font-weight: 700; font-size: 15px; color: var(--ink); display: block; margin-bottom: 4px; }
-  .photo-status { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .photo-img { width: 100%; height: 320px; object-fit: cover; background: #f1f5f9; cursor: pointer; border-bottom: 1px solid var(--border); }
+  .photo-info { padding: 16px; text-align: left; }
+  .photo-imei { font-weight: 700; font-size: 15px; color: var(--ink); display: block; }
+  .photo-status { font-size: 11px; font-weight: 600; text-transform: uppercase; margin-top: 4px; display: block; }
 
-  #loading { display: none; text-align: center; margin-top: 20px; color: var(--accent); font-weight: 600; }
+  #loading { display: none; margin-top: 20px; color: var(--accent); font-weight: 700; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
@@ -57,84 +61,94 @@
 <div class="main-container">
   <div class="card">
     <h1>Analizador de Constancias</h1>
-    <p class="subtitle">Ingresa los IMEIs para recuperar las fotos del servidor.</p>
+    <p class="subtitle">Pega los IMEIs aquí para recuperar las fotos del sistema.</p>
     
-    <textarea id="imeiInput" placeholder="Pega los IMEIs aquí (separados por líneas o comas)..."></textarea>
-    <button class="btn" onclick="buscarFotos()">CONSULTAR BASE DE DATOS</button>
-    <div id="loading">Conectando con el servidor de datos...</div>
+    <textarea id="imeiInput" placeholder="Ejemplo: 352489001234567, 861234007894561..."></textarea>
+    <br>
+    <button class="btn" onclick="buscarFotos()">CONSULTAR DATOS</button>
+    <div id="loading">Buscando en la base de datos...</div>
   </div>
 
   <div id="resultsContainer" class="results"></div>
 </div>
 
 <script>
-// CONFIGURACIÓN
+// CONFIGURACIÓN DEL EXCEL
 const SHEET_ID = '1XfB158A5R-6R5n9pS6_Wz3-D6X37xW0m';
 const TAB_NAME = 'Constancias';
-const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${TAB_NAME}`;
+const URL_DATA = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${TAB_NAME}`;
 
 async function buscarFotos() {
   const input = document.getElementById('imeiInput').value;
   const container = document.getElementById('resultsContainer');
   const loading = document.getElementById('loading');
   
-  const listaImeis = input.split(/[\n,]+/).map(i => i.trim()).filter(i => i.length > 5);
+  // Limpiar y separar IMEIs
+  const listaImeis = input.split(/[\n, ]+/).map(i => i.trim()).filter(i => i.length > 5);
   
-  if (listaImeis.length === 0) return alert("Ingresa al menos un IMEI.");
+  if (listaImeis.length === 0) {
+    alert("Por favor, ingresa al menos un IMEI.");
+    return;
+  }
 
   loading.style.display = 'block';
   container.innerHTML = '';
 
   try {
-    const resp = await fetch(URL);
+    const resp = await fetch(URL_DATA);
     const text = await resp.text();
+    // Limpieza del formato JSON de Google
     const json = JSON.parse(text.substring(47).slice(0, -2));
     const rows = json.table.rows;
     
-    // Mapeamos los datos del Excel
+    // Crear mapa de búsqueda rápida
     const db = {};
     rows.forEach(r => {
-      const imei = String(r.c?.[4]?.v || '').trim();  // Columna E
-      const link = String(r.c?.[8]?.v || '').trim();  // Columna I
-      const b64  = String(r.c?.[11]?.v || '').trim(); // Columna L (La importante)
+      const imei = String(r.c?.[4]?.v || '').trim();  // Columna E (IMEI)
+      const link = String(r.c?.[8]?.v || '').trim();  // Columna I (Link Drive)
+      const b64  = String(r.c?.[11]?.v || '').trim(); // Columna L (FOTO BASE64)
       
       if (imei) db[imei] = { link, b64 };
     });
 
     listaImeis.forEach(imei => {
       const entry = db[imei];
-      let fuenteFoto = 'https://via.placeholder.com/300x400?text=No+Encontrado';
-      let msj = '<span style="color:var(--error)">No existe en registro</span>';
+      let imgFinal = 'https://via.placeholder.com/300x400?text=No+Encontrado';
+      let statusHtml = `<span style="color:var(--error)">Sin registro</span>`;
 
       if (entry) {
-        // Prioridad: Si hay Base64 en la L, usamos ese. Si no, el link de Drive.
+        // PRIORIDAD: Foto en Columna L (Base64)
         if (entry.b64 && entry.b64.startsWith('data:image')) {
-          fuenteFoto = entry.b64;
-          msj = '<span style="color:var(--success)">Foto OK (Servidor)</span>';
-        } else if (entry.link) {
-          fuenteFoto = entry.link;
-          msj = '<span style="color:var(--warn)">Link Drive (Revisar)</span>';
+          imgFinal = entry.b64;
+          statusHtml = `<span style="color:var(--success)">● Foto OK</span>`;
+        } 
+        // PLAN B: Link de Drive
+        else if (entry.link) {
+          imgFinal = entry.link;
+          statusHtml = `<span style="color:var(--accent)">● Link Drive</span>`;
         }
       }
 
       const card = document.createElement('div');
       card.className = 'photo-card';
       card.innerHTML = `
-        <img src="${fuenteFoto}" class="photo-img" onclick="window.open(this.src)" onerror="this.src='https://via.placeholder.com/300x400?text=Error+de+Carga'">
+        <img src="${imgFinal}" class="photo-img" onclick="window.open(this.src)" onerror="this.src='https://via.placeholder.com/300x400?text=Error+al+cargar'">
         <div class="photo-info">
           <span class="photo-imei">IMEI: ${imei}</span>
-          <span class="photo-status">${msj}</span>
+          <span class="photo-status">${statusHtml}</span>
         </div>
       `;
       container.appendChild(card);
     });
 
   } catch (e) {
-    alert("Error al leer el Excel. Asegúrate de que el archivo sea público.");
+    console.error(e);
+    alert("Error al conectar con la base de datos.");
   } finally {
     loading.style.display = 'none';
   }
 }
 </script>
+
 </body>
 </html>
