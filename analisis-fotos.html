@@ -241,11 +241,10 @@
     </div>
   </div>
 
-  <!-- STEP 3: SUBIR FOTOS POR IMEI -->
+  <!-- STEP 3: FOTOS DESDE SHEET -->
   <div class="card hidden" id="step-upload">
-    <div class="card-title"><span class="section-num">3</span> Subir foto por IMEI</div>
-    <div class="progress-bar" style="margin-bottom:4px;"><div class="progress-fill" id="upload-progress-fill" style="width:0%;background:var(--accent);"></div></div>
-    <div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:16px;" id="upload-progress-label">0 de 0 fotos cargadas</div>
+    <div class="card-title"><span class="section-num">3</span> Fotos desde el Sheet</div>
+    <div id="sheet-foto-status" style="font-size:13px;color:var(--muted);margin-bottom:12px;"></div>
     <div id="imei-upload-list"></div>
     <div style="margin-top:16px;">
       <button class="btn-primary" id="btn-analizar" disabled onclick="analizarTodo()">
@@ -279,8 +278,9 @@ const SHEETS_ID = '1jPvPa1rFndWQ8fPiJkL32VCsZI6ObAoXD_dVwUZISeo';
 let todosLosIMEIs = [];
 let imeisFiltrados = [];
 let imeisSeleccionados = new Set();
-let fotosMap = {};      // idx -> File
-let resultadosMap = {}; // idx -> resultado analisis
+let fotosMap = {};         // idx -> { url, base64, mediaType }
+let resultadosMap = {};    // idx -> resultado analisis
+let constanciasMap = {};   // imei -> link drive
 
 document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-PE', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
@@ -437,77 +437,125 @@ function actualizarContadorImei() {
   document.getElementById('btn-continuar').disabled = n === 0;
 }
 
-// ─── PASO 3: UPLOAD POR IMEI ─────────────────────────────────────────────────
-function irAUpload() {
+// ─── PASO 3: CARGAR FOTOS DESDE SHEET CONSTANCIAS ───────────────────────────
+async function irAUpload() {
   fotosMap = {}; resultadosMap = {};
   const step = document.getElementById('step-upload');
   step.classList.remove('hidden');
   document.getElementById('step-resumen').classList.add('hidden');
+  document.getElementById('imei-upload-list').innerHTML = '';
+  document.getElementById('btn-analizar').disabled = true;
 
-  const container = document.getElementById('imei-upload-list');
-  container.innerHTML = '';
+  const statusEl = document.getElementById('sheet-foto-status');
+  statusEl.innerHTML = '<span class="spinner"></span> Buscando fotos en el Sheet de Constancias...';
+  statusEl.style.display = 'flex';
+  statusEl.style.alignItems = 'center';
+  statusEl.style.gap = '8px';
 
-  [...imeisSeleccionados].sort((a,b) => a-b).forEach(idx => {
-    const item = imeisFiltrados[idx];
-    const div = document.createElement('div');
-    div.className = 'imei-upload-item';
-    div.id = `upload-item-${idx}`;
-    div.innerHTML = `
-      <div class="imei-upload-header">
-        <div class="imei-upload-header-left">
-          <div class="imei-num">📱 ${item.imei}</div>
-          <div class="imei-det">${item.modelo}${item.fecha ? ' · ' + item.fecha : ''}${item.pos ? ' · ' + item.pos : ''}</div>
-        </div>
-        <span id="status-badge-${idx}"></span>
-      </div>
-      <div class="imei-upload-body">
-        <div class="upload-zone" id="zone-${idx}">
-          <input type="file" id="file-${idx}" accept="image/*" style="display:none" onchange="handleFoto(this,${idx})">
-          <div class="upload-icon">📷</div>
-          <div class="upload-text">Tocar para subir foto</div>
-          <div class="upload-sub">JPG, PNG — máx. 10MB</div>
-        </div>
-        <div class="upload-filename" id="fname-${idx}"></div>
-        <img class="preview-thumb" id="thumb-${idx}" src="" alt="preview">
-        <div id="inline-result-${idx}"></div>
-      </div>`;
-    div.querySelector('.upload-zone').onclick = () => document.getElementById(`file-${idx}`).click();
-    container.appendChild(div);
-  });
-
-  actualizarProgresoUpload();
   step.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    // Cargar hoja Constancias — columna E = IMEI (idx 4), columna I = link (idx 8)
+    const url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=Constancias`;
+    const res  = await fetch(url, { mode: 'cors' });
+    const text = await res.text();
+    const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+    const rows = json.table.rows;
+
+    // Construir mapa IMEI -> link desde Constancias
+    const linkMap = {};
+    rows.forEach(r => {
+      const imei = String(r.c?.[4]?.v || '').trim();
+      const link = String(r.c?.[8]?.v || '').trim();
+      if (imei && link) linkMap[imei] = link;
+    });
+
+    const indices = [...imeisSeleccionados].sort((a,b) => a-b);
+    let encontradas = 0;
+
+    const container = document.getElementById('imei-upload-list');
+    container.innerHTML = '';
+
+    indices.forEach(idx => {
+      const item = imeisFiltrados[idx];
+      const imeiKey = String(item.imei || '').trim();
+
+      // Buscar link por IMEI exacto o parcial
+      let linkFound = linkMap[imeiKey] || null;
+      if (!linkFound) {
+        const key = Object.keys(linkMap).find(k =>
+          k.replace(/\s/g,'').includes(imeiKey.replace(/\s/g,'')) ||
+          imeiKey.replace(/\s/g,'').includes(k.replace(/\s/g,''))
+        );
+        if (key) linkFound = linkMap[key];
+      }
+
+      // Convertir link de Google Drive a link directo de imagen
+      let imgUrl = null;
+      if (linkFound) {
+        const matchId = linkFound.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (matchId) {
+          imgUrl = `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w1200`;
+        } else if (linkFound.includes('id=')) {
+          const idParam = new URL(linkFound).searchParams.get('id');
+          if (idParam) imgUrl = `https://drive.google.com/thumbnail?id=${idParam}&sz=w1200`;
+        }
+      }
+
+      if (imgUrl) {
+        encontradas++;
+        fotosMap[idx] = { type: 'url', url: imgUrl, name: imeiKey };
+      }
+
+      // Renderizar card con preview o zona de carga manual como fallback
+      const div = document.createElement('div');
+      div.className = 'imei-upload-item';
+      div.id = `upload-item-${idx}`;
+      div.innerHTML = `
+        <div class="imei-upload-header">
+          <div class="imei-upload-header-left">
+            <div class="imei-num">📱 ${item.imei}</div>
+            <div class="imei-det">${item.modelo}${item.fecha ? ' · ' + item.fecha : ''}${item.pos ? ' · ' + item.pos : ''}</div>
+          </div>
+        </div>
+        ${imgUrl
+          ? `<div style="padding:0 14px 14px;">
+               <div style="font-size:11px;color:var(--success);font-weight:700;margin-bottom:8px;">✅ Foto encontrada en el Sheet</div>
+               <img src="${imgUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--border);"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+               <div style="display:none;font-size:12px;color:var(--warn);padding:8px;">⚠ No se pudo cargar la imagen. Verificá que el archivo en Drive es público.</div>
+             </div>`
+          : `<div style="padding:0 14px 14px;">
+               <div style="font-size:11px;color:var(--warn);font-weight:700;margin-bottom:8px;">⚠ No encontrada en el Sheet — subí la foto manualmente</div>
+               <label class="upload-zone" id="zone-${idx}" style="cursor:pointer;">
+                 <span style="font-size:22px;">📷</span>
+                 <span style="font-weight:600;font-size:14px;">Tocar para subir foto</span>
+                 <span style="font-size:12px;color:var(--muted);">JPG, PNG — máx. 10MB</span>
+                 <input type="file" accept="image/*" style="display:none" onchange="onFileChange(event,${idx})" />
+               </label>
+             </div>`
+        }
+        <div class="result-box hidden" id="result-${idx}"></div>`;
+      container.appendChild(div);
+    });
+
+    const sinFoto = indices.length - encontradas;
+    statusEl.innerHTML = `
+      <span style="color:var(--success);font-weight:700;">✅ ${encontradas} foto${encontradas!==1?'s':''} encontrada${encontradas!==1?'s':''} automáticamente</span>
+      ${sinFoto > 0 ? `<span style="color:var(--warn);margin-left:8px;">· ${sinFoto} sin foto en el Sheet</span>` : ''}
+    `;
+
+    if (encontradas > 0) {
+      document.getElementById('btn-analizar').disabled = false;
+    }
+
+  } catch(err) {
+    statusEl.innerHTML = `<span style="color:var(--error);">⚠ Error al cargar el Sheet de Constancias: ${err.message}</span>`;
+  }
 }
 
-function handleFoto(input, idx) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 10 * 1024 * 1024) { alert('La foto es muy grande. Máximo 10MB.'); return; }
-  fotosMap[idx] = file;
 
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById(`thumb-${idx}`).src = e.target.result;
-    document.getElementById(`thumb-${idx}`).style.display = 'block';
-    document.getElementById(`fname-${idx}`).textContent = '✓ ' + file.name;
-    document.getElementById(`fname-${idx}`).style.display = 'block';
-    document.getElementById(`zone-${idx}`).classList.add('has-file');
-    document.getElementById(`upload-item-${idx}`).classList.add('done');
-  };
-  reader.readAsDataURL(file);
-  actualizarProgresoUpload();
-}
-
-function actualizarProgresoUpload() {
-  const total = imeisSeleccionados.size;
-  const cargadas = Object.keys(fotosMap).length;
-  const pct = total > 0 ? Math.round((cargadas / total) * 100) : 0;
-  document.getElementById('upload-progress-fill').style.width = pct + '%';
-  document.getElementById('upload-progress-label').textContent = `${cargadas} de ${total} fotos cargadas`;
-  document.getElementById('btn-analizar').disabled = cargadas < total;
-}
-
-// ─── PASO 4: ANÁLISIS ────────────────────────────────────────────────────────
+// ─── ANALIZAR TODO ───────────────────────────────────────────────────────────
 async function analizarTodo() {
   const btn = document.getElementById('btn-analizar');
   btn.disabled = true;
@@ -517,113 +565,56 @@ async function analizarTodo() {
 
   for (let i = 0; i < indices.length; i++) {
     const idx = indices[i];
-    const file = fotosMap[idx];
     const item = imeisFiltrados[idx];
+    const fotoData = fotosMap[idx];
+
+    // Marcar en progreso
     const uploadItem = document.getElementById(`upload-item-${idx}`);
-
-    // Marcar como analizando
-    uploadItem.classList.remove('done');
-    uploadItem.classList.add('analyzing');
-    document.getElementById(`status-badge-${idx}`).innerHTML =
-      `<span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--accent);font-weight:700"><span class="spinner-sm"></span> Analizando ${i+1}/${indices.length}</span>`;
-
-    try {
-      const base64 = await fileToBase64(file);
-
-      // LLAMADA ÚNICA: autenticidad + extracción de datos en un solo prompt
-      const resultado = await analizarConDatos(file, base64, item);
-      resultadosMap[idx] = resultado;
-      renderResultadoInline(idx, item, resultado);
-
-    } catch (err) {
-      resultadosMap[idx] = { error: true, errorMsg: err.message };
-      document.getElementById(`inline-result-${idx}`).innerHTML =
-        `<div style="margin-top:10px;padding:10px;background:#fef2f2;border-radius:8px;font-size:12px;color:var(--error);">⚠ ${err.message}</div>`;
-      uploadItem.classList.add('result-bad');
+    if (uploadItem) {
+      const numEl = uploadItem.querySelector('.imei-num');
+      if (numEl) numEl.innerHTML = `<span class="spinner-sm"></span> Analizando ${i+1}/${indices.length}`;
     }
 
-    uploadItem.classList.remove('analyzing');
-    document.getElementById(`status-badge-${idx}`).innerHTML = '';
+    if (!fotoData) {
+      resultadosMap[idx] = { error: 'Sin foto' };
+      renderResultado(idx, { error: 'Sin foto' }, item);
+      continue;
+    }
+
+    try {
+      let base64, mediaType;
+
+      if (fotoData.type === 'url') {
+        // Descargar imagen desde Drive como blob
+        const resp = await fetch(fotoData.url);
+        if (!resp.ok) throw new Error('No se pudo descargar la imagen desde Drive');
+        const blob = await resp.blob();
+        mediaType = blob.type || 'image/jpeg';
+        base64 = await new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result.split(',')[1]);
+          r.onerror = rej;
+          r.readAsDataURL(blob);
+        });
+      } else {
+        // Archivo subido manualmente
+        mediaType = fotoData.type || 'image/jpeg';
+        base64 = await fileToBase64(fotoData);
+      }
+
+      const resultado = await analizarConDatos({ type: mediaType }, base64, item);
+      resultadosMap[idx] = resultado;
+      renderResultado(idx, resultado, item);
+
+    } catch(err) {
+      resultadosMap[idx] = { error: err.message };
+      renderResultado(idx, { error: err.message }, item);
+    }
   }
 
   btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Analizar con IA`;
   btn.disabled = false;
-
   mostrarResumen();
-}
-
-function renderResultadoInline(idx, item, r) {
-  const uploadItem = document.getElementById(`upload-item-${idx}`);
-  const container = document.getElementById(`inline-result-${idx}`);
-
-  const vLow = (r.veredicto || '').toLowerCase();
-  const badgeClass = vLow === 'original' ? 'verdict-original' : vLow === 'editada' ? 'verdict-editada' : 'verdict-sospechosa';
-  const emoji = vLow === 'original' ? '✅' : vLow === 'editada' ? '⚠️' : '🔍';
-  const conf = Number(r.confianza) || 0;
-  const confColor = conf >= 75 ? 'var(--success)' : conf >= 50 ? 'var(--warn)' : 'var(--error)';
-
-  // Clase del card según resultado
-  uploadItem.classList.remove('done', 'analyzing');
-  if (vLow === 'original') uploadItem.classList.add('result-ok');
-  else if (vLow === 'editada') uploadItem.classList.add('result-bad');
-  else uploadItem.classList.add('result-warn');
-
-  // Datos detectados vs esperados
-  const d = r.datos || {};
-  const datosRows = [
-    { key: 'imei',   label: 'IMEI',   icon: '🔢', esperado: item.imei },
-    { key: 'modelo', label: 'Modelo', icon: '📱', esperado: item.modelo },
-    { key: 'fecha',  label: 'Fecha',  icon: '📅', esperado: item.fecha },
-  ].map(def => {
-    const val = d[def.key];
-    const found = val && val !== 'null' && val !== null;
-    // Para IMEI: comparar exacto. Para modelo/fecha: comparar normalizado
-    let match = null;
-    if (found && def.esperado) {
-      const v = String(val).toLowerCase().replace(/\s/g,'');
-      const e = String(def.esperado).toLowerCase().replace(/\s/g,'');
-      match = v.includes(e) || e.includes(v);
-    }
-    const rowClass = !found ? 'dato-warn' : (def.esperado ? (match ? 'dato-match' : 'dato-mismatch') : 'dato-ok');
-    const matchIcon = !found ? '⚠️' : (def.esperado ? (match ? '✅' : '❌') : def.icon);
-    return `<div class="dato-row ${rowClass}">
-      <span class="dato-icon">${matchIcon}</span>
-      <div class="dato-content">
-        <div class="dato-label">${def.label}</div>
-        <div class="dato-value ${found ? '' : 'not-found'}">${found ? val : 'No encontrado en la imagen'}</div>
-        ${def.esperado ? `<div class="dato-expected">Esperado: <span>${def.esperado}</span></div>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-
-  container.innerHTML = `
-    <div class="inline-result" style="margin-top:10px;">
-      <div class="inline-result-header" style="background:${vLow==='original'?'#f0fdf4':vLow==='editada'?'#fef2f2':'#fffbeb'};">
-        <span class="verdict-badge ${badgeClass}"><span class="verdict-dot"></span>${emoji} ${r.veredicto}</span>
-        <span style="font-size:11px;color:var(--muted);margin-left:auto;">${conf}% confianza</span>
-      </div>
-      <div class="inline-result-body">
-        <p>${r.resumen || ''}</p>
-        <div class="conf-row">
-          <span class="conf-label">Autenticidad</span>
-          <span class="conf-val" style="color:${confColor}">${conf}%</span>
-        </div>
-        <div class="progress-bar" style="margin-bottom:12px;">
-          <div class="progress-fill" style="width:0%;background:${confColor}" data-width="${conf}%"></div>
-        </div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-          <span style="display:inline-block;width:3px;height:12px;background:var(--accent);border-radius:2px;"></span>
-          Verificación de datos
-        </div>
-        <div class="datos-grid">${datosRows}</div>
-      </div>
-    </div>`;
-
-  // Animar barra
-  setTimeout(() => {
-    const fill = container.querySelector('.progress-fill');
-    if (fill) fill.style.width = fill.dataset.width;
-  }, 100);
 }
 
 // ─── ANÁLISIS COMBINADO (1 sola llamada) ─────────────────────────────────────
@@ -717,6 +708,81 @@ function fileToBase64(file) {
   });
 }
 
+
+// ─── RENDERIZAR RESULTADO POR IMEI ───────────────────────────────────────────
+function renderResultado(idx, r, item) {
+  const uploadItem = document.getElementById(`upload-item-${idx}`);
+  const container  = document.getElementById(`result-${idx}`);
+  if (!container) return;
+  container.classList.remove('hidden');
+
+  if (r.error) {
+    container.innerHTML = `
+      <div style="padding:10px 14px;background:#fef2f2;border-top:1px solid var(--border);font-size:12px;color:var(--error);">
+        ⚠ ${r.error}
+      </div>`;
+    if (uploadItem) uploadItem.classList.add('result-bad');
+    return;
+  }
+
+  const vLow = (r.veredicto || '').toLowerCase();
+  const badgeClass = vLow === 'original' ? 'verdict-original' : vLow === 'editada' ? 'verdict-editada' : 'verdict-sospechosa';
+  const emoji      = vLow === 'original' ? '✅' : vLow === 'editada' ? '⚠️' : '🔍';
+  if (uploadItem) uploadItem.classList.add(vLow === 'original' ? 'result-ok' : 'result-bad');
+
+  const conf = r.confianza ?? '—';
+  const datos = r.datos || {};
+
+  const imeiEsp = String(item.imei || '').replace(/\s/g,'').toLowerCase();
+  const imeiEnc = String(datos.imei || '').replace(/\s/g,'').toLowerCase();
+  const imeiMatch = imeiEsp && imeiEnc && (imeiEnc.includes(imeiEsp) || imeiEsp.includes(imeiEnc));
+
+  const modeloEsp = String(item.modelo || '').replace(/\s/g,'').toLowerCase();
+  const modeloEnc = String(datos.modelo || '').replace(/\s/g,'').toLowerCase();
+  const modeloMatch = modeloEsp && modeloEnc && (modeloEnc.includes(modeloEsp) || modeloEsp.includes(modeloEnc));
+
+  const mkRow = (label, esperado, encontrado, match) => {
+    if (!esperado && !encontrado) return '';
+    const icon = !esperado || !encontrado ? '⚠️' : match ? '✅' : '❌';
+    const color = !esperado || !encontrado ? 'var(--warn)' : match ? 'var(--success)' : 'var(--error)';
+    return `
+      <div style="border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:8px;background:#fafafa;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">${label}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+          <div>
+            ${encontrado
+              ? `<span style="font-size:13px;font-weight:700;color:var(--ink2);">${encontrado}</span>
+                 <span style="font-size:11px;color:var(--muted);margin-left:4px;">encontrado</span>`
+              : `<span style="font-size:12px;color:var(--warn);font-style:italic;">No encontrado</span>`}
+            ${esperado ? `<div style="font-size:11px;color:var(--muted);">Esperado: <strong>${esperado}</strong></div>` : ''}
+          </div>
+          <span style="font-size:18px;">${icon}</span>
+        </div>
+      </div>`;
+  };
+
+  container.innerHTML = `
+    <div class="inline-result">
+      <div class="inline-result-header ${badgeClass}" style="justify-content:space-between;">
+        <span class="verdict-badge ${badgeClass}"><span class="verdict-dot"></span>${emoji} ${r.veredicto}</span>
+        <span style="font-size:11px;opacity:0.8;">${conf}% confianza</span>
+      </div>
+      <div class="inline-result-body">
+        <p style="margin-bottom:12px;">${r.resumen || ''}</p>
+        <div style="background:var(--bg);border-radius:6px;padding:6px 10px;margin-bottom:10px;">
+          <div class="progress-bar" style="margin-bottom:2px;">
+            <div class="progress-fill" style="width:${conf}%;background:${vLow==='original'?'var(--success)':vLow==='editada'?'var(--error)':'var(--warn)'};"></div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);text-align:right;">AUTENTICIDAD ${conf}%</div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">VERIFICACIÓN DE DATOS</div>
+        ${mkRow('IMEI', item.imei, datos.imei, imeiMatch)}
+        ${mkRow('MODELO', item.modelo, datos.modelo, modeloMatch)}
+        ${mkRow('FECHA', item.fecha, datos.fecha, true)}
+      </div>
+    </div>`;
+}
+
 // ─── RESUMEN FINAL ───────────────────────────────────────────────────────────
 function mostrarResumen() {
   const step = document.getElementById('step-resumen');
@@ -796,12 +862,10 @@ function descargarExcel() {
   const BOM = '﻿';
   const escape = v => {
     const s = String(v ?? '');
-    return s.includes(',') || s.includes('"') || s.includes('
-')
-      ? `"${s.replace(/"/g, '""')}"` : s;
+    const needsQuote = s.includes(',') || s.includes('"') || s.includes('\n');
+    return needsQuote ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
-  const csv = BOM + [headers, ...rows].map(r => r.map(escape).join(',')).join('
-');
+  const csv = BOM + [headers, ...rows].map(r => r.map(escape).join(',')).join('\n');
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
