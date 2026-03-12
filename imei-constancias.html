@@ -481,47 +481,8 @@ async function irAUpload() {
       const item = imeisFiltrados[idx];
       const imeiKey = String(item.imei || '').trim();
 
-      // Buscar entrada por IMEI exacto o parcial
-      let entryFound = linkMap[imeiKey] || null;
-      if (!entryFound) {
-        const key = Object.keys(linkMap).find(k =>
-          k.replace(/\s/g,'').includes(imeiKey.replace(/\s/g,'')) ||
-          imeiKey.replace(/\s/g,'').includes(k.replace(/\s/g,''))
-        );
-        if (key) entryFound = linkMap[key];
-      }
-
-      // Usar base64 si está disponible, si no usar URL de Drive
-      let imgUrl = null;
-      let base64Data = null;
-      if (entryFound) {
-        if (entryFound.base64 && entryFound.base64.startsWith('data:image')) {
-          base64Data = entryFound.base64;
-        } else if (entryFound.link) {
-          const matchId = entryFound.link.match(/\/d\/([a-zA-Z0-9_-]+)/);
-          if (matchId) {
-            imgUrl = `https://drive.google.com/thumbnail?id=${matchId[1]}&sz=w1200`;
-          } else if (entryFound.link.includes('id=')) {
-            try {
-              const idParam = new URL(entryFound.link).searchParams.get('id');
-              if (idParam) imgUrl = `https://drive.google.com/thumbnail?id=${idParam}&sz=w1200`;
-            } catch(e) {}
-          } else if (entryFound.link.includes('thumbnail?id=')) {
-            imgUrl = entryFound.link;
-          }
-        }
-      }
-
-      if (base64Data || imgUrl) {
-        encontradas++;
-        if (base64Data) {
-          fotosMap[idx] = { type: 'base64', base64: base64Data, name: imeiKey };
-        } else {
-          fotosMap[idx] = { type: 'url', url: imgUrl, name: imeiKey };
-        }
-      }
-
-      // Renderizar card con preview o zona de carga manual como fallback
+      // Siempre mostrar zona de carga manual
+      // Renderizar card con zona de carga manual
       const div = document.createElement('div');
       div.className = 'imei-upload-item';
       div.id = `upload-item-${idx}`;
@@ -532,36 +493,24 @@ async function irAUpload() {
             <div class="imei-det">${item.modelo}${item.fecha ? ' · ' + item.fecha : ''}${item.pos ? ' · ' + item.pos : ''}</div>
           </div>
         </div>
-        ${imgUrl
-          ? `<div style="padding:0 14px 14px;">
-               <div style="font-size:11px;color:var(--success);font-weight:700;margin-bottom:8px;">✅ Foto encontrada en el Sheet</div>
-               <img src="${imgUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--border);"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
-               <div style="display:none;font-size:12px;color:var(--warn);padding:8px;">⚠ No se pudo cargar la imagen. Verificá que el archivo en Drive es público.</div>
-             </div>`
-          : `<div style="padding:0 14px 14px;">
-               <div style="font-size:11px;color:var(--warn);font-weight:700;margin-bottom:8px;">⚠ No encontrada en el Sheet — subí la foto manualmente</div>
-               <label class="upload-zone" id="zone-${idx}" style="cursor:pointer;">
-                 <span style="font-size:22px;">📷</span>
-                 <span style="font-weight:600;font-size:14px;">Tocar para subir foto</span>
-                 <span style="font-size:12px;color:var(--muted);">JPG, PNG — máx. 10MB</span>
-                 <input type="file" accept="image/*" style="display:none" onchange="onFileChange(event,${idx})" />
-               </label>
-             </div>`
-        }
+        <div style="padding:0 14px 14px;">
+          <label class="upload-zone" id="zone-${idx}" style="cursor:pointer;display:block;">
+            <span style="font-size:22px;">📷</span>
+            <span style="font-weight:600;font-size:14px;display:block;margin-top:4px;">Subir foto de constancia</span>
+            <span style="font-size:12px;color:var(--muted);">JPG, PNG — máx. 10MB</span>
+            <input type="file" accept="image/*" style="display:none" onchange="onFileChange(event,${idx})" />
+          </label>
+          <img id="preview-${idx}" src="" style="display:none;width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:8px;" />
+        </div>
         <div class="result-box hidden" id="result-${idx}"></div>`;
       container.appendChild(div);
     });
 
-    const sinFoto = indices.length - encontradas;
     statusEl.innerHTML = `
-      <span style="color:var(--success);font-weight:700;">✅ ${encontradas} foto${encontradas!==1?'s':''} encontrada${encontradas!==1?'s':''} automáticamente</span>
-      ${sinFoto > 0 ? `<span style="color:var(--warn);margin-left:8px;">· ${sinFoto} sin foto en el Sheet</span>` : ''}
+      <span style="color:var(--accent);font-weight:700;">📋 ${indices.length} IMEI${indices.length!==1?'s':''} — subí las fotos para analizar</span>
     `;
 
-    if (encontradas > 0) {
-      document.getElementById('btn-analizar').disabled = false;
-    }
+    document.getElementById('btn-analizar').disabled = false;
 
   } catch(err) {
     statusEl.innerHTML = `<span style="color:var(--error);">⚠ Error al cargar el Sheet de Constancias: ${err.message}</span>`;
@@ -570,6 +519,37 @@ async function irAUpload() {
 
 
 // ─── ANALIZAR TODO ───────────────────────────────────────────────────────────
+// ─── CARGA MANUAL DE FOTO ────────────────────────────────────────────────────
+function onFileChange(event, idx) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { alert('La foto es muy grande. Máximo 10MB.'); return; }
+
+  fotosMap[idx] = file;
+
+  // Mostrar preview
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('preview-' + idx);
+    if (preview) {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    }
+    const zone = document.getElementById('zone-' + idx);
+    if (zone) {
+      zone.style.borderColor = 'var(--success)';
+      zone.style.background = '#f0fdf4';
+      const txt = zone.querySelector('span');
+      if (txt) txt.textContent = '✅ ' + file.name;
+    }
+  };
+  reader.readAsDataURL(file);
+
+  // Habilitar botón si hay al menos una foto
+  const hayFotos = Object.keys(fotosMap).length > 0;
+  document.getElementById('btn-analizar').disabled = !hayFotos;
+}
+
 async function analizarTodo() {
   const btn = document.getElementById('btn-analizar');
   btn.disabled = true;
