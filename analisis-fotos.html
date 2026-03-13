@@ -22,34 +22,28 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink2); min-height: 100vh; }
 
-  /* TOPBAR */
   .topbar { background: #000; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
   .topbar-brand { font-weight: 800; font-size: 14px; color: #fff; letter-spacing: .1em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
   .topbar-brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
   .topbar-date { font-size: 12px; color: rgba(255,255,255,0.4); }
 
-  /* HERO */
   .hero { background: #000; color: #fff; padding: 40px 32px 48px; position: relative; overflow: hidden; }
   .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(30,70,230,0.3), transparent 70%); }
   .hero h1 { font-size: 28px; font-weight: 800; line-height: 1.2; position: relative; }
   .hero h1 span { color: var(--accent); }
   .hero p { margin-top: 8px; font-size: 13px; color: rgba(255,255,255,0.5); position: relative; }
 
-  /* MAIN */
   .main { max-width: 640px; margin: 0 auto; padding: 24px 16px 60px; }
 
-  /* CARD */
   .card { background: var(--surface); border-radius: 14px; border: 1px solid var(--border); padding: 24px; margin-bottom: 16px; animation: fadeUp 0.3s ease both; }
   .card-title { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
   .section-num { display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; font-size: 10px; font-weight: 800; width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; }
 
-  /* FIELDS */
   .field { margin-bottom: 14px; }
   .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink2); margin-bottom: 6px; letter-spacing: .04em; }
   .field select, .field input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Exo 2', sans-serif; font-size: 14px; color: var(--ink2); background: var(--bg); transition: border-color 0.2s; outline: none; }
   .field select:focus, .field input:focus { border-color: var(--accent); }
 
-  /* IMEI LIST */
   .imei-list { display: flex; flex-direction: column; gap: 10px; }
   .imei-card { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color 0.2s; cursor: pointer; }
   .imei-card:hover { border-color: #a5b4fc; }
@@ -66,7 +60,6 @@
   .count-badge { font-size: 12px; font-weight: 700; color: var(--accent); }
   .badge-info { padding: 8px 12px; background: var(--bg); border-radius: 8px; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
 
-  /* UPLOAD POR IMEI */
   .imei-upload-item { border: 1.5px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; transition: border-color 0.3s; }
   .imei-upload-item.done { border-color: var(--success); }
   .imei-upload-item.analyzing { border-color: var(--accent); }
@@ -86,43 +79,18 @@
   .upload-icon { font-size: 22px; margin-bottom: 4px; }
   .upload-text { font-size: 12px; font-weight: 600; color: var(--ink2); }
   .upload-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
-  .upload-filename { font-size: 11px; color: var(--success); font-weight: 600; margin-top: 6px; display: none; }
-  .preview-thumb { width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none; }
 
-  /* RESULT INLINE */
   .inline-result { margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
   .inline-result-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 12px; font-weight: 700; }
   .inline-result-body { padding: 10px 12px; border-top: 1px solid var(--border); }
   .inline-result-body p { font-size: 12px; color: #374151; line-height: 1.5; margin-bottom: 8px; }
 
-  .datos-grid { display: flex; flex-direction: column; gap: 6px; }
-  .dato-row { display: flex; align-items: flex-start; gap: 8px; padding: 7px 10px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg); }
-  .dato-row.dato-ok { border-color: #bbf7d0; background: #f0fdf4; }
-  .dato-row.dato-warn { border-color: #fcd34d; background: #fffbeb; }
-  .dato-row.dato-match { border-color: #bbf7d0; background: #f0fdf4; }
-  .dato-row.dato-mismatch { border-color: #fca5a5; background: #fef2f2; }
-  .dato-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
-  .dato-content { flex: 1; min-width: 0; }
-  .dato-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 1px; }
-  .dato-value { font-size: 12px; font-weight: 700; color: var(--ink2); word-break: break-all; }
-  .dato-value.not-found { color: var(--warn); font-style: italic; font-weight: 500; }
-  .dato-expected { font-size: 10px; color: var(--muted); margin-top: 1px; }
-  .dato-expected span { color: var(--ink2); font-weight: 600; }
-
-  .conf-row { display: flex; justify-content: space-between; align-items: center; margin: 8px 0 4px; }
-  .conf-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
-  .conf-val { font-size: 11px; font-weight: 800; }
-  .progress-bar { background: #e5e7eb; border-radius: 4px; height: 5px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
-
-  /* VERDICT BADGE */
   .verdict-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .06em; }
   .verdict-original { background: #f0fdf4; color: var(--success); }
   .verdict-editada { background: #fef2f2; color: var(--error); }
   .verdict-sospechosa { background: #fffbeb; color: var(--warn); }
   .verdict-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-  /* SUMMARY */
   .summary-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
   .summary-pill { display: flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 30px; font-size: 12px; font-weight: 700; }
   .pill-total { background: #eef1ff; color: var(--accent); }
@@ -130,25 +98,20 @@
   .pill-bad { background: #fef2f2; color: var(--error); }
   .pill-warn { background: #fffbeb; color: var(--warn); }
 
-  /* BUTTONS */
   .btn-primary { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-family: 'Exo 2', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; letter-spacing: .04em; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn-primary:hover:not(:disabled) { background: var(--accent2); }
   .btn-primary:disabled { background: var(--muted); cursor: not-allowed; }
   .btn-secondary { padding: 12px 28px; background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 10px; font-family: 'Exo 2', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; }
 
-  /* LOADING */
   .loading { display: none; text-align: center; padding: 16px; color: var(--muted); font-size: 13px; }
   .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
   .spinner-white { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
   .spinner-sm { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(30,70,230,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
 
-  .status-bar { background: #eef1ff; border: 1px solid #c7d0ff; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
-
   .hidden { display: none !important; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* LOGIN */
   .login-screen { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
   .login-screen::before { content: ''; position: absolute; top: -80px; right: -80px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(30,70,230,0.25), transparent 70%); pointer-events: none; }
   .login-box { background: #111; border: 1px solid #222; border-radius: 20px; padding: 36px 28px; width: 100%; max-width: 380px; position: relative; animation: fadeUp 0.4s ease both; }
@@ -203,7 +166,7 @@
 
 <div class="main">
 
-  <!-- STEP 1: FILTROS -->
+  <!-- STEP 1 -->
   <div class="card" id="step-filtros">
     <div class="card-title"><span class="section-num">1</span> Filtrar registros</div>
     <div class="loading" id="loading-sheet" style="display:flex;align-items:center;gap:8px;padding:8px 0;">
@@ -225,7 +188,7 @@
     </div>
   </div>
 
-  <!-- STEP 2: SELECCIÓN DE IMEIs -->
+  <!-- STEP 2 -->
   <div class="card hidden" id="step-imeis">
     <div class="card-title"><span class="section-num">2</span> Seleccionar IMEIs a verificar</div>
     <div id="imei-info" class="badge-info"></div>
@@ -235,13 +198,11 @@
     </div>
     <div id="imei-list" class="imei-list"></div>
     <div style="margin-top:16px;">
-      <button class="btn-primary" id="btn-continuar" disabled onclick="irAUpload()">
-        Continuar →
-      </button>
+      <button class="btn-primary" id="btn-continuar" disabled onclick="irAUpload()">Continuar →</button>
     </div>
   </div>
 
-  <!-- STEP 3: FOTOS DESDE SHEET -->
+  <!-- STEP 3 -->
   <div class="card hidden" id="step-upload">
     <div class="card-title"><span class="section-num">3</span> Fotos desde el Sheet</div>
     <div id="sheet-foto-status" style="font-size:13px;color:var(--muted);margin-bottom:12px;"></div>
@@ -254,12 +215,12 @@
     </div>
   </div>
 
-  <!-- STEP 4: RESUMEN FINAL -->
+  <!-- STEP 4 -->
   <div class="card hidden" id="step-resumen">
     <div class="card-title"><span class="section-num">4</span> Resumen del análisis</div>
     <div class="summary-row" id="summary-row"></div>
     <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
-      <button class="btn-primary" onclick="descargarExcel()" id="btn-excel">
+      <button class="btn-primary" onclick="descargarExcel()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         Descargar Excel
       </button>
@@ -268,7 +229,6 @@
   </div>
 
 </div>
-
 </div>
 
 <script>
@@ -278,15 +238,39 @@ const SHEETS_ID = '1jPvPa1rFndWQ8fPiJkL32VCsZI6ObAoXD_dVwUZISeo';
 let todosLosIMEIs = [];
 let imeisFiltrados = [];
 let imeisSeleccionados = new Set();
-let fotosMap = {};         // idx -> { url, base64, mediaType }
-let resultadosMap = {};    // idx -> resultado analisis
-let constanciasMap = {};   // imei -> link drive
+let fotosMap = {};
+let resultadosMap = {};
 
 document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-PE', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
 });
 
-// ─── CARGA SHEET ────────────────────────────────────────────────────────────
+// ─── COMPARACIÓN INTELIGENTE DE MODELO ───────────────────────────────────────
+// Extrae las palabras clave del modelo (ignora colores, variantes de almacenamiento repetidas, etc.)
+function extraerPalabrasModelo(str) {
+  if (!str) return [];
+  // Normalizar: minúsculas, quitar espacios extras
+  return str.toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(w => w.length > 1); // ignorar letras sueltas
+}
+
+// Compara modelo esperado vs encontrado por palabras clave
+// Considera match si el modelo esperado contiene al menos las palabras clave del Sheet
+function compararModelo(esperado, encontrado) {
+  if (!esperado || !encontrado) return false;
+  const palabrasEsp = extraerPalabrasModelo(esperado);
+  const palabrasEnc = extraerPalabrasModelo(encontrado);
+
+  // Cuenta cuántas palabras del esperado están en el encontrado
+  const coincidencias = palabrasEsp.filter(p => palabrasEnc.some(pe => pe.includes(p) || p.includes(pe)));
+  // Match si al menos el 80% de las palabras del esperado coinciden
+  return coincidencias.length / palabrasEsp.length >= 0.8;
+}
+
+// ─── CARGA SHEET ─────────────────────────────────────────────────────────────
 async function cargarSheet() {
   try {
     const url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=IMEIs`;
@@ -318,7 +302,6 @@ async function cargarSheet() {
         imei:       String(r.c[idx.imei]?.v || '').trim(),
       }));
 
-    // Poblar supervisores
     const supervisores = [...new Set(todosLosIMEIs.map(r => r.supervisor).filter(Boolean))].sort();
     const selSup = document.getElementById('sel-supervisor');
     supervisores.forEach(s => {
@@ -328,8 +311,6 @@ async function cargarSheet() {
 
     document.getElementById('loading-sheet').style.display = 'none';
     document.getElementById('filtros-body').classList.remove('hidden');
-
-    // Mostrar todos por defecto
     imeisFiltrados = [...todosLosIMEIs];
     renderImeiList();
 
@@ -341,12 +322,11 @@ async function cargarSheet() {
 
 cargarSheet();
 
-// ─── FILTROS ────────────────────────────────────────────────────────────────
+// ─── FILTROS ──────────────────────────────────────────────────────────────────
 function onSupervisorChange() {
   const sup = document.getElementById('sel-supervisor').value;
   const selProm = document.getElementById('sel-promotor');
   selProm.innerHTML = '<option value="">— Todos los promotores —</option>';
-
   const base = sup ? todosLosIMEIs.filter(r => r.supervisor === sup) : todosLosIMEIs;
   const promotores = [...new Map(base.map(r => [r.dni, r])).values()].sort((a,b) => a.user.localeCompare(b.user));
   promotores.forEach(p => {
@@ -354,7 +334,6 @@ function onSupervisorChange() {
     o.textContent = `${p.user} — DNI: ${p.dni}`;
     selProm.appendChild(o);
   });
-
   imeisFiltrados = base;
   imeisSeleccionados.clear(); fotosMap = {}; resultadosMap = {};
   renderImeiList();
@@ -370,7 +349,7 @@ function onPromotorChange() {
   renderImeiList();
 }
 
-// ─── LISTA DE IMEIs ──────────────────────────────────────────────────────────
+// ─── LISTA DE IMEIs ───────────────────────────────────────────────────────────
 function renderImeiList() {
   const step = document.getElementById('step-imeis');
   const list = document.getElementById('imei-list');
@@ -437,7 +416,7 @@ function actualizarContadorImei() {
   document.getElementById('btn-continuar').disabled = n === 0;
 }
 
-// ─── PASO 3: CARGAR FOTOS DESDE SHEET CONSTANCIAS ───────────────────────────
+// ─── PASO 3: CARGAR FOTOS DESDE SHEET ────────────────────────────────────────
 async function irAUpload() {
   fotosMap = {}; resultadosMap = {};
   const step = document.getElementById('step-upload');
@@ -455,25 +434,22 @@ async function irAUpload() {
   step.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   try {
-    // Cargar hoja Constancias — columna E = IMEI (idx 4), columna I = link (idx 8)
     const url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=Constancias`;
     const res  = await fetch(url, { mode: 'cors' });
     const text = await res.text();
     const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
     const rows = json.table.rows;
 
-    // Construir mapa IMEI -> {link, base64} desde Constancias
     const linkMap = {};
     rows.forEach(r => {
       const imei   = String(r.c?.[4]?.v || '').trim();
-      const link   = String(r.c?.[8]?.v || '').trim();   // columna I
-      const base64 = String(r.c?.[11]?.v || '').trim();  // columna L
+      const link   = String(r.c?.[8]?.v || '').trim();
+      const base64 = String(r.c?.[11]?.v || '').trim();
       if (imei) linkMap[imei] = { link, base64 };
     });
 
     const indices = [...imeisSeleccionados].sort((a,b) => a-b);
     let encontradas = 0;
-
     const container = document.getElementById('imei-upload-list');
     container.innerHTML = '';
 
@@ -481,11 +457,9 @@ async function irAUpload() {
       const item = imeisFiltrados[idx];
       const imeiKey = String(item.imei || '').trim();
 
-      // Buscar link en columna I por IMEI (exacto o parcial)
       let fotoUrl = null;
       let entry = linkMap[imeiKey] || null;
       if (!entry) {
-        // Búsqueda flexible sin espacios
         const keyClean = imeiKey.replace(/\s/g, '');
         const found = Object.keys(linkMap).find(k =>
           k.replace(/\s/g,'') === keyClean ||
@@ -496,10 +470,9 @@ async function irAUpload() {
       }
       if (entry) {
         if (entry.base64 && entry.base64.startsWith('data:image')) {
-          // Usar base64 directo — sin CORS
           encontradas++;
           fotosMap[idx] = { type: 'base64', base64: entry.base64, name: imeiKey };
-          fotoUrl = 'base64'; // señal para el render
+          fotoUrl = 'base64';
         } else if (entry.link) {
           fotoUrl = entry.link;
           encontradas++;
@@ -539,7 +512,6 @@ async function irAUpload() {
       ${encontradas > 0 ? `<span style="color:var(--success);font-weight:700;">✅ ${encontradas} foto${encontradas!==1?'s':''} encontrada${encontradas!==1?'s':''} en el Sheet</span>` : ''}
       ${sinFoto > 0 ? `<span style="color:var(--warn);font-weight:700;margin-left:${encontradas>0?'12px':'0'};">⚠ ${sinFoto} sin foto — subí manualmente</span>` : ''}
     `;
-
     document.getElementById('btn-analizar').disabled = false;
 
   } catch(err) {
@@ -547,48 +519,39 @@ async function irAUpload() {
   }
 }
 
+// ─── DETECCIÓN DE MEDIA TYPE ──────────────────────────────────────────────────
+function getMediaType(file) {
+  if (file.type === 'image/png' || (file.name && file.name.endsWith('.png'))) return 'image/png';
+  if (file.type === 'image/jpeg' || file.type === 'image/jpg') return 'image/jpeg';
+  if (file.type === 'image/webp') return 'image/webp';
+  return 'image/jpeg';
+}
 
-// ─── ANALIZAR TODO ───────────────────────────────────────────────────────────
-// ─── CARGA MANUAL DE FOTO ────────────────────────────────────────────────────
+// ─── CARGA MANUAL ────────────────────────────────────────────────────────────
 function onFileChange(event, idx) {
   const file = event.target.files[0];
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) { alert('La foto es muy grande. Máximo 10MB.'); return; }
 
-fotosMap[idx] = file;
-fotosMap[idx]._detectedType = file.type || 'image/jpeg';
+  fotosMap[idx] = file;
 
-  // Mostrar preview
   const reader = new FileReader();
   reader.onload = e => {
     const preview = document.getElementById('preview-' + idx);
-    if (preview) {
-      preview.src = e.target.result;
-      preview.style.display = 'block';
-    }
+    if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
     const zone = document.getElementById('zone-' + idx);
     if (zone) {
       zone.style.borderColor = 'var(--success)';
       zone.style.background = '#f0fdf4';
-      const txt = zone.querySelector('span');
-      if (txt) txt.textContent = '✅ ' + file.name;
+      const spans = zone.querySelectorAll('span');
+      if (spans[1]) spans[1].textContent = '✅ ' + file.name;
     }
   };
   reader.readAsDataURL(file);
-
-  // Habilitar botón si hay al menos una foto
-  const hayFotos = Object.keys(fotosMap).length > 0;
-  document.getElementById('btn-analizar').disabled = !hayFotos;
+  document.getElementById('btn-analizar').disabled = false;
 }
 
-  function getMediaType(file) {
-       if (file.type === 'image/png' || (file.name && file.name.endsWith('.png'))) return 'image/png';
-       if (file.type === 'image/jpeg' || file.type === 'image/jpg') return 'image/jpeg';
-       if (file.type === 'image/webp') return 'image/webp';
-       return 'image/jpeg';
-     }
-
-  
+// ─── ANALIZAR TODO ────────────────────────────────────────────────────────────
 async function analizarTodo() {
   const btn = document.getElementById('btn-analizar');
   btn.disabled = true;
@@ -601,7 +564,6 @@ async function analizarTodo() {
     const item = imeisFiltrados[idx];
     const fotoData = fotosMap[idx];
 
-    // Marcar en progreso
     const uploadItem = document.getElementById(`upload-item-${idx}`);
     if (uploadItem) {
       const numEl = uploadItem.querySelector('.imei-num');
@@ -618,10 +580,8 @@ async function analizarTodo() {
       let base64, mediaType;
 
       if (fotoData.type === 'base64') {
-        // Base64 directo desde columna L del Sheet — sin CORS
         const rawB64 = fotoData.base64;
         const b64 = rawB64.includes(',') ? rawB64.split(',')[1] : rawB64;
-        // Detectar media type real desde el data URL
         const mimeMatch = rawB64.match(/^data:(image\/[a-z]+);base64,/);
         const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
         const resultado = await analizarConDatos({ type: mimeType }, b64, item);
@@ -629,14 +589,12 @@ async function analizarTodo() {
         renderResultado(idx, resultado, item);
         continue;
       } else if (fotoData.type === 'url') {
-        // URL directa a la API de Anthropic
         const resultado = await analizarConUrl(fotoData.url, item);
         resultadosMap[idx] = resultado;
         renderResultado(idx, resultado, item);
         continue;
       } else {
-        // Archivo subido manualmente
-       mediaType = getMediaType(fotoData);
+        mediaType = getMediaType(fotoData);
         base64 = await fileToBase64(fotoData);
       }
 
@@ -655,10 +613,55 @@ async function analizarTodo() {
   mostrarResumen();
 }
 
-// ─── ANÁLISIS CON URL DIRECTA (Google Drive) ────────────────────────────────
-async function analizarConUrl(imgUrl, item) {
-  const prompt = buildPrompt(item);
+// ─── PROMPT ───────────────────────────────────────────────────────────────────
+function buildPrompt(item) {
+  return 'Eres un experto en análisis forense de imágenes y en lectura de constancias/boletas de venta de celulares VIVO en Perú.\n\n' +
+    'Realizá DOS tareas sobre esta imagen:\n\n' +
+    '══ TAREA 1 — AUTENTICIDAD ══\n' +
+    'Determiná si la imagen fue editada, modificada o alterada digitalmente.\nBuscá específicamente:\n' +
+    '- Textos con bordes irregulares, difusos o con halos\n' +
+    '- Inconsistencias de fuente, tamaño o color entre partes del texto\n' +
+    '- Zonas borrosas alrededor de números o palabras específicas\n' +
+    '- Sombras o iluminación inconsistente\n' +
+    '- Pixelación diferente entre áreas del mismo documento\n' +
+    '- Colores artificiales o saturación inusual en zonas puntuales\n\n' +
+    'Asigná un nivel de riesgo:\n' +
+    '- BAJO: imagen limpia, sin señales de edición\n' +
+    '- MEDIO: hay indicios leves o ambiguos\n' +
+    '- ALTO: hay señales claras de manipulación\n\n' +
+    'Si encontrás zonas sospechosas, describí EXACTAMENTE qué parte de la imagen está afectada (ej: "el número IMEI en la etiqueta derecha", "la fecha en el encabezado", "el modelo en el cuerpo de la boleta").\n\n' +
+    '══ TAREA 2 — EXTRACCIÓN DE DATOS ══\n' +
+    'Esta es una boleta/constancia de venta de celular VIVO. Extraé con atención:\n\n' +
+    '▶ IMEI (número de 15 dígitos):\n' +
+    '  - Puede estar en la parte DERECHA, en una etiqueta con código de barras\n' +
+    '  - Puede aparecer como "IMEI1:" o "IMEI:" seguido del número\n' +
+    '  - El IMEI esperado es: ' + item.imei + ' — buscá este número específicamente\n' +
+    '  - Leé el número dígito por dígito con máxima atención\n\n' +
+    '▶ MODELO del celular:\n' +
+    '  - Suele estar en la descripción del producto\n' +
+    '  - Formato típico: "VIVO Y39 5G 256GB", puede incluir color u otras variantes\n' +
+    '  - El modelo esperado es: ' + item.modelo + '\n' +
+    '  - Leé EXACTAMENTE lo que dice en la imagen, incluyendo color si aparece\n\n' +
+    '▶ FECHA de la venta:\n' +
+    '  - Puede estar en el encabezado o pie de la boleta\n' +
+    '  - La fecha esperada es: ' + (item.fecha || 'desconocida') + '\n\n' +
+    'Respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):\n' +
+    '{\n' +
+    '  "veredicto": "ORIGINAL" | "EDITADA" | "SOSPECHOSA",\n' +
+    '  "riesgo": "BAJO" | "MEDIO" | "ALTO",\n' +
+    '  "confianza": <número 0-100>,\n' +
+    '  "resumen": "<2-3 oraciones explicando el veredicto>",\n' +
+    '  "zonas_sospechosas": ["<zona 1>", "<zona 2>"] | [],\n' +
+    '  "datos": {\n' +
+    '    "imei": "<IMEI de 15 dígitos encontrado, o null>",\n' +
+    '    "modelo": "<modelo exacto leído de la imagen incluyendo color, o null>",\n' +
+    '    "fecha": "<fecha encontrada, o null>"\n' +
+    '  }\n' +
+    '}';
+}
 
+// ─── ANÁLISIS CON URL ─────────────────────────────────────────────────────────
+async function analizarConUrl(imgUrl, item) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -674,72 +677,26 @@ async function analizarConUrl(imgUrl, item) {
         role: 'user',
         content: [
           { type: 'image', source: { type: 'url', url: imgUrl } },
-          { type: 'text', text: prompt }
+          { type: 'text', text: buildPrompt(item) }
         ]
       }]
     })
   });
-
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err?.error?.message || 'Error HTTP ' + response.status);
   }
-
   const data = await response.json();
   const text = data.content?.find(b => b.type === 'text')?.text || '';
   try {
     const fence = '```';
     const clean = text.replace(new RegExp(fence + 'json|' + fence, 'g'), '').trim();
     return JSON.parse(clean);
-  } catch {
-    throw new Error('No se pudo interpretar la respuesta de la IA');
-  }
+  } catch { throw new Error('No se pudo interpretar la respuesta de la IA'); }
 }
 
-// ─── ANÁLISIS COMBINADO (1 sola llamada) ─────────────────────────────────────
-function buildPrompt(item) {
-  return 'Eres un experto en análisis forense de imágenes y en lectura de constancias/boletas de venta de celulares VIVO en Perú.\n\n' +
-    'Realizá DOS tareas sobre esta imagen:\n\n' +
-    '\u2550\u2550\u2550 TAREA 1 \u2014 AUTENTICIDAD \u2550\u2550\u2550\n' +
-    'Determiná si la imagen fue editada, modificada o alterada digitalmente.\nBuscá específicamente:\n' +
-    '- Textos con bordes irregulares, difusos o con halos\n' +
-    '- Inconsistencias de fuente, tamaño o color entre partes del texto\n' +
-    '- Zonas borrosas alrededor de números o palabras específicas\n' +
-    '- Sombras o iluminación inconsistente en distintas partes del documento\n' +
-    '- Pixelación diferente entre áreas del mismo documento\n' +
-    '- Colores artificiales o saturación inusual en zonas puntuales\n\n' +
-    '\u2550\u2550\u2550 TAREA 2 \u2014 EXTRACCIÓN DE DATOS \u2550\u2550\u2550\n' +
-    'Esta es una boleta/constancia de venta de celular VIVO. Buscá con atención:\n\n' +
-    '\u25b6 IMEI (número de 15 dígitos):\n' +
-    '  - Puede estar en la parte DERECHA, en una etiqueta con código de barras\n' +
-    '  - Puede aparecer como "IMEI1:" o "IMEI:" seguido del número\n' +
-    '  - El IMEI esperado es: ' + item.imei + ' \u2014 buscá este número específicamente\n' +
-    '  - Leé el número con MUCHO cuidado dígito por dígito\n\n' +
-    '\u25b6 MODELO del celular:\n' +
-    '  - Suele estar en la descripción del producto, en el centro de la boleta\n' +
-    '  - Formato típico: "VIVO Y39 5G 256GB", "VIVO Y04 128GB", "VIVO V29e", etc.\n' +
-    '  - Leé EXACTAMENTE lo que dice, sin asumir ni completar\n' +
-    '  - Prestá atención a si dice Y39, Y35, Y17, Y04, etc. \u2014 son modelos diferentes\n\n' +
-    '\u25b6 FECHA de la venta:\n' +
-    '  - Puede estar en el encabezado o pie de la boleta\n' +
-    '  - Puede estar en formato DD/MM/YYYY, YYYY-MM-DD, o similar\n\n' +
-    'Respondé ÚNICAMENTE con este JSON (sin markdown, sin texto extra):\n' +
-    '{\n' +
-    '  "veredicto": "ORIGINAL" | "EDITADA" | "SOSPECHOSA",\n' +
-    '  "confianza": <número 0-100>,\n' +
-    '  "resumen": "<2-3 oraciones en español explicando qué encontraste>",\n' +
-    '  "datos": {\n' +
-    '    "imei": "<IMEI de 15 dígitos encontrado, o null si no se ve>",\n' +
-    '    "modelo": "<modelo exacto leído de la imagen, o null si no se ve>",\n' +
-    '    "fecha": "<fecha encontrada, o null si no se ve>"\n' +
-    '  }\n' +
-    '}';
-}
-
-
+// ─── ANÁLISIS CON BASE64 ──────────────────────────────────────────────────────
 async function analizarConDatos(file, base64, item) {
-  const prompt = buildPrompt(item);
-
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -755,26 +712,22 @@ async function analizarConDatos(file, base64, item) {
         role: 'user',
         content: [
           { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: base64 } },
-          { type: 'text', text: prompt }
+          { type: 'text', text: buildPrompt(item) }
         ]
       }]
     })
   });
-
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err?.error?.message || 'Error HTTP ' + response.status);
   }
-
   const data = await response.json();
   const text = data.content?.find(b => b.type === 'text')?.text || '';
   try {
     const fence = String.fromCharCode(96);
     const clean = text.replace(new RegExp(fence+fence+fence+'json|'+fence+fence+fence,'g'),'').trim();
     return JSON.parse(clean);
-  } catch {
-    throw new Error('No se pudo interpretar la respuesta de la IA');
-  }
+  } catch { throw new Error('No se pudo interpretar la respuesta de la IA'); }
 }
 
 function fileToBase64(file) {
@@ -786,8 +739,7 @@ function fileToBase64(file) {
   });
 }
 
-
-// ─── RENDERIZAR RESULTADO POR IMEI ───────────────────────────────────────────
+// ─── RENDERIZAR RESULTADO ─────────────────────────────────────────────────────
 function renderResultado(idx, r, item) {
   const uploadItem = document.getElementById(`upload-item-${idx}`);
   const container  = document.getElementById(`result-${idx}`);
@@ -805,24 +757,31 @@ function renderResultado(idx, r, item) {
 
   const vLow = (r.veredicto || '').toLowerCase();
   const badgeClass = vLow === 'original' ? 'verdict-original' : vLow === 'editada' ? 'verdict-editada' : 'verdict-sospechosa';
-  const emoji      = vLow === 'original' ? '✅' : vLow === 'editada' ? '⚠️' : '🔍';
+  const emoji = vLow === 'original' ? '✅' : vLow === 'editada' ? '⚠️' : '🔍';
   if (uploadItem) uploadItem.classList.add(vLow === 'original' ? 'result-ok' : 'result-bad');
 
-  const conf = r.confianza ?? '—';
-  const datos = r.datos || {};
+  const conf   = r.confianza ?? '—';
+  const datos  = r.datos || {};
+  const riesgo = r.riesgo || '—';
+  const zonas  = Array.isArray(r.zonas_sospechosas) && r.zonas_sospechosas.length > 0 ? r.zonas_sospechosas : null;
 
-  const imeiEsp = String(item.imei || '').replace(/\s/g,'').toLowerCase();
-  const imeiEnc = String(datos.imei || '').replace(/\s/g,'').toLowerCase();
+  const riesgoColor = riesgo === 'ALTO' ? 'var(--error)' : riesgo === 'MEDIO' ? 'var(--warn)' : 'var(--success)';
+  const riesgoEmoji = riesgo === 'ALTO' ? '🔴' : riesgo === 'MEDIO' ? '🟡' : '🟢';
+
+  // IMEI: comparación exacta (sin espacios)
+  const imeiEsp   = String(item.imei || '').replace(/\s/g,'').toLowerCase();
+  const imeiEnc   = String(datos.imei || '').replace(/\s/g,'').toLowerCase();
   const imeiMatch = imeiEsp && imeiEnc && (imeiEnc.includes(imeiEsp) || imeiEsp.includes(imeiEnc));
 
-  const modeloEsp = String(item.modelo || '').replace(/\s/g,'').toLowerCase();
-  const modeloEnc = String(datos.modelo || '').replace(/\s/g,'').toLowerCase();
-  const modeloMatch = modeloEsp && modeloEnc && (modeloEnc.includes(modeloEsp) || modeloEsp.includes(modeloEnc));
+  // MODELO: comparación inteligente por palabras clave
+  const modeloMatch = compararModelo(item.modelo, datos.modelo);
+
+  const fechaEsp = String(item.fecha || '').trim();
+  const fechaEnc = String(datos.fecha || '').trim();
 
   const mkRow = (label, esperado, encontrado, match) => {
     if (!esperado && !encontrado) return '';
     const icon = !esperado || !encontrado ? '⚠️' : match ? '✅' : '❌';
-    const color = !esperado || !encontrado ? 'var(--warn)' : match ? 'var(--success)' : 'var(--error)';
     return `
       <div style="border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:8px;background:#fafafa;">
         <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">${label}</div>
@@ -839,14 +798,24 @@ function renderResultado(idx, r, item) {
       </div>`;
   };
 
+  const zonasHtml = zonas ? `
+    <div style="background:#fff8f0;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+      <div style="font-size:10px;font-weight:700;color:var(--warn);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">⚠ Zonas sospechosas detectadas</div>
+      ${zonas.map(z => `<div style="font-size:12px;color:#92400e;margin-bottom:3px;">• ${z}</div>`).join('')}
+    </div>` : '';
+
   container.innerHTML = `
     <div class="inline-result">
       <div class="inline-result-header ${badgeClass}" style="justify-content:space-between;">
         <span class="verdict-badge ${badgeClass}"><span class="verdict-dot"></span>${emoji} ${r.veredicto}</span>
-        <span style="font-size:11px;opacity:0.8;">${conf}% confianza</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;font-weight:700;color:${riesgoColor};">${riesgoEmoji} Riesgo ${riesgo}</span>
+          <span style="font-size:11px;opacity:0.8;">${conf}% confianza</span>
+        </div>
       </div>
       <div class="inline-result-body">
         <p style="margin-bottom:12px;">${r.resumen || ''}</p>
+        ${zonasHtml}
         <div style="background:var(--bg);border-radius:6px;padding:6px 10px;margin-bottom:10px;">
           <div class="progress-bar" style="margin-bottom:2px;">
             <div class="progress-fill" style="width:${conf}%;background:${vLow==='original'?'var(--success)':vLow==='editada'?'var(--error)':'var(--warn)'};"></div>
@@ -856,27 +825,26 @@ function renderResultado(idx, r, item) {
         <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;">VERIFICACIÓN DE DATOS</div>
         ${mkRow('IMEI', item.imei, datos.imei, imeiMatch)}
         ${mkRow('MODELO', item.modelo, datos.modelo, modeloMatch)}
-        ${mkRow('FECHA', item.fecha, datos.fecha, true)}
+        ${mkRow('FECHA', fechaEsp, fechaEnc, true)}
       </div>
     </div>`;
 }
 
-// ─── RESUMEN FINAL ───────────────────────────────────────────────────────────
+// ─── RESUMEN FINAL ────────────────────────────────────────────────────────────
 function mostrarResumen() {
   const step = document.getElementById('step-resumen');
   step.classList.remove('hidden');
 
   const total = Object.keys(resultadosMap).length;
-  const originales = Object.values(resultadosMap).filter(r => !r.error && r.veredicto === 'ORIGINAL').length;
-  const editadas   = Object.values(resultadosMap).filter(r => !r.error && r.veredicto === 'EDITADA').length;
+  const originales  = Object.values(resultadosMap).filter(r => !r.error && r.veredicto === 'ORIGINAL').length;
+  const editadas    = Object.values(resultadosMap).filter(r => !r.error && r.veredicto === 'EDITADA').length;
   const sospechosas = Object.values(resultadosMap).filter(r => !r.error && r.veredicto === 'SOSPECHOSA').length;
 
-  // Contar coincidencias de IMEI
   let imeiOk = 0, imeiFail = 0;
   Object.entries(resultadosMap).forEach(([idxStr, r]) => {
     if (r.error || !r.datos) return;
     const idx = Number(idxStr);
-    const esperado = String(imeisFiltrados[idx]?.imei || '').toLowerCase().replace(/\s/g,'');
+    const esperado   = String(imeisFiltrados[idx]?.imei || '').toLowerCase().replace(/\s/g,'');
     const encontrado = String(r.datos?.imei || '').toLowerCase().replace(/\s/g,'');
     if (esperado && encontrado && (encontrado.includes(esperado) || esperado.includes(encontrado))) imeiOk++;
     else if (esperado) imeiFail++;
@@ -894,15 +862,13 @@ function mostrarResumen() {
   step.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-
-// ─── DESCARGAR EXCEL ─────────────────────────────────────────────────────────
+// ─── EXCEL ────────────────────────────────────────────────────────────────────
 function descargarExcel() {
-  // Cabeceras
   const headers = [
     'IMEI Esperado', 'IMEI Encontrado', 'IMEI Coincide',
     'Modelo Esperado', 'Modelo Encontrado', 'Modelo Coincide',
     'Fecha Esperada', 'Fecha Encontrada',
-    'Veredicto', 'Confianza (%)', 'Resumen IA'
+    'Veredicto', 'Riesgo', 'Confianza (%)', 'Resumen IA', 'Zonas Sospechosas'
   ];
 
   const rows = Object.entries(resultadosMap).map(([idxStr, r]) => {
@@ -918,44 +884,41 @@ function descargarExcel() {
 
     const modeloEsp = String(item.modelo || '').trim();
     const modeloEnc = r.error ? '' : String(r.datos?.modelo || '').trim();
-    const modeloOk  = modeloEsp && modeloEnc
-      ? (modeloEnc.toLowerCase().replace(/\s/g,'').includes(modeloEsp.toLowerCase().replace(/\s/g,'')) ||
-         modeloEsp.toLowerCase().replace(/\s/g,'').includes(modeloEnc.toLowerCase().replace(/\s/g,''))) ? 'SÍ' : 'NO'
-      : 'Sin dato';
+    const modeloOk  = r.error ? 'Sin dato' : compararModelo(modeloEsp, modeloEnc) ? 'SÍ' : 'NO';
 
     const fechaEsp = String(item.fecha || '').trim();
     const fechaEnc = r.error ? '' : String(r.datos?.fecha || '').trim();
+    const zonas    = r.error ? '' : (Array.isArray(r.zonas_sospechosas) ? r.zonas_sospechosas.join('; ') : '');
 
     return [
       imeiEsp, imeiEnc, imeiOk,
       modeloEsp, modeloEnc, modeloOk,
       fechaEsp, fechaEnc,
       r.error ? 'ERROR' : (r.veredicto || ''),
+      r.error ? '' : (r.riesgo || ''),
       r.error ? '' : (r.confianza ?? ''),
-      r.error ? r.error : (r.resumen || '')
+      r.error ? r.error : (r.resumen || ''),
+      zonas
     ];
   });
 
-  // Construir CSV con BOM para que Excel abra bien los tildes
-  const BOM = '﻿';
+  const BOM = '\uFEFF';
   const escape = v => {
     const s = String(v ?? '');
-    const needsQuote = s.includes(',') || s.includes('"') || s.includes('\n');
-    return needsQuote ? '"' + s.replace(/"/g, '""') + '"' : s;
+    return (s.includes(',') || s.includes('"') || s.includes('\n'))
+      ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
   const csv = BOM + [headers, ...rows].map(r => r.map(escape).join(',')).join('\n');
-
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url;
-  const fecha = new Date().toISOString().slice(0,10);
-  a.download = `analisis-vivo-${fecha}.csv`;
+  a.download = `analisis-vivo-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-// ─── RESET ───────────────────────────────────────────────────────────────────
+// ─── RESET ────────────────────────────────────────────────────────────────────
 function resetApp() {
   imeisSeleccionados.clear(); fotosMap = {}; resultadosMap = {};
   document.getElementById('step-upload').classList.add('hidden');
@@ -973,19 +936,17 @@ const EMAILS_AUTORIZADOS = [
 ];
 
 function doLogin() {
-  const email   = (document.getElementById('loginEmail').value || '').trim().toLowerCase();
-  const apiKey  = (document.getElementById('loginApiKey').value || '').trim();
+  const email  = (document.getElementById('loginEmail').value || '').trim().toLowerCase();
+  const apiKey = (document.getElementById('loginApiKey').value || '').trim();
   const errorEl = document.getElementById('loginError');
 
   if (!EMAILS_AUTORIZADOS.includes(email)) {
     errorEl.textContent = '⚠ Email no autorizado.';
-    errorEl.style.display = 'block';
-    return;
+    errorEl.style.display = 'block'; return;
   }
   if (!apiKey.startsWith('sk-ant-')) {
     errorEl.textContent = '⚠ API Key inválida. Debe empezar con sk-ant-';
-    errorEl.style.display = 'block';
-    return;
+    errorEl.style.display = 'block'; return;
   }
 
   sessionStorage.setItem('vivo_auth', email);
@@ -1001,14 +962,10 @@ function doLogin() {
 function initLogin() {
   const btnLogin = document.getElementById('btnLogin');
   if (!btnLogin) return;
-
   btnLogin.addEventListener('click', doLogin);
-
   ['loginEmail','loginApiKey'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') doLogin();
-    });
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
   });
 
   const savedEmail = sessionStorage.getItem('vivo_auth');
@@ -1018,7 +975,7 @@ function initLogin() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appContent').style.display = 'block';
     document.getElementById('topbar-date').innerHTML =
-      '<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ' + savedEmail + '</span>';
+      `<span style="color:rgba(255,255,255,0.6);font-size:11px;">👤 ${savedEmail}</span>`;
   }
 }
 
@@ -1027,7 +984,6 @@ if (document.readyState === 'loading') {
 } else {
   initLogin();
 }
-
 </script>
 </body>
 </html>
