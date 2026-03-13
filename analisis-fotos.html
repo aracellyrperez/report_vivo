@@ -555,7 +555,8 @@ function onFileChange(event, idx) {
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) { alert('La foto es muy grande. Máximo 10MB.'); return; }
 
-  fotosMap[idx] = file;
+fotosMap[idx] = file;
+fotosMap[idx]._detectedType = file.type || 'image/jpeg';
 
   // Mostrar preview
   const reader = new FileReader();
@@ -580,6 +581,14 @@ function onFileChange(event, idx) {
   document.getElementById('btn-analizar').disabled = !hayFotos;
 }
 
+  function getMediaType(file) {
+       if (file.type === 'image/png' || (file.name && file.name.endsWith('.png'))) return 'image/png';
+       if (file.type === 'image/jpeg' || file.type === 'image/jpg') return 'image/jpeg';
+       if (file.type === 'image/webp') return 'image/webp';
+       return 'image/jpeg';
+     }
+
+  
 async function analizarTodo() {
   const btn = document.getElementById('btn-analizar');
   btn.disabled = true;
@@ -627,7 +636,7 @@ async function analizarTodo() {
         continue;
       } else {
         // Archivo subido manualmente
-        mediaType = fotoData.type || 'image/jpeg';
+       mediaType = getMediaType(fotoData);
         base64 = await fileToBase64(fotoData);
       }
 
