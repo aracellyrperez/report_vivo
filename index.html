@@ -564,7 +564,7 @@ input.error, select.error { border-color: var(--accent) !important; }
   <div class="id-grid">
     <div class="field">
       <label>Zona / Supervisor <span class="req">*</span></label>
-      <select id="zona" onchange="loadZona()">
+      <select id="zona" onchange="handleZonaChange()">
         <option value="">— Seleccioná tu zona —</option>
         <option>Center 1</option>
         <option>Center 2</option>
@@ -766,6 +766,7 @@ const ZONAS = {
 };
 
 let currentData = {};
+let currentZona = '';
 
 document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -781,12 +782,23 @@ function getCuenta(pos) {
   return parts[0] || 'OTRO';
 }
 
+function handleZonaChange() {
+  const zona = document.getElementById('zona').value;
+  if (zona === currentZona) return;
+  if (currentZona && zona && !confirm('¿Cambiar de zona? Se perderán los datos ingresados.')) {
+    document.getElementById('zona').value = currentZona;
+    return;
+  }
+  loadZona();
+}
+
 function loadZona() {
   const zona = document.getElementById('zona').value;
   document.getElementById('pos-section').style.display = zona ? 'block' : 'none';
   document.getElementById('placeholder').style.display = zona ? 'none' : 'block';
   if (!zona) return;
 
+  currentZona = zona;
   currentData = {};
   const list = document.getElementById('pos-list');
   list.innerHTML = '';
@@ -1050,15 +1062,22 @@ function closeModalAndFocus(fieldId) {
   setTimeout(() => {
     const el = document.getElementById(fieldId);
     if (el) {
-      el.focus();
+      // Para el select de zona: temporalmente removemos el onchange para evitar reload
+      if (fieldId === 'zona') {
+        const originalOnchange = el.onchange;
+        el.onchange = null;
+        el.focus();
+        el.onchange = originalOnchange;
+      } else {
+        el.focus();
+      }
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Resaltar el campo visualmente
       el.style.borderColor = '#1e46e6';
       el.style.boxShadow = '0 0 0 3px rgba(30,70,230,0.2)';
       setTimeout(() => {
         el.style.borderColor = '';
         el.style.boxShadow = '';
-      }, 2000);
+      }, 2500);
     }
   }, 200);
 }
@@ -1196,6 +1215,7 @@ function resetAll() {
   document.getElementById('btn-submit').disabled = false;
   document.getElementById('btn-submit').textContent = 'Revisar y enviar →';
   currentData = {};
+  currentZona = '';
 }
 
 function clearAll() {
