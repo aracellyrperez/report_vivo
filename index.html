@@ -360,6 +360,176 @@ input.error, select.error { border-color: var(--accent) !important; }
 .cuenta-body.open { display: block; }
 .pos-list-inner { display: flex; flex-direction: column; gap: 8px; padding-left: 14px; border-left: 3px solid var(--accent); margin-bottom: 4px; }
 
+/* ── MODAL DE CONFIRMACIÓN ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 21, 64, 0.55);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  animation: modalIn 0.25s ease both;
+  overflow: hidden;
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-header {
+  background: #000;
+  color: #fff;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.modal-header-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: rgba(30,70,230,0.3);
+  border: 1px solid rgba(30,70,230,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.modal-header h3 {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+.modal-header p { font-size: 12px; color: rgba(255,255,255,0.45); }
+.modal-body { padding: 24px; }
+.modal-instruction {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  line-height: 1.6;
+  padding: 10px 14px;
+  background: var(--bg2);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+}
+.confirm-field {
+  margin-bottom: 16px;
+}
+.confirm-field label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: block;
+}
+.confirm-value {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.confirm-value .edit-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.confirm-value .edit-hint:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.confirm-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+.confirm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.confirm-stat {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.confirm-stat .s-val {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.confirm-stat .s-lbl {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.confirm-stat.s-so .s-val { color: var(--so); }
+.confirm-stat.s-stock .s-val { color: var(--stock); }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  background: var(--bg);
+}
+.btn-modal-cancel {
+  padding: 12px 20px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-modal-cancel:hover { border-color: var(--ink2); color: var(--ink); }
+.btn-modal-confirm {
+  flex: 1;
+  padding: 12px 20px;
+  background: var(--so);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s;
+}
+.btn-modal-confirm:hover { background: #145530; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,107,58,0.35); }
+.btn-modal-confirm:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 768px) {
   .hero { padding: 32px 20px; }
@@ -368,8 +538,12 @@ input.error, select.error { border-color: var(--accent) !important; }
   .topbar { padding: 12px 16px; }
   .num-input { width: 76px; font-size: 13px; }
   .models-table th, .models-table td { padding: 7px 10px; }
+  .confirm-stats { grid-template-columns: 1fr 1fr 1fr; }
 }
-@media (max-width: 480px) { .id-grid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) {
+  .id-grid { grid-template-columns: 1fr; }
+  .confirm-stats { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -467,7 +641,7 @@ input.error, select.error { border-color: var(--accent) !important; }
 
     <div class="submit-bar">
       <button class="btn-clear" onclick="clearAll()">✕ Limpiar</button>
-      <button class="btn-submit" id="btn-submit" onclick="submitForm()">Enviar reporte →</button>
+      <button class="btn-submit" id="btn-submit" onclick="openConfirmModal()">Revisar y enviar →</button>
     </div>
   </div>
 
@@ -479,6 +653,71 @@ input.error, select.error { border-color: var(--accent) !important; }
 
 </div>
 
+<!-- ── MODAL DE CONFIRMACIÓN ── -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-header-icon">🔍</div>
+      <div>
+        <h3>Verificá los datos antes de enviar</h3>
+        <p>Confirmá que la información sea correcta</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-instruction">
+        Revisá los datos de identificación. Si algo no es correcto, hacé clic en <strong>Editar</strong> para corregirlo antes de enviar.
+      </div>
+
+      <div class="confirm-field">
+        <label>Zona / Supervisor</label>
+        <div class="confirm-value">
+          <span id="modal-zona">—</span>
+          <span class="edit-hint" onclick="closeModalAndFocus('zona')">✎ Editar</span>
+        </div>
+      </div>
+
+      <div class="confirm-field">
+        <label>Fecha del reporte</label>
+        <div class="confirm-value">
+          <span id="modal-fecha">—</span>
+          <span class="edit-hint" onclick="closeModalAndFocus('fecha')">✎ Editar</span>
+        </div>
+      </div>
+
+      <div class="confirm-field">
+        <label>Corte</label>
+        <div class="confirm-value">
+          <span id="modal-corte">—</span>
+          <span class="edit-hint" onclick="closeModalAndFocus('corte')">✎ Editar</span>
+        </div>
+      </div>
+
+      <div class="confirm-divider"></div>
+
+      <div class="confirm-stats">
+        <div class="confirm-stat">
+          <div class="s-val" id="modal-pos">0</div>
+          <div class="s-lbl">POS con datos</div>
+        </div>
+        <div class="confirm-stat s-so">
+          <div class="s-val" id="modal-so">0</div>
+          <div class="s-lbl">Total SO</div>
+        </div>
+        <div class="confirm-stat s-stock">
+          <div class="s-val" id="modal-stock">0</div>
+          <div class="s-lbl">Total Stock</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeConfirmModal()">← Volver</button>
+      <button class="btn-modal-confirm" id="btn-modal-confirm" onclick="confirmAndSend()">
+        ✓ Confirmar y enviar
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="success-screen" id="success-screen">
   <div class="success-icon">✅</div>
   <h2>¡Reporte enviado!</h2>
@@ -488,7 +727,6 @@ input.error, select.error { border-color: var(--accent) !important; }
 </div>
 
 <script>
-// ── MODELOS REALES ──
 const MODELOS = [
   { id: '1941', nombre: 'VIVO X300 PRO 512GB 5G',  lineal: 'New' },
   { id: '1999', nombre: 'VIVO V70 512GB 5G',       lineal: 'New' },
@@ -505,7 +743,6 @@ const MODELOS = [
   { id: '637',  nombre: 'VIVO V21 128GB 5G',       lineal: 'EOL' },
 ];
 
-// ── POS POR ZONA ──
 const ZONAS = {
   "Center 1": ["CL_Doble S_D.Junin","CL_Cell Shop_D.Hyo","CL_Tottus Huancayo","CL_Umicell_D.Huancayoi","CL_Umicell_D.Huancayoii","CL_Doble S_D.Hyo3","CL_Plaza Vea Huancayo","CL_Cac Huancayo","CL_Inv Solano_Hyo Lima Real","EN_Tpf_Huancayo","EN_Tpf_Tarma","EN_Isla_Rphuancayo","EN_Isla_Rphuancayoii","EN_Plaza Vea Huancayo","EN_Tp_Huancayo","ES_Estilos Huancayo","PL_Plaza Vea Huancayo","RI_Ripley Huancayo"],
   "Center 2": ["CL_Tottus Huanuco","CL_Plaza Vea Huanuco","CL_Cell Shop_Dc.Huanuco","CL_Inv Rec Selva Huanuc Rp","CL_Plaza Vea Pucallpa","CL_Tottus Pucallpa","CL_Cac Pucallpa","CL_Cac Huanuco","EN_Isla_Rphuanuco","EN_Plaza Vea Huanuco","EN_Isla_Oppucallpa","EN_Plaza Vea Pucallpa","EN_Tottus Pucallpa","EN_Tpf_Huanuco","EN_Tpf_Pucallpa","EN_Tpf_Ucaportillo","EN_Tpf_Tingomaria","OE_Oechsle Huanuco","PL_Plaza Vea Huanuco"],
@@ -518,7 +755,7 @@ const ZONAS = {
   "Lima 6": ["CL_Cac Chorrillos","CL_Redcotea_Civico","CL_Oechsle Lima","CL_Plaza Vea Centro Civico","CL_Telesur_Civico","CL_Saga Angamos","CL_Tottus Angamos","EN_Tp_Tpf_Chorrillos","EN_Metro Chorrillos","EN_Tp_Tpf_Openangamos","EN_Tottus Angamos","EN_Teleatento_Cercado","EN_Konecta_Cercado","EN_Burns_Cercado","EN_ECCP_Cercado","EN_Isla_Ccivico","EN_Plaza Vea Centro Civico","EN_Tp_Tpf_Centrodelima","EN_Isla_Psmiguel","EN_Tp_Tpf_Plazasanmiguel","EN_Tottus San Miguel","EN_Tpf_Rpsalaverry","EN_Plaza Vea Salaverry","EN_Tp_Plazarepublica"],
   "Lima 7": ["CL_Metro Proceres","CL_Oechsle Sjl","CL_Ripley Sjl2","CL_Tottus Sjl","CL_Metro Sjl","CL_Tottus Sjl 2","CL_Cac Jockey Plaza","EN_Tp_Tpf_Jockeyplaza","EN_Tottus Jockey Plaza","EN_Plaza Vea Mall Sjl","EN_Tottus Hilarion","EN_Metro Proceres","EN_Metro Sjl","EN_Plaza Vea Sj Lurigancho","EN_Tpf_Mapsjlurigancho","EN_Isla_Map Sta Anita","EN_Tottus Santa Anita","EN_Tp_Tpf_Santaanita","EN_Tp_Sjuanlurigancho","EN_Tp_Larco"],
   "Lima 8": ["CL_Plaza Vea Puruchuco","CL_Tottus Puruchuco","CL_Telecom Nayllon","CL_Cac Santa Clara","CL_Plaza Vea Santa Clara","EN_Tp_Tpf_Puruchuco","EN_Tp_Tpf_Malldelsur","EN_Isla_Rpstaclara","EN_Tpf_Santaclara","EN_Plaza Vea Santa Clara","EN_Plaza Vea Puruchuco","EN_Tottus Puruchuco","EN_Isla_Msatocongoi","EN_Tottus Mall Del Sur","EN_Oechsle Mall Del Sur","OE_Oechsle San Borja","PL_Plaza Vea Puruchuco","PL_Plaza Vea Santa Clara","PL_Plaza Vea Ceres","PL_Plaza Vea Ate"],
-  "North 1": ["CL_Plaza Vea El Chacarero", "CL_Gcr Comu_D.Fco Pizarro","CL_Gcr Comu_D.Fco Pizarro","CL_Mahadi Chepen","CL_Gcr Comu_D.Fco Pizarro_504","CL_Mya Mallplaza Trj","CL_Gcr Comu_D.Trujillo12","CL_Ripley Trujillo","CL_Sodimac Trujillo Mall","CL_Tottus Mall Trujillo","CL_Cac Trujillo","CL_Cac Trujillo 3","CL_Gcr Comu_D.Open Plaza","CL_Gcr Comu_D.Real Plaza","CL_Tottus Open Trujillo","CL_Mya Junin_626","CL_Mya Chacarero","CL_Mya Truj7","CL_Mya Truji4","CL_Tottus Chepen","CL_Tottus Pacasmayo","EN_Isla_Maptrujillo","EN_Tottus Mall Trujillo","EN_Tpf_Trujillochepen","EN_Tpf_Huamachuco","EN_Tpf_Trujillo","EN_Isla_Optrujillo2","EN_Plaza Vea El Chacarero","EN_Tottus Open Trujillo","EN_Tpf_Trujilloporvenir","EN_Tpf_Trupizarro","EN_Tp_Trujillo","EN_Tpf_Trujillojunin","PL_Plaza Vea El Chacarero","RI_Ripley Trujillo","TE_Tec Mall Plaza Trujillo"],
+  "North 1": ["CL_Plaza Vea El Chacarero","CL_Gcr Comu_D.Fco Pizarro","CL_Gcr Comu_D.Fco Pizarro","CL_Mahadi Chepen","CL_Gcr Comu_D.Fco Pizarro_504","CL_Mya Mallplaza Trj","CL_Gcr Comu_D.Trujillo12","CL_Ripley Trujillo","CL_Sodimac Trujillo Mall","CL_Tottus Mall Trujillo","CL_Cac Trujillo","CL_Cac Trujillo 3","CL_Gcr Comu_D.Open Plaza","CL_Gcr Comu_D.Real Plaza","CL_Tottus Open Trujillo","CL_Mya Junin_626","CL_Mya Chacarero","CL_Mya Truj7","CL_Mya Truji4","CL_Tottus Chepen","CL_Tottus Pacasmayo","EN_Isla_Maptrujillo","EN_Tottus Mall Trujillo","EN_Tpf_Trujillochepen","EN_Tpf_Huamachuco","EN_Tpf_Trujillo","EN_Isla_Optrujillo2","EN_Plaza Vea El Chacarero","EN_Tottus Open Trujillo","EN_Tpf_Trujilloporvenir","EN_Tpf_Trupizarro","EN_Tp_Trujillo","EN_Tpf_Trujillojunin","PL_Plaza Vea El Chacarero","RI_Ripley Trujillo","TE_Tec Mall Plaza Trujillo"],
   "North 2": ["CL_Cac Chiclayo Centro","CL_Niklu Lgonz","CL_Afervitel_D.Chic","CL_Grupo Bz Chiclayo","CL_Sport Dima Cix_Feria","CL_Telfox_Feria","CL_Nc Moviles Lamb2","CL_Nc Moviles Lamb3","CL_Nc Moviles Olmos","CL_Niklu Chiclayo","CL_Plaza Vea Chiclayo 2","CL_Tottus Chiclayo","CL_Saga Chiclayo","CL_Oechsle Chiclayo","CL_Ripley Chiclayo","CL_Telfox","EN_Tpf_Rpchiclayo","EN_Isla_Rpchiclayoii","EN_Plaza Vea Chiclayo","EN_Plaza Vea Chiclayo 2","EN_Oechsle Chiclayo","EN_Tp_Chiclayo","EN_Tpf_Mapchiclayo","OE_Oechsle Chiclayo","PL_Plaza Vea Chiclayo","RI_Ripley Chiclayo"],
   "North 3": ["CL_Peru Phone_D.Piura Rp","CL_Peru Phone_D.Grau","CL_Peru Phone_D.Piura_Loreto","CL_Peru Phone_D.La Libertad","CL_Peru Phone_D.Piura","CL_Oechsle Piura","CL_Plaza Vea Piura","CL_Cac Piura Real Plaza","CL_Estilos Tumbes","CL_Curacao Tumbes","CL_Efe Tumbes","CL_Metro Tumbes","CL_Plaza Vea Tumbes","CL_Mya Tumbes","CL_Mahadi Tumbes V","EN_Tpf_Piureal","EN_Tp_Tpf_Tumbes","EN_Isla_Rppiura","EN_Plaza Vea Piura","EN_Estilos Tumbes","EN_Isla_Cmtumbes2","EN_Plaza Vea Tumbes","ES_Estilos Tumbes","ES_Estilos Piura","PL_Plaza Vea Piura"],
   "North 4": ["CL_Cac Piura Open Plaza","CL_Peru Phone_D.Paita","CL_Mahadi Real Plaza Piura","CL_Valmed_D.Piura","CL_Mya Open Plaza","CL_Mahadi Op Piura","CL_Peru Phone_D.Sull","CL_Efe Sullana","CL_Plaza Vea Sullana","CL_Cardey_Piu","CL_Saga Piura","CL_Tottus Chulucanas","CL_Tottus Piura","CL_Tottus Sullana","CL_Cardey_Palacios","CL_Carsa Sullana","EN_Tpf_Paita2","EN_Isla_Oppiura","EN_Tottus Piuraplaza","EN_Tp_Piura","EN_Tpf_Piura","EN_Tp_Talara","EN_Tpf_Sullana","EN_Plaza Vea Paita","EN_Plaza Vea Sullana","EN_Preciouno Sullana","EN_Tottus Sullana Mall","PL_Plaza Vea Sullana"],
@@ -528,13 +765,11 @@ const ZONAS = {
   "South 2": ["CL_Cac Cusco Real Plaza","CL_Red Sur Plus Cusco","CL_Red Sur Plus Ayacucho","CL_Cac Juliaca Real Plaza","CL_Cac Puno","EN_Tpf_Puno","EN_Tp_Tpf_Juliaca","EN_Tp_Cusco","EN_Tp_Tpf_Cusco","OE_Oechsle Juliaca"],
 };
 
-// ── STATE ──
 let currentData = {};
 
 document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-// Nombres completos de cuentas
 const CUENTA_NOMBRES = {
   'CL': 'Claro', 'EN': 'Entel', 'ES': 'Estilos',
   'HI': 'Hiraoka', 'OE': 'Oechsle', 'PL': 'Plaza Vea',
@@ -558,13 +793,11 @@ function loadZona() {
 
   const posList = ZONAS[zona];
 
-  // Asignar índice global a cada POS e inicializar currentData
   posList.forEach((pos, idx) => {
     currentData[idx] = {};
     MODELOS.forEach(m => { currentData[idx][m.id] = { so: '', stock: '' }; });
   });
 
-  // Agrupar por cuenta
   const cuentas = {};
   posList.forEach((pos, idx) => {
     const cuenta = getCuenta(pos);
@@ -572,7 +805,6 @@ function loadZona() {
     cuentas[cuenta].push({ pos, idx });
   });
 
-  // Construir UI por cuenta
   Object.keys(cuentas).sort().forEach(cuenta => {
     const nombreCuenta = CUENTA_NOMBRES[cuenta] || cuenta;
     const grupo = document.createElement('div');
@@ -764,11 +996,82 @@ function validate() {
   return ok;
 }
 
+// ── MODAL DE CONFIRMACIÓN ──
+
+function formatFechaLarga(fechaStr) {
+  if (!fechaStr) return '—';
+  const d = new Date(fechaStr + 'T12:00:00');
+  return d.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function openConfirmModal() {
+  if (!validate()) {
+    alert('Completá los campos obligatorios: zona, fecha y corte.');
+    return;
+  }
+
+  const zona = document.getElementById('zona').value;
+  const fecha = document.getElementById('fecha').value;
+  const corte = document.getElementById('corte').value;
+
+  // Calcular totales
+  const total = ZONAS[zona].length;
+  let totalSo = 0, totalStock = 0, posDone = 0;
+  for (let i = 0; i < total; i++) {
+    let has = false;
+    MODELOS.forEach(m => {
+      const so = parseInt(currentData[i][m.id].so) || 0;
+      const st = parseInt(currentData[i][m.id].stock) || 0;
+      totalSo += so; totalStock += st;
+      if (so || st) has = true;
+    });
+    if (has) posDone++;
+  }
+
+  // Poblar modal
+  document.getElementById('modal-zona').textContent = zona;
+  document.getElementById('modal-fecha').textContent = formatFechaLarga(fecha);
+  document.getElementById('modal-corte').textContent = corte;
+  document.getElementById('modal-pos').textContent = posDone;
+  document.getElementById('modal-so').textContent = totalSo.toLocaleString('es-PE');
+  document.getElementById('modal-stock').textContent = totalStock.toLocaleString('es-PE');
+
+  document.getElementById('btn-modal-confirm').disabled = false;
+  document.getElementById('btn-modal-confirm').textContent = '✓ Confirmar y enviar';
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirm-modal').classList.remove('show');
+}
+
+function closeModalAndFocus(fieldId) {
+  closeConfirmModal();
+  setTimeout(() => {
+    const el = document.getElementById(fieldId);
+    if (el) {
+      el.focus();
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Resaltar el campo visualmente
+      el.style.borderColor = '#1e46e6';
+      el.style.boxShadow = '0 0 0 3px rgba(30,70,230,0.2)';
+      setTimeout(() => {
+        el.style.borderColor = '';
+        el.style.boxShadow = '';
+      }, 2000);
+    }
+  }, 200);
+}
+
+// Cerrar modal al hacer clic fuera
+document.getElementById('confirm-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirmModal();
+});
+
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz8DErxfeEyr2AG1y3KGc8oGqfRz6Ymn7pe7fOoyM-eYTH0GfRPm3L38_BAMZukwKfmUw/exec';
 
-function submitForm() {
-  if (!validate()) { alert('Completá los campos obligatorios: zona, fecha y corte.'); return; }
-  const btn = document.getElementById('btn-submit');
+function confirmAndSend() {
+  const btn = document.getElementById('btn-modal-confirm');
   btn.disabled = true;
   btn.textContent = 'Enviando...';
 
@@ -778,7 +1081,6 @@ function submitForm() {
   const posList = ZONAS[zona];
   const rows = [];
 
-  // Fecha y hora de envío — Perú UTC-5
   const ahora = new Date();
   const horaPeru = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000) - (5 * 3600000));
   const fechaEnvio = `${horaPeru.getUTCFullYear()}-${String(horaPeru.getUTCMonth()+1).padStart(2,'0')}-${String(horaPeru.getUTCDate()).padStart(2,'0')}`;
@@ -804,8 +1106,13 @@ function submitForm() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ rows })
   })
-  .then(() => showSuccess())
-  .catch(() => showSuccess()); // igual muestra éxito, el script de Google igual recibe
+  .then(() => { closeConfirmModal(); showSuccess(); })
+  .catch(() => { closeConfirmModal(); showSuccess(); });
+}
+
+// submitForm ahora abre el modal (para compatibilidad, no se usa directamente)
+function submitForm() {
+  openConfirmModal();
 }
 
 function showSuccess() {
@@ -816,11 +1123,9 @@ function showSuccess() {
   const total = posList.length;
   let totalSo = 0, totalStock = 0, posDone = 0;
 
-  // Acumular totales por modelo
-  const modelTotals = {}; // { modelId: { so, stock } }
+  const modelTotals = {};
   MODELOS.forEach(m => { modelTotals[m.id] = { so: 0, stock: 0 }; });
 
-  // Armar detalle por POS (solo los que tienen datos)
   let posDetalle = '';
   for (let i = 0; i < total; i++) {
     let posSo = 0, posStock = 0, hasData = false;
@@ -843,7 +1148,6 @@ function showSuccess() {
     }
   }
 
-  // Armar detalle por modelo (solo los que tienen datos)
   let modelDetalle = '';
   MODELOS.forEach(m => {
     const { so, stock } = modelTotals[m.id];
@@ -885,13 +1189,12 @@ function resetAll() {
   document.getElementById('success-screen').classList.remove('show');
   document.getElementById('zona').value = '';
   document.getElementById('corte').value = '';
-  document.getElementById('obs-global').value = '';
   document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
   document.getElementById('pos-section').style.display = 'none';
   document.getElementById('placeholder').style.display = 'block';
   document.getElementById('pos-list').innerHTML = '';
   document.getElementById('btn-submit').disabled = false;
-  document.getElementById('btn-submit').textContent = 'Enviar reporte →';
+  document.getElementById('btn-submit').textContent = 'Revisar y enviar →';
   currentData = {};
 }
 
