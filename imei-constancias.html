@@ -241,6 +241,19 @@ let imeisPromotor = [];
 let imeisSeleccionados = new Set();
 let fotosMap = {};
 
+// ── CAMBIO 1: Función para parsear fechas de Google Sheets ──
+function parseFecha(val) {
+  if (!val) return '';
+  const m = String(val).match(/Date\((\d+),(\d+),(\d+)\)/);
+  if (m) {
+    const y = m[1];
+    const mes = String(parseInt(m[2]) + 1).padStart(2, '0');
+    const d = String(m[3]).padStart(2, '0');
+    return `${d}/${mes}/${y}`;
+  }
+  return val;
+}
+
 document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-PE', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
 });
@@ -447,7 +460,8 @@ function mostrarIMEIs(imeis) {
         '<div class="imei-check" id="check-' + i + '">✓</div>' +
         '<div class="imei-info">' +
           '<div class="imei-number">' + item.imei + '</div>' +
-          '<div class="imei-meta">' + item.modelo + ' · ' + item.pos + (item.fecha ? ' · ' + item.fecha : '') + '</div>' +
+          // ── CAMBIO 2: parseFecha() en la lista de IMEIs ──
+          '<div class="imei-meta">' + item.modelo + ' · ' + item.pos + (item.fecha ? ' · ' + parseFecha(item.fecha) : '') + '</div>' +
         '</div>' +
         '<span class="imei-status" style="background:' + statusBg + ';color:' + statusColor + '">' + estado + '</span>' +
       '</div>';
@@ -505,7 +519,8 @@ function irAUpload() {
     div.innerHTML =
       '<div class="imei-upload-header">' +
         '<div class="imei-num">' + item.imei + '</div>' +
-        '<div class="imei-det">' + item.modelo + ' · ' + item.pos + (item.fecha ? ' · ' + item.fecha : '') + '</div>' +
+        // ── CAMBIO 3: parseFecha() en el paso de upload ──
+        '<div class="imei-det">' + item.modelo + ' · ' + item.pos + (item.fecha ? ' · ' + parseFecha(item.fecha) : '') + '</div>' +
       '</div>' +
       '<div class="imei-upload-body">' +
         '<div class="upload-zone" id="zone-' + idx + '" onclick="document.getElementById(\'file-' + idx + '\').click()">' +
