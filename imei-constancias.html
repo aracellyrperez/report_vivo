@@ -3,633 +3,1241 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIVO — Constancias de Venta</title>
-<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Reporte de Ventas VIVO</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --accent: #1e46e6;
-    --accent2: #0f2a9e;
-    --ink: #0a0a0f;
-    --ink2: #1a1a2e;
-    --bg: #f4f6ff;
-    --surface: #ffffff;
-    --border: #e2e8f0;
-    --muted: #94a3b8;
-    --success: #16a34a;
-    --error: #dc2626;
-    --warn: #d97706;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--ink2); min-height: 100vh; }
+:root {
+  --bg: #f4f6ff;
+  --bg2: #eaeefc;
+  --surface: #ffffff;
+  --border: #d4daff;
+  --ink: #0d1540;
+  --ink2: #2d3a6e;
+  --muted: #7a85b8;
+  --accent: #1e46e6;
+  --accent2: #4d6ef0;
+  --so: #1a6b3a;
+  --so-bg: #e8f5ed;
+  --so-border: #a8d5b5;
+  --stock: #1e46e6;
+  --stock-bg: #eaeefc;
+  --stock-border: #a8baff;
+  --eol: #7a3a00;
+  --eol-bg: #fff4e8;
+  --new: #0d5c2e;
+  --new-bg: #e6f9ee;
+  --success: #1a6b3a;
+  --warn: #b87800;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Exo 2', sans-serif;
+  min-height: 100vh;
+  padding: 0 0 80px;
+}
+.topbar {
+  background: #000000;
+  color: #fff;
+  padding: 10px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-brand {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.topbar-brand .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.6); }
+.topbar-date { font-size: 12px; color: rgba(255,255,255,0.4); }
+.hero {
+  background: #000000;
+  color: #fff;
+  padding: 44px 40px 50px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(30,70,230,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero h1 {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 800;
+  font-size: clamp(26px, 4vw, 42px);
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.hero h1 span { color: #1e46e6; }
+.hero p { color: rgba(255,255,255,0.45); font-size: 14px; }
+.main { max-width: 1140px; margin: 0 auto; padding: 32px 24px 0; }
+.section-label {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.id-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+.field { display: flex; flex-direction: column; gap: 7px; }
+label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.req { color: var(--accent); }
+input[type="text"], input[type="date"], select, textarea {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 13px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200,65,26,0.1);
+}
+input.error, select.error { border-color: var(--accent) !important; }
 
-  .topbar { background: #000; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
-  .topbar-brand { font-weight: 800; font-size: 14px; color: #fff; letter-spacing: .1em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
-  .topbar-brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-  .topbar-date { font-size: 12px; color: rgba(255,255,255,0.4); }
+/* Legend */
+.legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.legend { display: flex; gap: 18px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--ink2); }
+.ldot { width: 10px; height: 10px; border-radius: 3px; }
+.ldot-so { background: var(--so); }
+.ldot-stock { background: var(--stock); }
+.ldot-eol { background: var(--eol); }
+.ldot-new { background: var(--new); }
 
-  .hero { background: #000; color: #fff; padding: 40px 32px 48px; position: relative; overflow: hidden; }
-  .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(30,70,230,0.3), transparent 70%); }
-  .hero h1 { font-size: 28px; font-weight: 800; line-height: 1.2; position: relative; }
-  .hero h1 span { color: var(--accent); }
-  .hero p { margin-top: 8px; font-size: 13px; color: rgba(255,255,255,0.5); position: relative; }
+/* Progress */
+.progress-wrap { margin-bottom: 20px; }
+.progress-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.progress-track { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s ease; }
 
-  .main { max-width: 640px; margin: 0 auto; padding: 24px 16px 60px; }
+/* POS list */
+.pos-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+.pos-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  animation: slideIn 0.35s ease both;
+}
+.pos-card.complete { border-color: #a8d5b5; }
+.pos-card.partial { border-color: #f5d080; }
+.pos-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.pos-header:hover { background: var(--bg); }
+.pos-num {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: #1e46e6;
+  color: #fff;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.pos-card.complete .pos-num { background: var(--so); }
+.pos-card.partial .pos-num { background: var(--warn); }
+.pos-name { font-family: 'Exo 2', sans-serif; font-weight: 600; font-size: 13px; flex: 1; }
+.pos-status { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; letter-spacing: 0.03em; white-space: nowrap; }
+.status-pending { background: var(--bg2); color: var(--muted); }
+.status-partial  { background: #fef3d0; color: var(--warn); }
+.status-done     { background: var(--so-bg); color: var(--so); }
+.pos-chevron { font-size: 9px; color: var(--muted); transition: transform 0.25s; flex-shrink: 0; }
+.pos-card.open .pos-chevron { transform: rotate(180deg); }
+.pos-body { display: none; border-top: 1px solid var(--border); }
+.pos-card.open .pos-body { display: block; }
 
-  .card { background: var(--surface); border-radius: 14px; border: 1px solid var(--border); padding: 24px; margin-bottom: 16px; animation: fadeUp 0.3s ease both; }
-  .card-title { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+/* Models table */
+.models-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.models-table th {
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--bg2);
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.models-table th.col-so { color: var(--so); background: var(--so-bg); border-left: 1px solid var(--so-border); }
+.models-table th.col-stock { color: var(--stock); background: var(--stock-bg); border-left: 1px solid var(--stock-border); }
+.models-table td { padding: 8px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.models-table tr:last-child td { border-bottom: none; }
+.models-table tbody tr:hover td { background: var(--bg); }
+.model-name { font-weight: 500; color: var(--ink); }
+.model-lineal {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.tag-eol { background: var(--eol-bg); color: var(--eol); }
+.tag-new { background: var(--new-bg); color: var(--new); }
+.cell-so { border-left: 1px solid var(--so-border); }
+.cell-stock { border-left: 1px solid var(--stock-border); }
+.num-input {
+  width: 90px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  color: var(--ink);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 10px;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.num-input:focus { border-color: var(--accent); background: #fff; }
+.num-input.so-input:focus { border-color: var(--so); box-shadow: 0 0 0 3px rgba(26,107,58,0.1); }
+.num-input.stock-input:focus { border-color: var(--stock); box-shadow: 0 0 0 3px rgba(26,74,107,0.1); }
+.num-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.totals-row td { background: var(--bg2) !important; font-weight: 700; font-size: 11px; color: var(--muted); padding: 7px 14px; letter-spacing: 0.05em; }
+.totals-row td.tot-so { color: var(--so); background: var(--so-bg) !important; border-left: 1px solid var(--so-border); }
+.totals-row td.tot-stock { color: var(--stock); background: var(--stock-bg) !important; border-left: 1px solid var(--stock-border); }
+.notas-row { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.notas-row input[type="text"] { flex: 1; font-size: 13px; padding: 7px 11px; }
 
-  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .role-btn { border: 2px solid var(--border); border-radius: 12px; padding: 20px 16px; text-align: center; cursor: pointer; background: var(--bg); transition: all 0.2s; font-family: 'Exo 2', sans-serif; }
-  .role-btn:hover { border-color: var(--accent); background: #f0f4ff; }
-  .role-btn.active { border-color: var(--accent); background: #f0f4ff; }
-  .role-icon { font-size: 28px; margin-bottom: 8px; }
-  .role-label { font-size: 14px; font-weight: 700; color: var(--ink2); }
-  .role-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+/* Resumen */
+.resumen {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 32px;
+}
+.resumen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-top: 14px; }
+.resumen-card { background: var(--bg); border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
+.resumen-card .val { font-family: 'Exo 2', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+.resumen-card .lbl { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.resumen-card.so-card .val { color: var(--so); }
+.resumen-card.stock-card .val { color: var(--stock); }
 
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink2); margin-bottom: 6px; letter-spacing: .04em; }
-  .field input, .field select { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Exo 2', sans-serif; font-size: 14px; color: var(--ink2); background: var(--bg); transition: border-color 0.2s; outline: none; }
-  .field input:focus, .field select:focus { border-color: var(--accent); }
+/* Submit */
+.submit-bar { display: flex; gap: 12px; }
+.btn-submit {
+  flex: 1;
+  padding: 15px 28px;
+  background: #1e46e6;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all 0.2s;
+}
+.btn-submit:hover { background: #1535c0; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,70,230,0.35); }
+.btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-clear {
+  padding: 15px 18px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-clear:hover { border-color: var(--accent); color: var(--accent); }
 
-  .search-wrap { position: relative; }
-  .search-wrap input { padding-right: 80px; }
-  .search-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-family: 'Exo 2', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }
+/* Success */
+.success-screen {
+  display: none;
+  max-width: 520px;
+  margin: 60px auto;
+  padding: 44px 36px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  text-align: center;
+  animation: slideIn 0.4s ease both;
+}
+.success-screen.show { display: block; }
+.success-icon { width: 68px; height: 68px; border-radius: 50%; background: var(--so-bg); border: 2px solid var(--so-border); display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 20px; }
+.success-screen h2 { font-family: 'Exo 2', sans-serif; font-weight: 800; font-size: 24px; margin-bottom: 8px; }
+.success-screen p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+.success-summary { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin: 20px 0; text-align: left; }
+.sum-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.sum-row:last-child { border-bottom: none; }
+.sum-key { color: var(--muted); }
+.sum-val { font-weight: 600; }
+.btn-new { padding: 11px 26px; background: #1e46e6; color: #fff; border: none; border-radius: 8px; font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: background 0.2s; }
+.btn-new:hover { background: #1535c0; }
 
-  .imei-list { display: flex; flex-direction: column; gap: 10px; }
-  .imei-card { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color 0.2s; cursor: pointer; }
-  .imei-card:hover { border-color: #a5b4fc; }
-  .imei-card.selected { border-color: var(--accent); background: #f8f9ff; }
-  .imei-header { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
-  .imei-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.2s; color: transparent; }
-  .imei-card.selected .imei-check { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .imei-info { flex: 1; }
-  .imei-number { font-size: 13px; font-weight: 700; color: var(--ink2); letter-spacing: .04em; }
-  .imei-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .imei-status { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0; background: #fff7ed; color: var(--warn); }
+/* Placeholder */
+#placeholder { text-align: center; padding: 60px 20px; color: var(--muted); }
 
-  .select-all-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .link-btn { background: none; border: none; color: var(--accent); font-family: 'Exo 2', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline; }
-  .count-badge { font-size: 12px; font-weight: 700; color: var(--accent); }
+/* ── CUENTA GRUPOS ── */
+.cuenta-grupo { margin-bottom: 20px; }
+.cuenta-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+}
+.cuenta-header:hover { background: #162a8a; }
+.cuenta-badge {
+  background: #1e46e6;
+  color: #fff;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+.cuenta-nombre { font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 15px; flex: 1; }
+.cuenta-meta { font-size: 12px; color: rgba(255,255,255,0.45); }
+.cuenta-chevron { font-size: 10px; color: rgba(255,255,255,0.45); transition: transform 0.25s; flex-shrink: 0; }
+.cuenta-body { display: none; }
+.cuenta-body.open { display: block; }
+.pos-list-inner { display: flex; flex-direction: column; gap: 8px; padding-left: 14px; border-left: 3px solid var(--accent); margin-bottom: 4px; }
 
-  .imei-upload-item { border: 1.5px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
-  .imei-upload-item.done { border-color: var(--success); }
-  .imei-upload-header { background: var(--bg); padding: 10px 14px; border-bottom: 1px solid var(--border); }
-  .imei-upload-header .imei-num { font-size: 13px; font-weight: 700; color: var(--ink2); }
-  .imei-upload-header .imei-det { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .imei-upload-body { padding: 12px 14px; }
+/* ── MODAL DE CONFIRMACIÓN ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 21, 64, 0.55);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  animation: modalIn 0.25s ease both;
+  overflow: hidden;
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-header {
+  background: #000;
+  color: #fff;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.modal-header-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: rgba(30,70,230,0.3);
+  border: 1px solid rgba(30,70,230,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.modal-header h3 {
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+.modal-header p { font-size: 12px; color: rgba(255,255,255,0.45); }
+.modal-body { padding: 24px; }
+.modal-instruction {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  line-height: 1.6;
+  padding: 10px 14px;
+  background: var(--bg2);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+}
+.confirm-field {
+  margin-bottom: 16px;
+}
+.confirm-field label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: block;
+}
+.confirm-value {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.confirm-value .edit-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.confirm-value .edit-hint:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.confirm-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+.confirm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.confirm-stat {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.confirm-stat .s-val {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.confirm-stat .s-lbl {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.confirm-stat.s-so .s-val { color: var(--so); }
+.confirm-stat.s-stock .s-val { color: var(--stock); }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  background: var(--bg);
+}
+.btn-modal-cancel {
+  padding: 12px 20px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-modal-cancel:hover { border-color: var(--ink2); color: var(--ink); }
+.btn-modal-confirm {
+  flex: 1;
+  padding: 12px 20px;
+  background: var(--so);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s;
+}
+.btn-modal-confirm:hover { background: #145530; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,107,58,0.35); }
+.btn-modal-confirm:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
-  .upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
-  .upload-zone:hover { border-color: var(--accent); background: #f0f4ff; }
-  .upload-zone.has-file { border-color: var(--success); background: #f0fdf4; }
-  .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; font-size: 16px; }
-  .upload-icon { font-size: 22px; margin-bottom: 4px; }
-  .upload-text { font-size: 12px; font-weight: 600; color: var(--ink2); }
-  .upload-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
-  .upload-filename { font-size: 11px; color: var(--success); font-weight: 600; margin-top: 6px; display: none; }
-  .preview-thumb { width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none; }
-
-  .progress-bar { background: var(--bg); border-radius: 4px; height: 6px; margin: 12px 0 4px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
-  .progress-label { font-size: 11px; color: var(--muted); text-align: right; }
-
-  .btn-primary { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-family: 'Exo 2', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; letter-spacing: .04em; }
-  .btn-primary:hover:not(:disabled) { background: var(--accent2); }
-  .btn-primary:disabled { background: var(--muted); cursor: not-allowed; }
-  .btn-secondary { padding: 12px 28px; background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 10px; font-family: 'Exo 2', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
-
-  .loading { display: none; text-align: center; padding: 16px; color: var(--muted); font-size: 13px; }
-  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
-
-  .badge-info { padding: 8px 12px; background: var(--bg); border-radius: 8px; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
-
-  #success-screen { display: none; text-align: center; padding: 40px 24px; }
-  .success-icon { width: 72px; height: 72px; background: #f0fdf4; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px; border: 2px solid #bbf7d0; }
-  .success-title { font-size: 22px; font-weight: 800; color: var(--success); margin-bottom: 8px; }
-  .success-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
-
-  .section-num { display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; font-size: 10px; font-weight: 800; width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; }
-  .hidden { display: none !important; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 768px) {
+  .hero { padding: 32px 20px; }
+  .main { padding: 20px 14px 0; }
+  .id-grid { grid-template-columns: 1fr 1fr; }
+  .topbar { padding: 12px 16px; }
+  .num-input { width: 76px; font-size: 13px; }
+  .models-table th, .models-table td { padding: 7px 10px; }
+  .confirm-stats { grid-template-columns: 1fr 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .id-grid { grid-template-columns: 1fr; }
+  .confirm-stats { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="topbar-brand"><div class="dot"></div> VIVO — Constancias de Venta</div>
+  <div class="topbar-brand"><div class="dot"></div> VIVO — Portal de Reportes</div>
   <div class="topbar-date" id="topbar-date"></div>
 </div>
 
 <div class="hero">
-  <h1>Portal de<br><span>Constancias</span></h1>
-  <p>📅 Fecha límite: <span style="color:#fff">06-04-2026</span></p>
+  <h1>Portal de reportes<br><span>Ventas &amp; Stock</span></h1>
+  <p>Seleccioná tu zona, completá los datos por POS y enviá el reporte.</p>
 </div>
 
-<div class="main">
+<div class="main" id="main-form">
 
-  <!-- STEP 1: ROL -->
-  <div class="card" id="step-rol">
-    <div class="card-title"><span class="section-num">1</span> ¿Quién sos?</div>
-    <div class="role-grid">
-      <div class="role-btn" id="btn-promotor" onclick="elegirRol('promotor')">
-        <div class="role-icon">👤</div>
-        <div class="role-label">Soy promotor</div>
-        <div class="role-sub">Ingresá tu DNI</div>
-      </div>
-      <div class="role-btn" id="btn-supervisor" onclick="elegirRol('supervisor')">
-        <div class="role-icon">👔</div>
-        <div class="role-label">Soy supervisor</div>
-        <div class="role-sub">Elegí tu nombre</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 2A: SUPERVISOR -->
-  <div class="card hidden" id="step-supervisor">
-    <div class="card-title"><span class="section-num">2</span> Tu nombre</div>
+  <div class="section-label">01 — Identificación</div>
+  <div class="id-grid">
     <div class="field">
-      <label>Supervisor</label>
-      <select id="supervisor-select" onchange="seleccionarSupervisor()">
-        <option value="">— Seleccioná tu nombre —</option>
+      <label>Zona / Supervisor <span class="req">*</span></label>
+      <select id="zona" onchange="handleZonaChange()">
+        <option value="">— Seleccioná tu zona —</option>
+        <option>Center 1</option>
+        <option>Center 2</option>
+        <option>Center 3</option>
+        <option>Lima 1</option>
+        <option>Lima 2</option>
+        <option>Lima 3</option>
+        <option>Lima 4</option>
+        <option>Lima 5</option>
+        <option>Lima 6</option>
+        <option>Lima 7</option>
+        <option>Lima 8</option>
+        <option>North 1</option>
+        <option>North 2</option>
+        <option>North 3</option>
+        <option>North 4</option>
+        <option>North 5</option>
+        <option>North 6</option>
+        <option>North 7</option>
+        <option>South 1</option>
+        <option>South 2</option>
       </select>
     </div>
-    <div class="loading" id="loading-supervisores"><span class="spinner"></span> Cargando...</div>
+    <div class="field">
+      <label>Fecha <span class="req">*</span></label>
+      <input type="date" id="fecha">
+    </div>
+    <div class="field">
+      <label>Corte <span class="req">*</span></label>
+      <select id="corte">
+        <option value="">— Seleccioná —</option>
+        <option>Corte 1</option>
+        <option>Corte 2</option>
+        <option>Corte 3</option>
+      </select>
+    </div>
   </div>
 
-  <!-- STEP 2B / 3: DNI o selector promotor -->
-  <div class="card hidden" id="step-dni">
-    <div class="card-title">
-      <span class="section-num" id="dni-num">2</span>
-      <span id="dni-title">Tu DNI</span>
+  <div id="pos-section" style="display:none">
+    <div class="legend-row">
+      <div class="section-label" style="margin-bottom:0;flex:1">02 — Puntos de venta</div>
+      <div class="legend">
+        <div class="legend-item"><div class="ldot ldot-so"></div> SO (Sell-Out)</div>
+        <div class="legend-item"><div class="ldot ldot-stock"></div> Stock depósito</div>
+        <div class="legend-item"><div class="ldot ldot-new" style="border-radius:2px"></div> New</div>
+        <div class="legend-item"><div class="ldot ldot-eol" style="border-radius:2px"></div> EOL</div>
+      </div>
     </div>
-    <div id="supervisor-badge" class="badge-info hidden"></div>
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span id="prog-label">0 de 0 POS con datos</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="pos-list" id="pos-list"></div>
 
-    <div id="bloque-dni">
-      <div class="field">
-        <label id="dni-label">Ingresá tu DNI</label>
-        <div class="search-wrap">
-          <input type="number" id="dni-input" placeholder="Ej: 70034656"
-            onkeydown="if(event.key==='Enter') buscarDNI()">
-          <button class="search-btn" onclick="buscarDNI()">Buscar</button>
+    <div class="section-label">03 — Resumen</div>
+    <div class="resumen">
+      <div class="resumen-grid">
+        <div class="resumen-card">
+          <div class="val" id="res-pos">0</div>
+          <div class="lbl">POS con datos</div>
+        </div>
+        <div class="resumen-card so-card">
+          <div class="val" id="res-so">0</div>
+          <div class="lbl">Total SO</div>
+        </div>
+        <div class="resumen-card stock-card">
+          <div class="val" id="res-stock">0</div>
+          <div class="lbl">Total Stock</div>
         </div>
       </div>
-      <div class="loading" id="loading-dni"><span class="spinner"></span> Buscando...</div>
     </div>
 
-    <div id="bloque-promotor-select" class="hidden">
-      <div class="field">
-        <label>Promotor</label>
-        <select id="promotor-select" onchange="seleccionarPromotor()">
-          <option value="">— Seleccioná un promotor —</option>
-        </select>
+    <div class="submit-bar">
+      <button class="btn-clear" onclick="clearAll()">✕ Limpiar</button>
+      <button class="btn-submit" id="btn-submit" onclick="openConfirmModal()">Revisar y enviar →</button>
+    </div>
+  </div>
+
+  <div id="placeholder">
+    <div style="font-size:38px;margin-bottom:14px">📍</div>
+    <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:16px;color:var(--ink2);margin-bottom:6px">Seleccioná tu zona para comenzar</div>
+    <div style="font-size:13px">Los POS aparecerán automáticamente según tu zona</div>
+  </div>
+
+</div>
+
+<!-- ── MODAL DE CONFIRMACIÓN ── -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-header-icon">🔍</div>
+      <div>
+        <h3>Verificá los datos antes de enviar</h3>
+        <p>Confirmá que la información sea correcta</p>
       </div>
     </div>
-  </div>
+    <div class="modal-body">
+      <div class="modal-instruction">
+        Revisá los datos de identificación. Si algo no es correcto, hacé clic en <strong>Editar</strong> para corregirlo antes de enviar.
+      </div>
 
-  <!-- STEP 3/4: IMEI LIST -->
-  <div class="card hidden" id="step-imeis">
-    <div class="card-title">
-      <span class="section-num" id="imei-num">3</span> IMEIs pendientes
+      <div class="confirm-field">
+        <label>Zona / Supervisor</label>
+        <div class="confirm-value">
+          <span id="modal-zona">—</span>
+          <span class="edit-hint" onclick="closeModalAndFocus('zona')">✎ Editar</span>
+        </div>
+      </div>
+
+      <div class="confirm-field">
+        <label>Fecha del reporte</label>
+        <div class="confirm-value">
+          <span id="modal-fecha">—</span>
+          <span class="edit-hint" onclick="closeModalAndFocus('fecha')">✎ Editar</span>
+        </div>
+      </div>
+
+      <div class="confirm-field">
+        <label>Corte</label>
+        <div class="confirm-value">
+          <span id="modal-corte">—</span>
+          <span class="edit-hint" onclick="closeModalAndFocus('corte')">✎ Editar</span>
+        </div>
+      </div>
+
+      <div class="confirm-divider"></div>
+
+      <div class="confirm-stats">
+        <div class="confirm-stat">
+          <div class="s-val" id="modal-pos">0</div>
+          <div class="s-lbl">POS con datos</div>
+        </div>
+        <div class="confirm-stat s-so">
+          <div class="s-val" id="modal-so">0</div>
+          <div class="s-lbl">Total SO</div>
+        </div>
+        <div class="confirm-stat s-stock">
+          <div class="s-val" id="modal-stock">0</div>
+          <div class="s-lbl">Total Stock</div>
+        </div>
+      </div>
     </div>
-    <div id="promotor-info" class="badge-info"></div>
-    <div class="select-all-bar">
-      <button class="link-btn" onclick="selectAll()">Seleccionar todos</button>
-      <span class="count-badge" id="count-badge"></span>
-    </div>
-    <div id="imei-list" class="imei-list"></div>
-    <div style="margin-top:16px;">
-      <button class="btn-primary" id="btn-continuar" onclick="irAUpload()" disabled>
-        Continuar →
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeConfirmModal()">← Volver</button>
+      <button class="btn-modal-confirm" id="btn-modal-confirm" onclick="confirmAndSend()">
+        ✓ Confirmar y enviar
       </button>
     </div>
   </div>
+</div>
 
-  <!-- STEP 4/5: UPLOAD POR IMEI -->
-  <div class="card hidden" id="step-upload">
-    <div class="card-title">
-      <span class="section-num" id="upload-num">4</span> Fotos de constancia
-    </div>
-    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-    <div class="progress-label" id="progress-label">0 de 0 fotos cargadas</div>
-    <div id="imei-upload-list" style="margin-top:16px;"></div>
-    <div style="margin-top:16px;">
-      <button class="btn-primary" id="btn-enviar" onclick="enviarConstancias()" disabled>
-        Enviar constancias
-      </button>
-    </div>
-  </div>
-
-  <!-- SUCCESS -->
-  <div id="success-screen">
-    <div class="success-icon">✅</div>
-    <div class="success-title">¡Listo!</div>
-    <div class="success-sub" id="success-msg"></div>
-    <button class="btn-secondary" onclick="resetApp()">Cargar más constancias</button>
-  </div>
-
+<div class="success-screen" id="success-screen">
+  <div class="success-icon">✅</div>
+  <h2>¡Reporte enviado!</h2>
+  <p>Los datos fueron registrados. El equipo de análisis los procesará en breve.</p>
+  <div class="success-summary" id="success-summary"></div>
+  <button class="btn-new" onclick="resetAll()">Cargar otro reporte</button>
 </div>
 
 <script>
-const SHEETS_ID = '1jPvPa1rFndWQ8fPiJkL32VCsZI6ObAoXD_dVwUZISeo';
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1LueQaQHuYFjwdmnO88KBjzerDRsU8ad2m6HZwHN-j989AsFxe3PPcsE0nd9Cjx-3ZA/exec';
+const MODELOS = [
+  { id: '1941', nombre: 'VIVO X300 PRO 512GB 5G',  lineal: 'New' },
+  { id: '1999', nombre: 'VIVO V70 512GB 5G',       lineal: 'New' },
+  { id: '1875', nombre: 'VIVO V60 LITE 256GB 5G',  lineal: 'New' },
+  { id: '1765', nombre: 'VIVO V50 512GB 5G',       lineal: 'New' },
+  { id: '1767', nombre: 'VIVO V50 LITE 256GB 5G',  lineal: 'New' },
+  { id: '1768', nombre: 'VIVO Y39 256GB 5G',       lineal: 'New' },
+  { id: '1931', nombre: 'VIVO Y31 512GB 5G',       lineal: 'New' },
+  { id: '1951', nombre: 'VIVO Y31 256GB 5G',       lineal: 'New' },
+  { id: '1769', nombre: 'VIVO Y29S 256GB 5G',      lineal: 'New' },
+  { id: '1366', nombre: 'VIVO Y21D 256GB 4G',      lineal: 'New' },
+  { id: '1728', nombre: 'VIVO Y19S 256GB',         lineal: 'New' },
+  { id: '1766', nombre: 'VIVO Y04 128GB 4G',       lineal: 'New' },
+  { id: '637',  nombre: 'VIVO V21 128GB 5G',       lineal: 'EOL' },
+];
 
-let todosLosIMEIs = [];
-let constanciasStatus = {};
-let rolSeleccionado = null;
-let supervisorSeleccionado = null;
-let imeisPromotor = [];
-let imeisSeleccionados = new Set();
-let fotosMap = {};
+const ZONAS = {
+  "Center 1": ["CL_Cac Huancayo","CL_Cell Shop_D.Hyo","CL_Doble S_D.Hyo3","CL_Doble S_D.Junin","CL_Inv Solano_Hyo Lima Real","CL_Plaza Vea Huancayo","CL_Tottus Huancayo","CL_Umicell_D.Huancayoi","CL_Umicell_D.Huancayoii","EN_Isla_Rphuancayo","EN_Isla_Rphuancayoii","EN_Plaza Vea Huancayo","EN_Tp_Huancayo","EN_Tpf_Huancayo","EN_Tpf_Tarma","ES_Estilos Huancayo","PL_Plaza Vea Huancayo","RI_Ripley Huancayo"],
+  "Center 2": ["CL_Cac Huanuco","CL_Cac Pucallpa","CL_Cell Shop_Dc.Huanuco","CL_Inv Rec Selva Huanuc Rp","CL_Plaza Vea Huanuco","CL_Plaza Vea Pucallpa","CL_Tottus Huanuco","CL_Tottus Pucallpa","EN_Isla_Oppucallpa","EN_Isla_Rphuanuco","EN_Plaza Vea Huanuco","EN_Plaza Vea Pucallpa","EN_Tottus Pucallpa","EN_Tpf_Huanuco","EN_Tpf_Pucallpa","EN_Tpf_Tingomaria","EN_Tpf_Ucaportillo","OE_Oechsle Huanuco","PL_Plaza Vea Huanuco"],
+  "Center 3": ["CL_Atel Ayacucho","CL_Cac Ayacucho","CL_Cac Ica El Quinde","CL_Carsa Ica Nuevo","CL_Carsa Pisco3","CL_Dajotel Ayacucho","CL_Essal Chincha","CL_Estilos Pisco","CL_Inv Rec Selva Ica","CL_Inv Solano_Chincha","CL_M.Online_D.Chincha","CL_M.Online_D.Ica","CL_M.Online_D.Ica1","CL_M.Online_D.Mega Plaza Pisco","CL_M.Online_D.Pisco","CL_Mega Connection Sac","CL_Mega Imperial362B","CL_Mega Y17","CL_Multiser Mov Ayacucho","CL_Plaza Vea Ayacucho","CL_Plaza Vea Pisco","CL_Saga Cañete","CL_Saga Ica","CL_Smart Business Ayacucho","CL_Tecal Ica","CL_Telsur Com_Cañete","CL_Tottus Cañete","CL_Tottus Chincha","CL_Tottus Ica","EN_Estilos Pisco","EN_Isla_Mpcanñete","EN_Isla_Plazadelsolica","EN_Isla_Quindeica","EN_Plaza Vea Chincha","EN_Plaza Vea Pisco","EN_Tottus Cañete","EN_Tottus Chincha","EN_Tp_Ica","EN_Tpf_Ayacasamblea2","EN_Tpf_Chinchaitalia","EN_Tpf_Icacañete","EN_Tpf_Icapisco","ES_Estilos Chincha","ES_Estilos Ica","ES_Estilos Pisco","OE_Oechsle Ica"],
+  "Lima 1": ["CL_Cac Unicachi","CL_Curacao Huaral","CL_Delima Puente Piedra","CL_Delima Ventanilla","CL_Efe Huacho","CL_Estilos Huacho","CL_Huaytelcoms Huacho","CL_Huaytelcoms Huaral","CL_Inv Solano_Barranca","CL_Inv Solano_Huacho","CL_Metro Barranca","CL_Oechsle Barranca","CL_Plaza Vea Barranca","CL_Plaza Vea Huacho","CL_Plaza Vea Huaral","CL_Plaza Vea Puente Piedra","CL_Tottus Huaral","CL_Tottus Ppiedra","EN_Estilos Huacho","EN_Isla_Barranca","EN_Isla_Pdshuacho","EN_Oechsle Barranca","EN_Plaza Vea Barranca","EN_Plaza Vea Huacho","EN_Plaza Vea Huaral","EN_Plaza Vea Puente Piedra","EN_Tottus Huaral","EN_Tottus Ppiedra","EN_Tpf_Barranca","EN_Tpf_Huacho28","EN_Tpf_Huaral","EN_Tpf_Puentepiedra","ES_Estilos Huacho","ES_Estilos Huacho 2","ES_Estilos Huaral"],
+  "Lima 2": ["CL_Blazel Cc Megaplaza","CL_Blazel Cc Plaza Norte","CL_Cac Plaza Norte","CL_Cellcom M22","CL_Cellcom Plaza Norte","CL_Estilos Plaza Norte","CL_Inv Solano_Plaza Norte","CL_Metro Comas","CL_Metro Plaza Norte","CL_Oechsle Plaza Norte","CL_Plaza Vea Comas","CL_Plaza Vea Independencia","CL_Redcotea_Plaza Norte","CL_Ripley Mega Plaza","CL_Ripley Plaza Lima Norte","CL_Saga Mega Plaza","CL_Saga Plaza Norte","CL_Sodimac Mega Plaza","CL_Tottus Los Olivos","EN_Metro Comas","EN_Plaza Vea Comas","ES_Estilos Plaza Norte","HI_Hiraoka Independencia","PL_Plaza Vea Comas","PL_Plaza Vea Independencia","PL_Plaza Vea Pro","PL_Plaza Vea Puente Piedra","RI_Ripley Mega Plaza","RI_Ripley Plaza Lima Norte"],
+  "Lima 3": ["CL_Cac Centro Civico","CL_Cac Minka","CL_Cac Salaverry","CL_Cac San Miguel","CL_Carsa Ventanilla","CL_Cellcom M87","CL_Efe Ventanilla","CL_Plaza Vea Ventanilla","CL_Ripley San Miguel","CL_Saga Lima","CL_Saga San Miguel","CL_Telecom Cercado Lima","CL_Telesur_Civico","CL_Tottus Canta Callao","CL_Tottus San Miguel","CL_Tottus Ventanilla","EN_Metro Ventanilla","EN_Plaza Vea Ventanilla","EN_Tottus Canta Callao","HI_Hiraoka Cercado De Lima","HI_Hiraoka Miraflores","HI_Hiraoka San Miguel","OE_Oechsle Primavera","PL_Plaza Vea Centro Civico","PL_Plaza Vea Ventanilla","RI_Ripley San Miguel"],
+  "Lima 4": ["CL_Atlantic Sjl","CL_Blazel Ma Santa Anita","CL_Cac Larco","CL_Cac Mall Del Sur","CL_Cac Santa Anita","CL_Inv Solano_Mall Del Sur","CL_Oechsle Mall Del Sur","CL_Plaza Vea Vmt","CL_Redcotea_Santa Anita","CL_Ripley Mall Sur","CL_Ripley Santa Anita","CL_Saga Santa Anita","CL_Telecom Ves","CL_Tottus Atocongo","CL_Tottus Mall Del Sur","CL_Tottus Santa Anita","CL_Tottus Vmt","EN_Isla_Rpvmt","EN_Plaza Vea La Curva","EN_Tpf_Villasalvador","ES_Estilos Sta Anita","ES_Estilos Ves","HI_Hiraoka Sjl","PL_Plaza Vea Sj Lurigancho","TE_Tec Mall Sjl"],
+  "Lima 5": ["CL_Delima Comas","CL_Plaza Vea Pro","CL_Saga Comas","CL_Tottus Comas","EN_Isla_Implazai","EN_Isla_Implazaii","EN_Isla_Minkaii","EN_Isla_Plnorteii","EN_Isla_Pro","EN_Metro Plaza Norte","EN_Oechsle_Plimanorteiii","EN_Plaza Vea Independencia","EN_Plaza Vea Pro","EN_Sodimac Mega Plaza","EN_Tottus Comas","EN_Tottus Los Olivos","EN_Tp_Tpf_Comas","EN_Tp_Tpf_Megaplaza","EN_Tp_Tpf_Minka2","EN_Tp_Tpf_Plimanorte","EN_Tpf_Bellavista"],
+  "Lima 6": ["CL_Cac Chorrillos","CL_Oechsle Lima","CL_Plaza Vea Centro Civico","CL_Redcotea_Civico","EN_Burns_Cercado","EN_Isla_Ccivico","EN_Isla_Psmiguel","EN_Konecta_Cercado","EN_Metro Chorrillos","EN_Plaza Vea Centro Civico","EN_Plaza Vea Salaverry","EN_SCCP_cercado","EN_Teleatento_Cercado","EN_Tottus Angamos","EN_Tottus San Miguel","EN_Tp_Plazarepublica","EN_Tp_Tpf_Centrodelima","EN_Tp_Tpf_Chorrillos","EN_Tp_Tpf_Openangamos","EN_Tp_Tpf_Plazasanmiguel","EN_Tpf_Rpsalaverry"],
+  "Lima 7": ["CL_Cac Jockey Plaza","CL_Metro Proceres","CL_Metro Sjl","CL_Oechsle Sjl","CL_Ripley Sjl2","CL_Tottus Sjl","CL_Tottus Sjl 2","EN_Isla_Map Sta Anita","EN_Metro Proceres","EN_Metro Sjl","EN_Plaza Vea Mall Sjl","EN_Plaza Vea Sj Lurigancho","EN_Tottus Hilarion","EN_Tottus Jockey Plaza","EN_Tottus Santa Anita","EN_Tp_Larco","EN_Tp_Sjuanlurigancho","EN_Tp_Tpf_Jockeyplaza","EN_Tp_Tpf_Santaanita","EN_Tpf_Mapsjlurigancho"],
+  "Lima 8": ["CL_Cac Santa Clara","CL_Plaza Vea Puruchuco","CL_Plaza Vea Santa Clara","CL_Telecom Nayllon","CL_Tottus Puruchuco","EN_Isla_Msatocongoi","EN_Isla_Rpstaclara","EN_Oechsle Mall Del Sur","EN_Plaza Vea Puruchuco","EN_Plaza Vea Santa Clara","EN_Sodimac Atocongo","EN_Tottus Atocongo","EN_Tottus Mall Del Sur","EN_Tottus Puruchuco","EN_Tp_Tpf_Malldelsur","EN_Tp_Tpf_Puruchuco","EN_Tpf_Santaclara","OE_Oechsle San Borja","PL_Plaza Vea Ate","PL_Plaza Vea Ceres","PL_Plaza Vea Puruchuco","PL_Plaza Vea Santa Clara"],
+  "North 1": ["CL_Cac Trujillo","CL_Gcr Comu_D.Fco Pizarro","CL_Gcr Comu_D.Open Plaza","CL_Mya Chacarero","CL_Mya Junin_626","CL_Tottus Open Trujillo","EN_Isla_Optrujillo2","EN_Plaza Vea El Chacarero","EN_Tottus Open Trujillo","EN_Tpf_Huamachuco","EN_Tpf_Trujillochepen","EN_Tpf_Trujillojunin","EN_Tpf_Trujilloporvenir","EN_Tpf_Trupizarro","PL_Plaza Vea El Chacarero"],
+  "North 2": ["CL_Cac Trujillo 3","CL_Gcr Comu_D.Trujillo12","CL_Mya Mallplaza Trj","CL_Ripley Trujillo","CL_Sodimac Trujillo Mall","CL_Tottus Mall Trujillo","EN_Isla_Maptrujillo","EN_Tottus Mall Trujillo","EN_Tp_Trujillo","EN_Tpf_Trujillo","RI_Ripley Trujillo","TE_Tec Mall Plaza Trujillo"],
+  "North 3": ["CL_Afervitel_D.Chic","CL_Cac Chiclayo Centro","CL_Grupo Bz Chiclayo","CL_Nc Moviles Lamb2","CL_Niklu Chiclayo","CL_Niklu Lgonz","CL_Oechsle Chiclayo","CL_Plaza Vea Chiclayo 2","CL_Ripley Chiclayo","CL_Saga Chiclayo","CL_Sport Dima Cix_Feria","CL_Telfox","CL_Telfox_Feria","CL_Tottus Chiclayo","EN_Isla_Rpchiclayoii","EN_Oechsle Chiclayo","EN_Plaza Vea Chiclayo","EN_Plaza Vea Chiclayo 2","EN_Tp_Chiclayo","EN_Tpf_Mapchiclayo","EN_Tpf_Rpchiclayo","OE_Oechsle Chiclayo","PL_Plaza Vea Chiclayo","RI_Ripley Chiclayo"],
+  "North 4": ["CL_Cac Piura Real Plaza","CL_Cac Tumbes","CL_Curacao Tumbes","CL_Efe Tumbes","CL_Estilos Tumbes","CL_Mahadi Tumbes V","CL_Metro Tumbes","CL_Mya Open Plaza","CL_Mya Tumbes","CL_Oechsle Piura","CL_Peru Phone_D.Piura","CL_Peru Phone_D.Grau","CL_Peru Phone_D.Piura Rp","CL_Peru Phone_D.Piura_Loreto","CL_Curacao Talara","CL_Plaza Vea Talara","CL_Plaza Vea Talara Pariñas","CL_Peruphone_D.Piura_Pariñas","CL_Plaza Vea Piura","CL_Plaza Vea Tumbes","EN_Estilos Tumbes","EN_Isla_Cmtumbes2","EN_Isla_Rppiura","EN_Plaza Vea Piura","EN_Plaza Vea Tumbes","EN_Tp_Talara","EN_Tp_Tpf_Tumbes","EN_Tpf_Piureal","EN_Plaza Vea Talara","EN_Plaza Vea Talara Pariñas","ES_Estilos Piura","ES_Estilos Tumbes","PL_Plaza Vea Piura"],
+  "North 5": ["CL_Cac Piura Open Plaza","CL_Peru Phone_D.Paita","CL_Mahadi Op Piura","CL_Mahadi Real Plaza Piura","CL_Cardey_Palacios","CL_Cardey_Piu","CL_Carsa Sullana","CL_Efe Sullana","CL_Peru Phone_D.Sull","CL_Plaza Vea Sullana","CL_Saga Piura","CL_Tottus Chulucanas","CL_Tottus Piura","CL_Tottus Sullana","EN_Isla_Oppiura","EN_Plaza Vea Paita","EN_Plaza Vea Sullana","EN_Preciouno Sullana","EN_Tottus Piuraplaza","EN_Tottus Sullana Mall","EN_Tp_Piura","EN_Tpf_Paita2","EN_Tpf_Piura","EN_Tpf_Sullana","PL_Plaza Vea Sullana"],
+  "North 6": ["CL_Cac Cajamarca","CL_Cell Serv Caj2","CL_Inversiones Briceño Eirl","CL_Metro Cajamarca","CL_Oechsle Cajamarca","CL_Plaza Vea Cajamarca","CL_Saga Cajamarca","EN_Isla_Quindecajamarca","EN_Isla_Rpcajamarca","EN_Plaza Vea Cajamarca","EN_Tpf_Cajamarca","EN_Tpf_Chabagua","EN_Tpf_Jaen","EN_Tpf_Moyobamba","EN_Tpf_Mpcajamarca","EN_Tpf_Tarapoto","ES_Estilos Jaen","ES_Estilos Tarapoto","PL_Plaza Vea Cajamarca"],
+  "North 7": ["CL_Cac Iquitos","CL_Calessa Huaraz","CL_Carsa Chimbote","CL_Carsa Huaraz","CL_Curacao Huaraz","CL_Efe Huaraz","CL_Gomez Export_Casma","CL_Gomez Export_Chimbote","CL_Km Luna 3","CL_Km Luna Huaraz","CL_Llecllish_D.Caraz","CL_Llecllish_D.Chimbote","CL_Llecllish_D.Mega","CL_Mahadi Chimbote","CL_Metro Nuevo Chimbote","CL_Plaza Vea Chimbote","CL_Plaza Vea Nuevo Chimbote","CL_Ripley Chimbote","CL_Saga Chimbote","CL_Syscom Anc2","CL_Syscom Anc6","CL_Syscom Anc7","CL_Syscom Huaraz","CL_Syscom Megal","CL_Telchim3","CL_Tottus Chimbote","CL_Vahany Huaraz","CL_Vahany1","CL_Vahany2","CL_Vahany3","EN_Isla_Mpchimbote","EN_Plaza Vea Chimbote","EN_Tottus Chimbote","EN_Tp_Chimbote","EN_Tp_Tpf_Iquitos","EN_Tpf_Casma","EN_Tpf_Huaraz","EN_Tpf_Mapiquitos","RI_Ripley Chimbote","TE_Tec Iquitos"],
+  "South 1": ["CL_Cac Arequipa","CL_Cac Cerro Colorado","CL_Cac Ilo","CL_Cac Porongoche","CL_Cac Tacna","CL_Dimera_Fm","CL_Estilos Rivero","CL_Gimovil_D.Aqp","CL_Manyari_Is Porongoche","CL_Metro Arequipa3","CL_Oechsle Arequipa","CL_Plaza Vea El Ejercito","CL_Plaza Vea La Marina","CL_Red Sur Plus Arequipa","CL_Red Sur Plus Arq Arces","CL_Red Sur Plus Arq Ejercito","CL_Ripley Bustamante Y Rivero","CL_Ripley Cayma","CL_Saga Cayma","CL_Saga Porongoche","CL_Tottus Cayma","CL_Tottus Porongoche","EN_Estilos Arequipa","EN_Isla_Aqpcenter","EN_Isla_Mapcayma","EN_Isla_Rparequipa","EN_Plaza Vea El Ejercito","EN_Tottus Cayma","EN_Tottus Porongoche","EN_Tp_Arequipa","EN_Tp_Tacna","EN_Tp_Tpf_Maparequipa","EN_Tpf_Altiplano","EN_Tpf_Aqppanoramico","EN_Tpf_Aqppedregal","ES_Estilos Av. Ejercito","ES_Estilos Home","ES_Estilos Porongoche","ES_Estilos Porongoche Ma","ES_Estilos Rivero","RI_Ripley Porongoche"],
+  "South 2": ["CL_Cac Cusco Real Plaza","CL_Cac Juliaca Real Plaza","CL_Cac Puno","CL_Red Sur Plus Cusco","EN_Tp_Cusco","EN_Tp_Tpf_Cusco","EN_Tp_Tpf_Juliaca","EN_Tpf_Puno","OE_Oechsle Juliaca"],
+};
 
-document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-PE', {
-  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+let currentData = {};
+let currentZona = '';
+
+document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+const CUENTA_NOMBRES = {
+  'CL': 'Claro', 'EN': 'Entel', 'ES': 'Estilos',
+  'HI': 'Hiraoka', 'OE': 'Oechsle', 'PL': 'Plaza Vea',
+  'RI': 'Ripley', 'TE': 'Tec'
+};
+
+function getCuenta(pos) {
+  const parts = pos.split('_');
+  return parts[0] || 'OTRO';
+}
+
+function handleZonaChange() {
+  const zona = document.getElementById('zona').value;
+  if (zona === currentZona) return;
+  if (currentZona && zona && !confirm('¿Cambiar de zona? Se perderán los datos ingresados.')) {
+    document.getElementById('zona').value = currentZona;
+    return;
+  }
+  loadZona();
+}
+
+function loadZona() {
+  const zona = document.getElementById('zona').value;
+  document.getElementById('pos-section').style.display = zona ? 'block' : 'none';
+  document.getElementById('placeholder').style.display = zona ? 'none' : 'block';
+  if (!zona) return;
+
+  currentZona = zona;
+  currentData = {};
+  const list = document.getElementById('pos-list');
+  list.innerHTML = '';
+
+  const posList = ZONAS[zona];
+
+  posList.forEach((pos, idx) => {
+    currentData[idx] = {};
+    MODELOS.forEach(m => { currentData[idx][m.id] = { so: '', stock: '' }; });
+  });
+
+  const cuentas = {};
+  posList.forEach((pos, idx) => {
+    const cuenta = getCuenta(pos);
+    if (!cuentas[cuenta]) cuentas[cuenta] = [];
+    cuentas[cuenta].push({ pos, idx });
+  });
+
+  Object.keys(cuentas).sort().forEach(cuenta => {
+    const nombreCuenta = CUENTA_NOMBRES[cuenta] || cuenta;
+    const grupo = document.createElement('div');
+    grupo.className = 'cuenta-grupo';
+    grupo.id = `cuenta-${cuenta}`;
+
+    const header = document.createElement('div');
+    header.className = 'cuenta-header';
+    header.innerHTML = `
+      <div class="cuenta-badge">${cuenta}</div>
+      <div class="cuenta-nombre">${nombreCuenta}</div>
+      <div class="cuenta-meta" id="cmeta-${cuenta}"><span class="cuenta-pos-count">${cuentas[cuenta].length} POS</span></div>
+      <div class="cuenta-chevron" id="cchev-${cuenta}">▼</div>`;
+    header.onclick = () => toggleCuenta(cuenta);
+
+    const body = document.createElement('div');
+    body.className = 'cuenta-body open';
+    body.id = `cbody-${cuenta}`;
+
+    const posCont = document.createElement('div');
+    posCont.className = 'pos-list-inner';
+
+    cuentas[cuenta].forEach(({ pos, idx }, ci) => {
+      const card = buildCard(pos, idx);
+      card.style.animationDelay = `${ci * 0.03}s`;
+      posCont.appendChild(card);
+    });
+
+    body.appendChild(posCont);
+    grupo.appendChild(header);
+    grupo.appendChild(body);
+    list.appendChild(grupo);
+  });
+
+  updateProgress(); updateResumen();
+}
+
+function toggleCuenta(cuenta) {
+  const body = document.getElementById(`cbody-${cuenta}`);
+  const chev = document.getElementById(`cchev-${cuenta}`);
+  body.classList.toggle('open');
+  chev.style.transform = body.classList.contains('open') ? '' : 'rotate(-90deg)';
+}
+
+function buildCard(posName, idx) {
+  const card = document.createElement('div');
+  card.className = 'pos-card';
+  card.id = `pos-card-${idx}`;
+
+  const rows = MODELOS.map((m, mi) => `
+    <tr>
+      <td>
+        <span class="model-name">${m.nombre}</span>
+        <span class="model-lineal ${m.lineal === 'EOL' ? 'tag-eol' : 'tag-new'}">${m.lineal}</span>
+      </td>
+      <td class="cell-so">
+        <input type="number" min="0" step="1" class="num-input so-input"
+          id="so-${idx}-${m.id}" placeholder="0"
+          oninput="handleInput(${idx},'${m.id}','so',this.value)"
+          onkeydown="navTable(event,${idx},${mi},'so')">
+      </td>
+      <td class="cell-stock">
+        <input type="number" min="0" step="1" class="num-input stock-input"
+          id="stock-${idx}-${m.id}" placeholder="0"
+          oninput="handleInput(${idx},'${m.id}','stock',this.value)"
+          onkeydown="navTable(event,${idx},${mi},'stock')">
+      </td>
+    </tr>`).join('');
+
+  card.innerHTML = `
+    <div class="pos-header" onclick="togglePos(${idx})">
+      <div class="pos-num">${idx + 1}</div>
+      <div class="pos-name">${posName}</div>
+      <div class="pos-status status-pending" id="status-${idx}">Sin datos</div>
+      <div class="pos-chevron">▼</div>
+    </div>
+    <div class="pos-body">
+      <table class="models-table">
+        <thead>
+          <tr>
+            <th style="width:44%">Modelo</th>
+            <th class="col-so">SO — Unidades vendidas</th>
+            <th class="col-stock">Stock — Depósito</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="totals-row">
+            <td style="font-size:10px;letter-spacing:.08em">TOTAL POS</td>
+            <td class="tot-so" id="tot-so-${idx}">0</td>
+            <td class="tot-stock" id="tot-stock-${idx}">0</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="notas-row">
+        <span style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap">Observación:</span>
+        <input type="text" placeholder="Observación para este POS (opcional)..." id="nota-${idx}">
+      </div>
+    </div>`;
+  return card;
+}
+
+function togglePos(idx) {
+  document.getElementById(`pos-card-${idx}`).classList.toggle('open');
+}
+
+function handleInput(posIdx, modelId, tipo, val) {
+  const v = val === '' ? '' : Math.max(0, parseInt(val) || 0);
+  currentData[posIdx][modelId][tipo] = v;
+  if (val !== '' && String(v) !== val) document.getElementById(`${tipo}-${posIdx}-${modelId}`).value = v;
+  updateTotals(posIdx); updateStatus(posIdx); updateProgress(); updateResumen();
+}
+
+function updateTotals(posIdx) {
+  let so = 0, st = 0;
+  MODELOS.forEach(m => {
+    so += parseInt(currentData[posIdx][m.id].so) || 0;
+    st += parseInt(currentData[posIdx][m.id].stock) || 0;
+  });
+  document.getElementById(`tot-so-${posIdx}`).textContent = so;
+  document.getElementById(`tot-stock-${posIdx}`).textContent = st;
+}
+
+function filledCount(posIdx) {
+  return MODELOS.filter(m => currentData[posIdx][m.id].so !== '' || currentData[posIdx][m.id].stock !== '').length;
+}
+
+function updateStatus(posIdx) {
+  const n = filledCount(posIdx), total = MODELOS.length;
+  const el = document.getElementById(`status-${posIdx}`);
+  const card = document.getElementById(`pos-card-${posIdx}`);
+  card.classList.remove('complete','partial');
+  if (n === 0) { el.className = 'pos-status status-pending'; el.textContent = 'Sin datos'; }
+  else if (n < total) { el.className = 'pos-status status-partial'; el.textContent = `${n}/${total} modelos`; card.classList.add('partial'); }
+  else { el.className = 'pos-status status-done'; el.textContent = '✓ Completo'; card.classList.add('complete'); }
+}
+
+function updateProgress() {
+  const zona = document.getElementById('zona').value;
+  if (!zona) return;
+  const total = ZONAS[zona].length;
+  let done = 0;
+  for (let i = 0; i < total; i++) if (filledCount(i) > 0) done++;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('prog-label').textContent = `${done} de ${total} POS con datos`;
+  document.getElementById('prog-pct').textContent = `${pct}%`;
+  const fill = document.getElementById('prog-fill');
+  fill.style.width = pct + '%';
+  fill.style.background = pct === 100 ? 'var(--so)' : 'var(--accent)';
+}
+
+function updateResumen() {
+  const zona = document.getElementById('zona').value;
+  if (!zona) return;
+  const total = ZONAS[zona].length;
+  let totalSo = 0, totalStock = 0, posDone = 0;
+  for (let i = 0; i < total; i++) {
+    let has = false;
+    MODELOS.forEach(m => {
+      const so = parseInt(currentData[i][m.id].so) || 0;
+      const st = parseInt(currentData[i][m.id].stock) || 0;
+      totalSo += so; totalStock += st;
+      if (so || st) has = true;
+    });
+    if (has) posDone++;
+  }
+  document.getElementById('res-pos').textContent = posDone;
+  document.getElementById('res-so').textContent = totalSo.toLocaleString('es-PE');
+  document.getElementById('res-stock').textContent = totalStock.toLocaleString('es-PE');
+}
+
+function navTable(e, posIdx, modelIdx, tipo) {
+  if (e.key !== 'Enter' && e.key !== 'Tab') return;
+  e.preventDefault();
+  if (tipo === 'so') {
+    document.getElementById(`stock-${posIdx}-${MODELOS[modelIdx].id}`)?.focus();
+  } else if (modelIdx + 1 < MODELOS.length) {
+    document.getElementById(`so-${posIdx}-${MODELOS[modelIdx + 1].id}`)?.focus();
+  }
+}
+
+function validate() {
+  let ok = true;
+  ['zona','fecha','corte'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('error');
+    if (!el.value) { el.classList.add('error'); ok = false; }
+  });
+  return ok;
+}
+
+// ── MODAL DE CONFIRMACIÓN ──
+
+function formatFechaLarga(fechaStr) {
+  if (!fechaStr) return '—';
+  const d = new Date(fechaStr + 'T12:00:00');
+  return d.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function openConfirmModal() {
+  if (!validate()) {
+    alert('Completá los campos obligatorios: zona, fecha y corte.');
+    return;
+  }
+
+  const zona = document.getElementById('zona').value;
+  const fecha = document.getElementById('fecha').value;
+  const corte = document.getElementById('corte').value;
+
+  // Calcular totales
+  const total = ZONAS[zona].length;
+  let totalSo = 0, totalStock = 0, posDone = 0;
+  for (let i = 0; i < total; i++) {
+    let has = false;
+    MODELOS.forEach(m => {
+      const so = parseInt(currentData[i][m.id].so) || 0;
+      const st = parseInt(currentData[i][m.id].stock) || 0;
+      totalSo += so; totalStock += st;
+      if (so || st) has = true;
+    });
+    if (has) posDone++;
+  }
+
+  // Poblar modal
+  document.getElementById('modal-zona').textContent = zona;
+  document.getElementById('modal-fecha').textContent = formatFechaLarga(fecha);
+  document.getElementById('modal-corte').textContent = corte;
+  document.getElementById('modal-pos').textContent = posDone;
+  document.getElementById('modal-so').textContent = totalSo.toLocaleString('es-PE');
+  document.getElementById('modal-stock').textContent = totalStock.toLocaleString('es-PE');
+
+  document.getElementById('btn-modal-confirm').disabled = false;
+  document.getElementById('btn-modal-confirm').textContent = '✓ Confirmar y enviar';
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirm-modal').classList.remove('show');
+}
+
+function closeModalAndFocus(fieldId) {
+  closeConfirmModal();
+  setTimeout(() => {
+    const el = document.getElementById(fieldId);
+    if (el) {
+      // Para el select de zona: temporalmente removemos el onchange para evitar reload
+      if (fieldId === 'zona') {
+        const originalOnchange = el.onchange;
+        el.onchange = null;
+        el.focus();
+        el.onchange = originalOnchange;
+      } else {
+        el.focus();
+      }
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.borderColor = '#1e46e6';
+      el.style.boxShadow = '0 0 0 3px rgba(30,70,230,0.2)';
+      setTimeout(() => {
+        el.style.borderColor = '';
+        el.style.boxShadow = '';
+      }, 2500);
+    }
+  }, 200);
+}
+
+// Cerrar modal al hacer clic fuera
+document.getElementById('confirm-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirmModal();
 });
 
-cargarDatos();
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz8DErxfeEyr2AG1y3KGc8oGqfRz6Ymn7pe7fOoyM-eYTH0GfRPm3L38_BAMZukwKfmUw/exec';
 
-async function cargarDatos() {
-  try {
-    const url = 'https://docs.google.com/spreadsheets/d/' + SHEETS_ID + '/gviz/tq?tqx=out:json&sheet=IMEIs';
-    const res = await fetch(url, { mode: 'cors' });
-    const text = await res.text();
-    const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
-    const cols = json.table.cols.map(c => c.label);
-    const rows = json.table.rows;
-
-    const i = {
-      supervisor: cols.findIndex(c => c.toLowerCase().includes('supervisor')),
-      dni: cols.findIndex(c => c.toLowerCase() === 'dni'),
-      user: cols.findIndex(c => c.toLowerCase() === 'user'),
-      fecha: cols.findIndex(c => c.toLowerCase().includes('fecha')),
-      pos: cols.findIndex(c => c.toLowerCase().includes('pos')),
-      modelo: cols.findIndex(c => c.toLowerCase().includes('model')),
-      imei: cols.findIndex(c => c.toLowerCase() === 'imei'),
-    };
-
-    todosLosIMEIs = rows.filter(r => r.c[i.imei]?.v).map(r => ({
-      supervisor: r.c[i.supervisor]?.v || '',
-      dni: String(r.c[i.dni]?.v || '').trim(),
-      user: r.c[i.user]?.v || '',
-      fecha: r.c[i.fecha]?.v || '',
-      pos: r.c[i.pos]?.v || '',
-      modelo: r.c[i.modelo]?.v || '',
-      imei: String(r.c[i.imei]?.v || '').trim(),
-    }));
-
-    try {
-      const urlC = 'https://docs.google.com/spreadsheets/d/' + SHEETS_ID + '/gviz/tq?tqx=out:json&sheet=Constancias';
-      const resC = await fetch(urlC, { mode: 'cors' });
-      const textC = await resC.text();
-      const jsonC = JSON.parse(textC.substring(textC.indexOf('{'), textC.lastIndexOf('}') + 1));
-      const colsC = jsonC.table.cols.map(c => c.label);
-      const rowsC = jsonC.table.rows;
-      const idxImei   = colsC.findIndex(c => c.toLowerCase() === 'imei');
-      const idxEstado = colsC.findIndex(c => c.toLowerCase() === 'estado');
-      constanciasStatus = {};
-      rowsC.forEach(r => {
-        if (r.c[idxImei]?.v && r.c[idxEstado]?.v) {
-          constanciasStatus[String(r.c[idxImei].v).trim()] = r.c[idxEstado].v;
-        }
-      });
-    } catch(e) {}
-
-    const supervisores = [...new Set(todosLosIMEIs.map(r => r.supervisor).filter(Boolean))].sort();
-    const select = document.getElementById('supervisor-select');
-    supervisores.forEach(sup => {
-      const opt = document.createElement('option');
-      opt.value = sup; opt.textContent = sup;
-      select.appendChild(opt);
-    });
-    document.getElementById('loading-supervisores').style.display = 'none';
-  } catch (err) {
-    const el = document.getElementById('loading-supervisores');
-    el.innerHTML = '<span style="color:var(--error)">⚠ Error al cargar datos. Verificá la conexión.</span>';
-    el.style.display = 'block';
-  }
-}
-
-function elegirRol(rol) {
-  rolSeleccionado = rol;
-  document.getElementById('btn-promotor').classList.toggle('active', rol === 'promotor');
-  document.getElementById('btn-supervisor').classList.toggle('active', rol === 'supervisor');
-
-  imeisSeleccionados.clear(); fotosMap = {};
-  ['step-supervisor','step-dni','step-imeis','step-upload'].forEach(id =>
-    document.getElementById(id).classList.add('hidden'));
-
-  if (rol === 'promotor') {
-    document.getElementById('dni-num').textContent = '2';
-    document.getElementById('dni-title').textContent = 'Tu DNI';
-    document.getElementById('imei-num').textContent = '3';
-    document.getElementById('upload-num').textContent = '4';
-    document.getElementById('supervisor-badge').classList.add('hidden');
-    document.getElementById('bloque-dni').classList.remove('hidden');
-    document.getElementById('bloque-promotor-select').classList.add('hidden');
-    document.getElementById('step-dni').classList.remove('hidden');
-  } else {
-    document.getElementById('dni-num').textContent = '3';
-    document.getElementById('dni-title').textContent = 'Promotor';
-    document.getElementById('imei-num').textContent = '4';
-    document.getElementById('upload-num').textContent = '5';
-    document.getElementById('bloque-dni').classList.add('hidden');
-    document.getElementById('bloque-promotor-select').classList.remove('hidden');
-    document.getElementById('step-supervisor').classList.remove('hidden');
-  }
-
-  document.getElementById('dni-input').value = '';
-  setTimeout(() => document.getElementById(rol === 'promotor' ? 'step-dni' : 'step-supervisor')
-    .scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-}
-
-function seleccionarSupervisor() {
-  const sup = document.getElementById('supervisor-select').value;
-  if (!sup) return;
-  supervisorSeleccionado = sup;
-
-  const badge = document.getElementById('supervisor-badge');
-  badge.innerHTML = '<strong style="color:var(--accent)">Supervisor:</strong> ' + sup;
-  badge.classList.remove('hidden');
-
-  const promotores = [...new Map(
-    todosLosIMEIs
-      .filter(r => r.supervisor === sup)
-      .map(r => [r.dni, r])
-  ).values()].sort((a, b) => a.user.localeCompare(b.user));
-
-  const select = document.getElementById('promotor-select');
-  select.innerHTML = '<option value="">— Seleccioná un promotor —</option>';
-  promotores.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.dni;
-    opt.textContent = p.user + ' — DNI: ' + p.dni;
-    select.appendChild(opt);
-  });
-
-  document.getElementById('step-dni').classList.remove('hidden');
-  document.getElementById('step-imeis').classList.add('hidden');
-  document.getElementById('step-upload').classList.add('hidden');
-  imeisSeleccionados.clear(); fotosMap = {};
-
-  setTimeout(() => document.getElementById('step-dni').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-}
-
-function seleccionarPromotor() {
-  const dni = document.getElementById('promotor-select').value;
-  if (!dni) return;
-
-  let encontrados = todosLosIMEIs.filter(r =>
-    r.dni === dni && r.supervisor === supervisorSeleccionado
-  );
-
-  imeisSeleccionados.clear(); fotosMap = {};
-  document.getElementById('step-upload').classList.add('hidden');
-
-  if (encontrados.length === 0) {
-    alert('No se encontraron IMEIs pendientes para este promotor.');
-    return;
-  }
-
-  imeisPromotor = encontrados;
-  mostrarIMEIs(encontrados);
-}
-
-async function buscarDNI() {
-  const dni = document.getElementById('dni-input').value.trim();
-  if (!dni || dni.length < 7) { alert('Ingresá un DNI válido (7-8 dígitos).'); return; }
-
-  document.getElementById('loading-dni').style.display = 'block';
-  document.getElementById('step-imeis').classList.add('hidden');
-  document.getElementById('step-upload').classList.add('hidden');
-  imeisSeleccionados.clear(); fotosMap = {};
-
-  let encontrados = todosLosIMEIs.filter(r => r.dni === String(dni).trim());
-  if (rolSeleccionado === 'supervisor' && supervisorSeleccionado) {
-    encontrados = encontrados.filter(r => r.supervisor === supervisorSeleccionado);
-  }
-
-  document.getElementById('loading-dni').style.display = 'none';
-
-  if (encontrados.length === 0) {
-    alert(rolSeleccionado === 'supervisor'
-      ? 'No se encontraron IMEIs para ese DNI en tu zona.'
-      : 'No se encontraron IMEIs pendientes para ese DNI.');
-    return;
-  }
-
-  imeisPromotor = encontrados;
-  mostrarIMEIs(encontrados);
-}
-
-function mostrarIMEIs(imeis) {
-  const step = document.getElementById('step-imeis');
-  step.classList.remove('hidden');
-
-  document.getElementById('promotor-info').innerHTML =
-    '<strong style="color:var(--ink2)">' + imeis[0].user + '</strong>' +
-    '<span style="color:var(--muted);margin-left:8px">DNI: ' + imeis[0].dni + '</span>' +
-    '<span style="color:var(--accent);margin-left:8px;font-weight:700">' + imeis.length + ' IMEI' + (imeis.length>1?'s':'') + ' pendiente' + (imeis.length>1?'s':'') + '</span>';
-
-  const list = document.getElementById('imei-list');
-  list.innerHTML = '';
-  imeis.forEach((item, i) => {
-    const estado = constanciasStatus[item.imei] || 'Pendiente';
-    const esAprobado = estado === 'Aprobado';
-    const statusColor = esAprobado ? '#16a34a' : estado === 'Rechazado' ? '#dc2626' : '#d97706';
-    const statusBg = esAprobado ? '#f0fdf4' : estado === 'Rechazado' ? '#fef2f2' : '#fff7ed';
-
-    const card = document.createElement('div');
-    card.className = 'imei-card' + (esAprobado ? ' aprobado' : '');
-    card.id = 'imei-card-' + i;
-    if (!esAprobado) card.onclick = () => toggleIMEI(i);
-    card.style.opacity = esAprobado ? '0.7' : '1';
-    card.innerHTML =
-      '<div class="imei-header">' +
-        '<div class="imei-check" id="check-' + i + '">✓</div>' +
-        '<div class="imei-info">' +
-          '<div class="imei-number">' + item.imei + '</div>' +
-          '<div class="imei-meta">' + item.modelo + ' · ' + item.pos + (item.fecha ? ' · ' + item.fecha : '') + '</div>' +
-        '</div>' +
-        '<span class="imei-status" style="background:' + statusBg + ';color:' + statusColor + '">' + estado + '</span>' +
-      '</div>';
-    list.appendChild(card);
-  });
-
-  actualizarContador();
-  step.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function toggleIMEI(idx) {
-  if (imeisSeleccionados.has(idx)) {
-    imeisSeleccionados.delete(idx);
-    document.getElementById('imei-card-' + idx).classList.remove('selected');
-  } else {
-    imeisSeleccionados.add(idx);
-    document.getElementById('imei-card-' + idx).classList.add('selected');
-  }
-  actualizarContador();
-}
-
-function selectAll() {
-  const allSelected = imeisSeleccionados.size === imeisPromotor.length;
-  imeisPromotor.forEach((_, i) => {
-    if (allSelected) {
-      imeisSeleccionados.delete(i);
-      document.getElementById('imei-card-' + i).classList.remove('selected');
-    } else {
-      imeisSeleccionados.add(i);
-      document.getElementById('imei-card-' + i).classList.add('selected');
-    }
-  });
-  actualizarContador();
-}
-
-function actualizarContador() {
-  const n = imeisSeleccionados.size;
-  document.getElementById('count-badge').textContent = n > 0 ? n + ' seleccionado' + (n>1?'s':'') : '';
-  document.getElementById('btn-continuar').disabled = n === 0;
-}
-
-function irAUpload() {
-  const step = document.getElementById('step-upload');
-  step.classList.remove('hidden');
-  fotosMap = {};
-
-  const container = document.getElementById('imei-upload-list');
-  container.innerHTML = '';
-
-  [...imeisSeleccionados].sort((a,b)=>a-b).forEach(idx => {
-    const item = imeisPromotor[idx];
-    const div = document.createElement('div');
-    div.className = 'imei-upload-item';
-    div.id = 'upload-item-' + idx;
-    div.innerHTML =
-      '<div class="imei-upload-header">' +
-        '<div class="imei-num">' + item.imei + '</div>' +
-        '<div class="imei-det">' + item.modelo + ' · ' + item.pos + (item.fecha ? ' · ' + item.fecha : '') + '</div>' +
-      '</div>' +
-      '<div class="imei-upload-body">' +
-        '<div class="upload-zone" id="zone-' + idx + '" onclick="document.getElementById(\'file-' + idx + '\').click()">' +
-          '<input type="file" id="file-' + idx + '" accept="image/*" style="display:none" onchange="handleFoto(this,' + idx + ')">' +
-          '<div class="upload-icon">📷</div>' +
-          '<div class="upload-text">Tocar para subir foto</div>' +
-          '<div class="upload-sub">JPG, PNG — máx. 10MB</div>' +
-        '</div>' +
-        '<div class="upload-filename" id="fname-' + idx + '"></div>' +
-        '<img class="preview-thumb" id="thumb-' + idx + '" src="" alt="preview">' +
-      '</div>';
-    container.appendChild(div);
-  });
-
-  actualizarProgreso();
-  step.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function handleFoto(input, idx) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 10 * 1024 * 1024) { alert('La foto es muy grande. Máximo 10MB.'); return; }
-
-  fotosMap[idx] = file;
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('thumb-' + idx).src = e.target.result;
-    document.getElementById('thumb-' + idx).style.display = 'block';
-    document.getElementById('fname-' + idx).textContent = '✓ ' + file.name;
-    document.getElementById('fname-' + idx).style.display = 'block';
-    document.getElementById('zone-' + idx).classList.add('has-file');
-    document.getElementById('upload-item-' + idx).classList.add('done');
-  };
-  reader.readAsDataURL(file);
-  actualizarProgreso();
-}
-
-function actualizarProgreso() {
-  const total = imeisSeleccionados.size;
-  const cargadas = Object.keys(fotosMap).length;
-  const pct = total > 0 ? Math.round((cargadas / total) * 100) : 0;
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-label').textContent = cargadas + ' de ' + total + ' fotos cargadas';
-  document.getElementById('btn-enviar').disabled = cargadas < total;
-}
-
-async function enviarConstancias() {
-  const btn = document.getElementById('btn-enviar');
+function confirmAndSend() {
+  const btn = document.getElementById('btn-modal-confirm');
   btn.disabled = true;
   btn.textContent = 'Enviando...';
 
+  const zona = document.getElementById('zona').value;
+  const fecha = document.getElementById('fecha').value;
+  const corte = document.getElementById('corte').value;
+  const posList = ZONAS[zona];
+  const rows = [];
+
   const ahora = new Date();
-  const hp = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Lima' }));
-  const fechaHora = hp.getFullYear() + '-' + String(hp.getMonth()+1).padStart(2,'0') + '-' + String(hp.getDate()).padStart(2,'0') + ' ' + String(hp.getHours()).padStart(2,'0') + ':' + String(hp.getMinutes()).padStart(2,'0') + ':' + String(hp.getSeconds()).padStart(2,'0');
+  const horaPeru = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000) - (5 * 3600000));
+  const fechaEnvio = `${horaPeru.getUTCFullYear()}-${String(horaPeru.getUTCMonth()+1).padStart(2,'0')}-${String(horaPeru.getUTCDate()).padStart(2,'0')}`;
+  const horaEnvio = `${String(horaPeru.getUTCHours()).padStart(2,'0')}:${String(horaPeru.getUTCMinutes()).padStart(2,'0')}:${String(horaPeru.getUTCSeconds()).padStart(2,'0')}`;
+  const fechaHoraEnvio = `${fechaEnvio} ${horaEnvio}`;
 
-  const constancias = [];
-  for (const idx of imeisSeleccionados) {
-    const item = imeisPromotor[idx];
-    const file = fotosMap[idx];
-    const base64 = await new Promise(res => {
-      const r = new FileReader();
-      r.onload = e => res(e.target.result.split(',')[1]);
-      r.readAsDataURL(file);
+  posList.forEach((pos, i) => {
+    const nota = document.getElementById(`nota-${i}`)?.value || '';
+    const cuenta = getCuenta(pos);
+    const cuentaNombre = CUENTA_NOMBRES[cuenta] || cuenta;
+    MODELOS.forEach(m => {
+      const so = parseInt(currentData[i][m.id].so) || 0;
+      const stock = parseInt(currentData[i][m.id].stock) || 0;
+      if (so || stock) {
+        rows.push({ fecha, fechaHoraEnvio, corte, zona, cuenta: cuentaNombre, pos, modelo: m.nombre, lineal: m.lineal, so, stock, nota });
+      }
     });
-    constancias.push({
-      fechaEnvio: fechaHora,
-      supervisor: item.supervisor,
-      dni: item.dni,
-      user: item.user,
-      imei: item.imei,
-      modelo: item.modelo,
-      pos: item.pos,
-      fechaVenta: item.fecha,
-      fotoBase64: base64,
-      fotoNombre: file.name
-    });
-  }
+  });
 
-  try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'subirConstancias', constancias })
-    });
-    showSuccess(constancias);
-  } catch (err) {
-    btn.disabled = false;
-    btn.textContent = 'Enviar constancias';
-    alert('Error al enviar. Intentá de nuevo.');
-  }
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rows })
+  })
+  .then(() => { closeConfirmModal(); showSuccess(); })
+  .catch(() => { closeConfirmModal(); showSuccess(); });
 }
 
-function showSuccess(constancias) {
-  ['step-rol','step-supervisor','step-dni','step-imeis','step-upload'].forEach(id =>
-    document.getElementById(id).classList.add('hidden'));
-  document.getElementById('success-screen').style.display = 'block';
-
-  const lista = constancias.map(c =>
-    '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-bottom:8px;text-align:left;">' +
-      '<div style="font-size:13px;font-weight:700;color:#166534;">📱 ' + c.imei + '</div>' +
-      '<div style="font-size:11px;color:#4b7a5a;margin-top:2px;">' + c.modelo + ' · ' + c.pos + '</div>' +
-      '<div style="font-size:11px;color:#4b7a5a;">📷 Foto cargada: <strong>' + c.fotoNombre + '</strong></div>' +
-    '</div>'
-  ).join('');
-
-  document.getElementById('success-msg').innerHTML =
-    '<strong>' + constancias.length + '</strong> constancia' + (constancias.length>1?'s':'') + ' enviada' + (constancias.length>1?'s':'') + ' correctamente.' +
-    '<br><span style="font-size:12px;">Serán revisadas a la brevedad.</span>' +
-    '<div style="margin-top:16px;">' + lista + '</div>';
+// submitForm ahora abre el modal (para compatibilidad, no se usa directamente)
+function submitForm() {
+  openConfirmModal();
 }
 
-function resetApp() {
-  rolSeleccionado = null; supervisorSeleccionado = null;
-  imeisPromotor = []; imeisSeleccionados.clear(); fotosMap = {};
-  document.getElementById('supervisor-select').value = '';
-  document.getElementById('dni-input').value = '';
-  document.getElementById('btn-promotor').classList.remove('active');
-  document.getElementById('btn-supervisor').classList.remove('active');
-  document.getElementById('success-screen').style.display = 'none';
-  document.getElementById('step-rol').classList.remove('hidden');
-  ['step-supervisor','step-dni','step-imeis','step-upload'].forEach(id =>
-    document.getElementById(id).classList.add('hidden'));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function showSuccess() {
+  const zona = document.getElementById('zona').value;
+  const fecha = document.getElementById('fecha').value;
+  const corte = document.getElementById('corte').value;
+  const posList = ZONAS[zona];
+  const total = posList.length;
+  let totalSo = 0, totalStock = 0, posDone = 0;
+
+  const modelTotals = {};
+  MODELOS.forEach(m => { modelTotals[m.id] = { so: 0, stock: 0 }; });
+
+  let posDetalle = '';
+  for (let i = 0; i < total; i++) {
+    let posSo = 0, posStock = 0, hasData = false;
+    const modelLines = [];
+    MODELOS.forEach(m => {
+      const so = parseInt(currentData[i][m.id].so) || 0;
+      const st = parseInt(currentData[i][m.id].stock) || 0;
+      if (so || st) {
+        hasData = true;
+        modelLines.push(`    ${m.nombre}: SO ${so} | Stock ${st}`);
+        modelTotals[m.id].so += so;
+        modelTotals[m.id].stock += st;
+      }
+      posSo += so; posStock += st;
+      totalSo += so; totalStock += st;
+    });
+    if (hasData) {
+      posDone++;
+      posDetalle += `\n▸ ${posList[i]}\n${modelLines.join('\n')}\n  → Total POS: SO ${posSo} | Stock ${posStock}`;
+    }
+  }
+
+  let modelDetalle = '';
+  MODELOS.forEach(m => {
+    const { so, stock } = modelTotals[m.id];
+    if (so || stock) {
+      modelDetalle += `\n  ${m.nombre} [${m.lineal}]: SO ${so} | Stock ${stock}`;
+    }
+  });
+
+  const d = new Date(fecha + 'T12:00:00');
+  const fechaFmt = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  const textoResumen =
+`━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPORTE VIVO — ${zona}
+Fecha: ${fechaFmt} | ${corte}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOTALES GENERALES
+  Total SO:    ${totalSo} uds.
+  Total Stock: ${totalStock} uds.
+  POS con datos: ${posDone} de ${total}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESUMEN POR MODELO
+${modelDetalle}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETALLE POR POS
+${posDetalle}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+  document.getElementById('success-summary').innerHTML = `<pre style="font-family:'Exo 2',monospace;font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--ink2);text-align:left;">${textoResumen}</pre>`;
+  document.getElementById('main-form').style.display = 'none';
+  document.getElementById('success-screen').classList.add('show');
+}
+
+function resetAll() {
+  document.getElementById('main-form').style.display = 'block';
+  document.getElementById('success-screen').classList.remove('show');
+  document.getElementById('zona').value = '';
+  document.getElementById('corte').value = '';
+  document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('pos-section').style.display = 'none';
+  document.getElementById('placeholder').style.display = 'block';
+  document.getElementById('pos-list').innerHTML = '';
+  document.getElementById('btn-submit').disabled = false;
+  document.getElementById('btn-submit').textContent = 'Revisar y enviar →';
+  currentData = {};
+  currentZona = '';
+}
+
+function clearAll() {
+  if (!confirm('¿Limpiar todos los valores ingresados?')) return;
+  const zona = document.getElementById('zona').value;
+  if (!zona) return;
+  const total = ZONAS[zona].length;
+  for (let i = 0; i < total; i++) {
+    MODELOS.forEach(m => {
+      currentData[i][m.id] = { so: '', stock: '' };
+      const soEl = document.getElementById(`so-${i}-${m.id}`);
+      const stEl = document.getElementById(`stock-${i}-${m.id}`);
+      if (soEl) soEl.value = '';
+      if (stEl) stEl.value = '';
+    });
+    updateTotals(i); updateStatus(i);
+    const notaEl = document.getElementById(`nota-${i}`);
+    if (notaEl) notaEl.value = '';
+  }
+  updateProgress(); updateResumen();
 }
 </script>
 </body>
