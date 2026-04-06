@@ -441,12 +441,11 @@ async function irAUpload() {
     const rows = json.table.rows;
 
     const linkMap = {};
-    rows.forEach(r => {
-      const imei   = String(r.c?.[4]?.v || '').trim();
-      const link   = String(r.c?.[8]?.v || '').trim();
-      const base64 = String(r.c?.[11]?.v || '').trim();
-      if (imei) linkMap[imei] = { link, base64 };
-    });
+   rows.forEach(r => {
+      const imei = String(r.c?.[4]?.v || '').trim();
+      const link = String(r.c?.[8]?.v || '').trim();
+      if (imei) linkMap[imei] = { link };
+        });
 
     const indices = [...imeisSeleccionados].sort((a,b) => a-b);
     let encontradas = 0;
@@ -468,17 +467,11 @@ async function irAUpload() {
         );
         if (found) entry = linkMap[found];
       }
-      if (entry) {
-        if (entry.base64 && entry.base64.startsWith('data:image')) {
-          encontradas++;
-          fotosMap[idx] = { type: 'base64', base64: entry.base64, name: imeiKey };
-          fotoUrl = 'base64';
-        } else if (entry.link) {
+        if (entry && entry.link) {
           fotoUrl = entry.link;
           encontradas++;
           fotosMap[idx] = { type: 'url', url: fotoUrl, name: imeiKey };
         }
-      }
 
       const div = document.createElement('div');
       div.className = 'imei-upload-item';
