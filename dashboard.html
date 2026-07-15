@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard en vivo — VIVO</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" defer></script>
 <style>
 /* ─────────────────────────────────────────────────────────
    Mismo lenguaje visual que report_vivo (Exo 2 + negro/azul)
@@ -50,7 +51,8 @@ body { background: var(--bg); color: var(--ink); font-family: 'Exo 2', sans-seri
 .main { max-width: 1180px; margin: 0 auto; padding: 26px 24px 0; }
 
 /* filtros */
-.filters { display:flex; flex-wrap:wrap; gap:14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 22px; margin-bottom:24px; align-items:flex-end; }
+.filters { display:flex; flex-direction:column; gap:14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 22px; margin-bottom:24px; }
+.filters-row { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; }
 .field { display:flex; flex-direction:column; gap:6px; min-width:150px; }
 .field label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
 .field select, .field input[type="date"] { background:var(--bg); border:1.5px solid var(--border); border-radius:8px; padding:9px 12px; font-family:'Exo 2',sans-serif; font-size:13px; font-weight:600; color:var(--ink); outline:none; }
@@ -130,31 +132,43 @@ details.setup code { background:var(--bg2); padding:1px 6px; border-radius:5px; 
 <div class="main">
 
   <div class="filters">
-    <div class="field">
-      <label>Fecha</label>
-      <input type="date" id="f-fecha">
+    <div class="filters-row">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="f-fecha">
+      </div>
+      <div class="field">
+        <label>Corte</label>
+        <select id="f-corte"><option value="">Todos</option></select>
+      </div>
+      <div class="field">
+        <label>Account_int</label>
+        <select id="f-account-int"><option value="">Todos</option></select>
+      </div>
+      <div class="field">
+        <label>Account_vv</label>
+        <select id="f-account-vv"><option value="">Todas</option></select>
+      </div>
+      <div class="filters-status" id="filters-status"></div>
     </div>
-    <div class="field">
-      <label>Corte</label>
-      <select id="f-corte"><option value="">Todos</option></select>
+    <div class="filters-row">
+      <div class="field">
+        <label>Región</label>
+        <select id="f-region"><option value="">Todas</option></select>
+      </div>
+      <div class="field">
+        <label>Zona</label>
+        <select id="f-zona"><option value="">Todas</option></select>
+      </div>
+      <div class="field">
+        <label>POS</label>
+        <select id="f-pos"><option value="">Todos</option></select>
+      </div>
+      <div class="field">
+        <label>Modelo</label>
+        <select id="f-modelo"><option value="">Todos</option></select>
+      </div>
     </div>
-    <div class="field">
-      <label>Región</label>
-      <select id="f-region"><option value="">Todas</option></select>
-    </div>
-    <div class="field">
-      <label>Zona</label>
-      <select id="f-zona"><option value="">Todas</option></select>
-    </div>
-    <div class="field">
-      <label>Account_vv</label>
-      <select id="f-account-vv"><option value="">Todas</option></select>
-    </div>
-    <div class="field">
-      <label>Account_int</label>
-      <select id="f-account-int"><option value="">Todos</option></select>
-    </div>
-    <div class="filters-status" id="filters-status"></div>
   </div>
 
   <div id="state-box">
@@ -170,8 +184,11 @@ details.setup code { background:var(--bg2); padding:1px 6px; border-radius:5px; 
       <div class="kpi"><div class="val" id="kpi-stock">0</div><div class="lbl">Stock total</div></div>
       <div class="kpi"><div class="val" id="kpi-tg">0</div><div class="lbl">Meta del día</div></div>
       <div class="kpi k-good"><div class="val" id="kpi-ar">0%</div><div class="lbl">Avance / meta</div></div>
+      <div class="kpi"><div class="val" id="kpi-pos-total">0</div><div class="lbl"># POS total</div></div>
       <div class="kpi"><div class="val" id="kpi-pos">0</div><div class="lbl">POS con venta</div></div>
       <div class="kpi"><div class="val" id="kpi-pos-stock">0</div><div class="lbl">POS con stock</div></div>
+      <div class="kpi"><div class="val" id="kpi-cvp">0</div><div class="lbl">CV_p</div></div>
+      <div class="kpi"><div class="val" id="kpi-cvr">0</div><div class="lbl">CV_r</div></div>
     </div>
 
     <div class="charts-grid">
@@ -180,7 +197,7 @@ details.setup code { background:var(--bg2); padding:1px 6px; border-radius:5px; 
         <canvas id="chart-region"></canvas>
       </div>
       <div class="chart-card">
-        <h3>SO por modelo</h3>
+        <h3>SO / SK por modelo</h3>
         <canvas id="chart-modelo"></canvas>
       </div>
     </div>
@@ -196,6 +213,8 @@ details.setup code { background:var(--bg2); padding:1px 6px; border-radius:5px; 
             <th class="num" onclick="setSort('stock')">Stock</th>
             <th class="num" onclick="setSort('tg')">tg_day</th>
             <th class="num" onclick="setSort('ar')">A/R_day</th>
+            <th class="num" onclick="setSort('cvp')">CV_p</th>
+            <th class="num" onclick="setSort('cvr')">CV_r</th>
           </tr>
         </thead>
         <tbody id="sup-tbody"></tbody>
@@ -223,6 +242,7 @@ details.setup code { background:var(--bg2); padding:1px 6px; border-radius:5px; 
 const SHEET_ID = '1JiB9SMNwMzbWmD2bU8Wax47su0vtfKNKDrxI6VeCXM0';
 const DATA_SHEET_NAME = 'Hoja 1';   // TODO: nombre real de la pestaña donde el Apps Script escribe las ventas
 const METAS_SHEET_NAME = 'tg_day';  // pestaña: account_vv | account_int | zone | tg_day (supervisor es opcional)
+const TG_MONTH_SHEET_NAME = 'tg_month'; // pestaña: zona | account_int | pos | cv_p | cv_r (base de POS totales y cobertura)
 const AUTO_REFRESH_SECONDS = 60;    // 0 para desactivar el auto-refresh
 
 // Nombres de encabezado esperados en la pestaña de ventas → alias aceptados (minúsculas, sin espacios)
@@ -246,6 +266,7 @@ const FALLBACK_ORDER = ['fecha','fechaHoraEnvio','corte','zona','cuenta','accoun
 
 let ventasRaw = [];      // filas normalizadas de la pestaña de ventas
 let metasRows = [];      // filas normalizadas de la pestaña "Metas" (zona, cuenta, tg_day, supervisor opcional)
+let tgMonthRows = [];    // filas normalizadas de "tg_month" (zona, account_int, pos, cv_p, cv_r) — base de POS totales
 let sortState = { key: 'so', dir: -1 };
 let chartRegion = null, chartModelo = null;
 
@@ -367,6 +388,29 @@ function regionDeZona(zona) {
   return m ? m[1] : zona;
 }
 
+function parseTgMonth(table) {
+  const labels = table.cols.map(c => normalize(c.label));
+  const iZona = labels.findIndex(l => l === 'zone' || l === 'zona');
+  const iAccountInt = labels.findIndex(l => l === 'account_int' || l === 'accountint' || l === 'account int');
+  const iPos = labels.findIndex(l => l === 'pos');
+  const iCvP = labels.findIndex(l => l === 'cv_p' || l === 'cvp' || l === 'cv p');
+  const iCvR = labels.findIndex(l => l === 'cv_r' || l === 'cvr' || l === 'cv r');
+  const rows = [];
+  table.rows.forEach(r => {
+    const zona = String(cellVal(r, iZona)).trim();
+    const pos = String(cellVal(r, iPos)).trim();
+    if (!zona || !pos) return;
+    rows.push({
+      zona,
+      account_int: iAccountInt !== -1 ? String(cellVal(r, iAccountInt)).trim() : '',
+      pos,
+      cv_p: parseFloat(cellVal(r, iCvP)) || 0,
+      cv_r: parseFloat(cellVal(r, iCvR)) || 0
+    });
+  });
+  return rows;
+}
+
 /* ── carga principal ── */
 async function cargarTodo(manual) {
   const btn = document.getElementById('btn-refresh');
@@ -374,12 +418,14 @@ async function cargarTodo(manual) {
   btn.classList.add('spin');
   showState('loading');
   try {
-    const [tVentas, tMetas] = await Promise.all([
+    const [tVentas, tMetas, tTgMonth] = await Promise.all([
       fetchGviz(DATA_SHEET_NAME),
-      fetchGviz(METAS_SHEET_NAME)
+      fetchGviz(METAS_SHEET_NAME),
+      fetchGviz(TG_MONTH_SHEET_NAME)
     ]);
     ventasRaw = parseVentas(tVentas);
     metasRows = parseMetas(tMetas);
+    tgMonthRows = parseTgMonth(tTgMonth);
 
     poblarFiltros();
     render();
@@ -420,6 +466,7 @@ function showState(kind, errMsg) {
 
 /* ── filtros ── */
 function poblarFiltros() {
+  const region = document.getElementById('f-region').value;
   const cortes = [...new Set(ventasRaw.map(r => r.corte).filter(Boolean))].sort();
   const zonas = [...new Set(ventasRaw.map(r => r.zona).filter(Boolean))].sort();
 
@@ -431,14 +478,28 @@ function poblarFiltros() {
 
   const selZona = document.getElementById('f-zona');
   const prevZona = selZona.value;
-  selZona.innerHTML = '<option value="">Todas</option>' + zonas.map(z => `<option value="${z}">${z}</option>`).join('');
-  if (zonas.includes(prevZona)) selZona.value = prevZona;
+  const zonasFiltradasPorRegion = region ? zonas.filter(z => regionDeZona(z) === region) : zonas;
+  selZona.innerHTML = '<option value="">Todas</option>' + zonasFiltradasPorRegion.map(z => `<option value="${z}">${z}</option>`).join('');
+  if (zonasFiltradasPorRegion.includes(prevZona)) selZona.value = prevZona;
 
   const regiones = [...new Set(ventasRaw.map(r => regionDeZona(r.zona)).filter(Boolean))].sort();
   const selRegion = document.getElementById('f-region');
   const prevRegion = selRegion.value;
   selRegion.innerHTML = '<option value="">Todas</option>' + regiones.map(rg => `<option value="${rg}">${rg}</option>`).join('');
   if (regiones.includes(prevRegion)) selRegion.value = prevRegion;
+
+  const zonaActual = selZona.value;
+  const posOptions = [...new Set(ventasRaw.filter(r => !zonaActual || r.zona === zonaActual).map(r => r.pos).filter(Boolean))].sort();
+  const selPos = document.getElementById('f-pos');
+  const prevPos = selPos.value;
+  selPos.innerHTML = '<option value="">Todos</option>' + posOptions.map(p => `<option value="${p}">${p}</option>`).join('');
+  if (posOptions.includes(prevPos)) selPos.value = prevPos;
+
+  const modelos = [...new Set(ventasRaw.map(r => r.modelo).filter(Boolean))].sort();
+  const selModelo = document.getElementById('f-modelo');
+  const prevModelo = selModelo.value;
+  selModelo.innerHTML = '<option value="">Todos</option>' + modelos.map(md => `<option value="${md}">${md}</option>`).join('');
+  if (modelos.includes(prevModelo)) selModelo.value = prevModelo;
 
   const accountVvs = [...new Set(ventasRaw.map(r => r.cuenta).filter(Boolean))].sort();
   const selAccountVv = document.getElementById('f-account-vv');
@@ -453,8 +514,11 @@ function poblarFiltros() {
   if (accountInts.includes(prevAccountInt)) selAccountInt.value = prevAccountInt;
 }
 
-['f-fecha','f-corte','f-region','f-zona','f-account-vv','f-account-int'].forEach(id => {
-  document.getElementById(id).addEventListener('change', render);
+['f-fecha','f-corte','f-region','f-zona','f-pos','f-modelo','f-account-vv','f-account-int'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    if (id === 'f-region' || id === 'f-zona') poblarFiltros();
+    render();
+  });
 });
 
 function setSort(key) {
@@ -472,12 +536,15 @@ function render() {
   const zona = document.getElementById('f-zona').value;
   const accountInt = document.getElementById('f-account-int').value;
   const accountVv = document.getElementById('f-account-vv').value;
+  const pos = document.getElementById('f-pos').value;
+  const modelo = document.getElementById('f-modelo').value;
 
   const filtradas = ventasRaw.filter(r =>
     (!fecha || r.fecha === fecha) &&
     (!corte || r.corte === corte) &&
     (!region || regionDeZona(r.zona) === region) &&
     (!zona || r.zona === zona) &&
+    (!pos || r.pos === pos) &&
     (!accountVv || r.cuenta === accountVv) &&
     (!accountInt || r.account_int === accountInt)
   );
@@ -492,6 +559,23 @@ function render() {
     if (!porGrupo[key]) porGrupo[key] = { zona: r.zona, account_int: r.account_int, so: 0, stock: 0 };
     porGrupo[key].so += r.so;
     porGrupo[key].stock += r.stock;
+  });
+
+  // tg_month filtrado igual que ventas — fuente de POS totales y CV_p/CV_r
+  const tgMonthFiltrado = tgMonthRows.filter(t =>
+    (!region || regionDeZona(t.zona) === region) &&
+    (!zona || t.zona === zona) &&
+    (!pos || t.pos === pos) &&
+    (!accountInt || t.account_int === accountInt)
+  );
+  const cvByGrupo = {};
+  const cvByPos = {};
+  tgMonthFiltrado.forEach(t => {
+    const gKey = t.zona + '||' + t.account_int;
+    if (!cvByGrupo[gKey]) cvByGrupo[gKey] = { cv_p: 0, cv_r: 0 };
+    cvByGrupo[gKey].cv_p += t.cv_p;
+    cvByGrupo[gKey].cv_r += t.cv_r;
+    cvByPos[t.zona + '||' + t.account_int + '||' + t.pos] = { cv_p: t.cv_p, cv_r: t.cv_r };
   });
 
   // metas filtradas por los mismos filtros de zona/account_int, cruzadas por zona+account_int
@@ -514,10 +598,11 @@ function render() {
     const g = porGrupo[key] || { so: 0, stock: 0 };
     const tg = metasByKey[key] || 0;
     const ar = tg > 0 ? (g.so / tg) * 100 : (g.so > 0 ? 100 : 0);
-    return { key, zona: zonaKey, account_int: accountIntKey, label: supByZona[zonaKey] || zonaKey, so: g.so, stock: g.stock, tg, ar };
+    const cv = cvByGrupo[key] || { cv_p: 0, cv_r: 0 };
+    return { key, zona: zonaKey, account_int: accountIntKey, label: supByZona[zonaKey] || zonaKey, so: g.so, stock: g.stock, tg, ar, cv_p: cv.cv_p, cv_r: cv.cv_r };
   });
 
-  const sortKeyMap = { label: 'label', so: 'so', stock: 'stock', tg: 'tg', ar: 'ar' };
+  const sortKeyMap = { label: 'label', so: 'so', stock: 'stock', tg: 'tg', ar: 'ar', cvp: 'cv_p', cvr: 'cv_r' };
   const sk = sortKeyMap[sortState.key] || 'so';
   filas.sort((a, b) => (a[sk] > b[sk] ? 1 : a[sk] < b[sk] ? -1 : 0) * sortState.dir);
 
@@ -527,12 +612,18 @@ function render() {
   const totalAr = totalTg > 0 ? (totalSo / totalTg) * 100 : 0;
   const posConDatos = new Set(filtradas.filter(r => r.so > 0).map(r => r.pos)).size;
   const posConStock = new Set(filtradas.filter(r => r.stock > 0).map(r => r.pos)).size;
+  const posTotal = new Set(tgMonthFiltrado.map(t => t.pos)).size;
+  const totalCvP = filas.reduce((s, f) => s + f.cv_p, 0);
+  const totalCvR = filas.reduce((s, f) => s + f.cv_r, 0);
 
   document.getElementById('kpi-so').textContent = totalSo.toLocaleString('es-PE');
   document.getElementById('kpi-stock').textContent = totalStock.toLocaleString('es-PE');
   document.getElementById('kpi-tg').textContent = totalTg.toLocaleString('es-PE');
   document.getElementById('kpi-ar').textContent = Math.round(totalAr) + '%';
   document.getElementById('kpi-pos').textContent = posConDatos;
+  document.getElementById('kpi-pos-total').textContent = posTotal;
+  document.getElementById('kpi-cvp').textContent = totalCvP.toLocaleString('es-PE');
+  document.getElementById('kpi-cvr').textContent = totalCvR.toLocaleString('es-PE');
   document.getElementById('kpi-pos-stock').textContent = posConStock;
 
   const tbody = document.getElementById('sup-tbody');
@@ -544,6 +635,8 @@ function render() {
       <td class="num ${cellClass(f.stock)}">${f.stock.toLocaleString('es-PE')}</td>
       <td class="num">${f.tg.toLocaleString('es-PE')}</td>
       <td class="num">${arPill(f.ar)}</td>
+      <td class="num">${f.cv_p.toLocaleString('es-PE')}</td>
+      <td class="num">${f.cv_r.toLocaleString('es-PE')}</td>
     </tr>`).join('') + `
     <tr class="total-row">
       <td>Total</td>
@@ -552,9 +645,11 @@ function render() {
       <td class="num">${totalStock.toLocaleString('es-PE')}</td>
       <td class="num">${totalTg.toLocaleString('es-PE')}</td>
       <td class="num">${arPill(totalAr)}</td>
+      <td class="num">${totalCvP.toLocaleString('es-PE')}</td>
+      <td class="num">${totalCvR.toLocaleString('es-PE')}</td>
     </tr>`;
 
-  renderDetailTable(fecha, corte, region, zona, accountVv, accountInt);
+  renderDetailTable(fecha, corte, region, zona, pos, modelo, accountVv, accountInt, cvByPos);
   renderCharts(filtradas);
 }
 
@@ -563,7 +658,7 @@ function formatFechaCorta(iso) {
   return `${d}/${m}/${y}`;
 }
 
-function renderDetailTable(fecha, corte, region, zona, accountVv, accountInt) {
+function renderDetailTable(fecha, corte, region, zona, pos, modelo, accountVv, accountInt, cvByPos) {
   const anchor = fecha ? new Date(fecha + 'T00:00:00') : new Date();
   const dias = [];
   for (let i = 0; i < 7; i++) {
@@ -576,6 +671,8 @@ function renderDetailTable(fecha, corte, region, zona, accountVv, accountInt) {
     (!corte || r.corte === corte) &&
     (!region || regionDeZona(r.zona) === region) &&
     (!zona || r.zona === zona) &&
+    (!pos || r.pos === pos) &&
+    (!modelo || r.modelo === modelo) &&
     (!accountVv || r.cuenta === accountVv) &&
     (!accountInt || r.account_int === accountInt) &&
     dias.includes(r.fecha)
@@ -583,26 +680,38 @@ function renderDetailTable(fecha, corte, region, zona, accountVv, accountInt) {
 
   const grupos = {};
   base.forEach(r => {
-    const key = r.zona + '||' + r.account_int + '||' + r.pos;
-    if (!grupos[key]) grupos[key] = { zona: r.zona, account_int: r.account_int, pos: r.pos, porDia: {} };
+    const key = r.zona + '||' + r.account_int + '||' + r.pos + '||' + r.modelo;
+    if (!grupos[key]) grupos[key] = { zona: r.zona, account_int: r.account_int, pos: r.pos, modelo: r.modelo, porDia: {} };
     if (!grupos[key].porDia[r.fecha]) grupos[key].porDia[r.fecha] = { so: 0, stock: 0 };
     grupos[key].porDia[r.fecha].so += r.so;
     grupos[key].porDia[r.fecha].stock += r.stock;
   });
-  const filas = Object.values(grupos).sort((a, b) => a.zona.localeCompare(b.zona) || a.pos.localeCompare(b.pos));
+  const filas = Object.values(grupos).sort((a, b) => a.zona.localeCompare(b.zona) || a.pos.localeCompare(b.pos) || a.modelo.localeCompare(b.modelo));
 
   document.getElementById('detail-thead-dates').innerHTML =
-    '<th rowspan="2">Zona</th><th rowspan="2">Account_int</th><th rowspan="2">POS</th>' +
+    '<th rowspan="2">Zona</th><th rowspan="2">Account_int</th><th rowspan="2">POS</th><th rowspan="2">Modelo</th><th rowspan="2">CV_p</th><th rowspan="2">CV_r</th>' +
     dias.map(d => `<th class="num date-sep" colspan="2">${formatFechaCorta(d)}</th>`).join('');
   document.getElementById('detail-thead-sub').innerHTML =
     dias.map(() => '<th class="num date-sep">SO</th><th class="num">SK</th>').join('');
+
+  const posCount = {};
+  filas.forEach(f => { const pk = f.zona + '||' + f.account_int + '||' + f.pos; posCount[pk] = (posCount[pk] || 0) + 1; });
+  const posShown = new Set();
 
   document.getElementById('detail-tbody').innerHTML = filas.map(f => {
     const cells = dias.map(d => {
       const v = f.porDia[d] || { so: 0, stock: 0 };
       return `<td class="num date-sep ${cellClass(v.so)}">${v.so.toLocaleString('es-PE')}</td><td class="num ${cellClass(v.stock)}">${v.stock.toLocaleString('es-PE')}</td>`;
     }).join('');
-    return `<tr><td>${f.zona}</td><td>${f.account_int}</td><td>${f.pos}</td>${cells}</tr>`;
+    const pk = f.zona + '||' + f.account_int + '||' + f.pos;
+    const cv = cvByPos[pk] || { cv_p: 0, cv_r: 0 };
+    let cvCells = '';
+    if (!posShown.has(pk)) {
+      posShown.add(pk);
+      const rs = posCount[pk];
+      cvCells = `<td rowspan="${rs}">${cv.cv_p.toLocaleString('es-PE')}</td><td rowspan="${rs}">${cv.cv_r.toLocaleString('es-PE')}</td>`;
+    }
+    return `<tr><td>${f.zona}</td><td>${f.account_int}</td><td>${f.pos}</td><td>${f.modelo}</td>${cvCells}${cells}</tr>`;
   }).join('');
 }
 
@@ -622,34 +731,52 @@ function renderCharts(filtradas) {
   });
   const regEntries = Object.entries(porRegion).sort((a, b) => b[1] - a[1]);
 
-  // SO por modelo (top 8)
+  // SO/SK por modelo (top 8 por SO)
   const porModelo = {};
   filtradas.forEach(r => {
     if (!r.modelo) return;
-    porModelo[r.modelo] = (porModelo[r.modelo] || 0) + r.so;
+    if (!porModelo[r.modelo]) porModelo[r.modelo] = { so: 0, sk: 0 };
+    porModelo[r.modelo].so += r.so;
+    porModelo[r.modelo].sk += r.stock;
   });
-  const modEntries = Object.entries(porModelo).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const modEntries = Object.entries(porModelo).sort((a, b) => b[1].so - a[1].so).slice(0, 8);
 
   const azul = '#1e46e6';
+  const verde = '#1a6b3a';
+
+  const dataLabelStyle = { anchor: 'end', align: 'end', color: '#0d1540', font: { weight: '700', size: 11 } };
 
   if (chartRegion) chartRegion.destroy();
   chartRegion = new Chart(document.getElementById('chart-region'), {
     type: 'bar',
     data: { labels: regEntries.map(e => e[0]), datasets: [{ data: regEntries.map(e => e[1]), backgroundColor: azul, borderRadius: 6, maxBarThickness: 48 }] },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#eaeefc' } }, x: { grid: { display: false } } } }
+    options: { plugins: { legend: { display: false }, datalabels: dataLabelStyle }, scales: { y: { beginAtZero: true, grid: { color: '#eaeefc' } }, x: { grid: { display: false } } } },
+    plugins: [ChartDataLabels]
   });
 
   if (chartModelo) chartModelo.destroy();
   chartModelo = new Chart(document.getElementById('chart-modelo'), {
     type: 'bar',
-    data: { labels: modEntries.map(e => e[0]), datasets: [{ data: modEntries.map(e => e[1]), backgroundColor: azul, borderRadius: 6, maxBarThickness: 22 }] },
-    options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: '#eaeefc' } }, y: { grid: { display: false } } } }
+    data: {
+      labels: modEntries.map(e => e[0]),
+      datasets: [
+        { label: 'SO', data: modEntries.map(e => e[1].so), backgroundColor: azul, borderRadius: 6, maxBarThickness: 16 },
+        { label: 'SK', data: modEntries.map(e => e[1].sk), backgroundColor: verde, borderRadius: 6, maxBarThickness: 16 }
+      ]
+    },
+    options: { indexAxis: 'y', plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }, datalabels: { anchor: 'end', align: 'end', color: '#0d1540', font: { weight: '700', size: 10 } } }, scales: { x: { beginAtZero: true, grid: { color: '#eaeefc' } }, y: { grid: { display: false } } } },
+    plugins: [ChartDataLabels]
   });
 }
 
-/* ── arranque ── */
-cargarTodo();
-if (AUTO_REFRESH_SECONDS > 0) setInterval(() => cargarTodo(false), AUTO_REFRESH_SECONDS * 1000);
+/* ── arranque (esperamos a que Chart.js/datalabels carguen; son defer, no bloquean el parseo) ── */
+function iniciar() {
+  if (typeof Chart === 'undefined') { setTimeout(iniciar, 50); return; }
+  if (typeof ChartDataLabels !== 'undefined' && !Chart.registry.plugins.get('datalabels')) Chart.register(ChartDataLabels);
+  cargarTodo();
+  if (AUTO_REFRESH_SECONDS > 0) setInterval(() => cargarTodo(false), AUTO_REFRESH_SECONDS * 1000);
+}
+iniciar();
 </script>
 </body>
 </html>
