@@ -392,7 +392,7 @@ function parseTgMonth(table) {
   const labels = table.cols.map(c => normalize(c.label));
   const iZona = labels.findIndex(l => l === 'zone' || l === 'zona');
   const iAccountInt = labels.findIndex(l => l === 'account_int' || l === 'accountint' || l === 'account int');
-  const iPos = labels.findIndex(l => l === 'pos');
+  const iPos = labels.findIndex(l => l === 'pos' || l === 'pos_vv' || l === 'posvv' || l === 'pos vv');
   const iCvP = labels.findIndex(l => l === 'cv_p' || l === 'cvp' || l === 'cv p');
   const iCvR = labels.findIndex(l => l === 'cv_r' || l === 'cvr' || l === 'cv r');
   const rows = [];
