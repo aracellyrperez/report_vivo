@@ -637,17 +637,15 @@ function render() {
     return { key, zona: zonaKey, account_int: accountIntKey, accountVv: accountVvDeAccountInt(accountIntKey), label: supByZona[zonaKey] || zonaKey, so: g.so, stock: g.stock, tg, ar, cv_p: cv.cv_p, cv_r: cv.cv_r };
   });
 
-  // si hay filtro de POS, agrega filas puramente de cv_p/cv_r (tg_month) que no
-  // tengan ventas ni meta — sin esto, un POS sin ventas del día desaparece de la
-  // tabla junto con su CV_p/CV_r. tg_month no tiene account_vv, así que este
-  // fallback solo se omite si el usuario filtró por modelo (que tampoco existe ahí)
-  if (pos && !modelo) {
-    Object.keys(cvByGrupo).forEach(gKey => {
-      if (keysVistasNorm.has(gKey)) return;
-      const cv = cvByGrupo[gKey];
-      filas.push({ key: gKey, zona: cv.zona, account_int: cv.account_int, accountVv: accountVvDeAccountInt(cv.account_int), label: cv.zona, so: 0, stock: 0, tg: null, ar: null, cv_p: cv.cv_p, cv_r: cv.cv_r });
-    });
-  }
+  // combinaciones zona+account_int que existen en tg_month pero no tuvieron
+  // ninguna venta ni tienen meta cargada — sin esto, un POS/cuenta sin ventas
+  // (ej. filtrando por Account_vv sin elegir un POS puntual) desaparece de la
+  // tabla junto con su CV_p/CV_r, aunque sí exista en tg_month.
+  Object.keys(cvByGrupo).forEach(gKey => {
+    if (keysVistasNorm.has(gKey)) return;
+    const cv = cvByGrupo[gKey];
+    filas.push({ key: gKey, zona: cv.zona, account_int: cv.account_int, accountVv: accountVvDeAccountInt(cv.account_int), label: cv.zona, so: 0, stock: 0, tg: pos ? null : 0, ar: pos ? null : 0, cv_p: cv.cv_p, cv_r: cv.cv_r });
+  });
 
   const sortKeyMap = { label: 'label', so: 'so', stock: 'stock', tg: 'tg', ar: 'ar', cvp: 'cv_p', cvr: 'cv_r' };
   const sk = sortKeyMap[sortState.key] || 'so';
