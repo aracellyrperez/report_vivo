@@ -342,7 +342,7 @@ function fetchGviz(sheetName) {
       resolve(json.table); // { cols: [...], rows: [...] }
     };
 
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&sheet=${encodeURIComponent(sheetName)}`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&sheet=${encodeURIComponent(sheetName)}&headers=1`;
     const script = document.createElement('script');
     script.src = url;
     script.onerror = () => {
@@ -507,7 +507,7 @@ async function cargarTodo(manual) {
 
     dot.classList.remove('off');
     document.getElementById('last-update').textContent =
-      'Actualizado ' + new Date().toLocaleTimeString('es-PE');
+      `Actualizado ${new Date().toLocaleTimeString('es-PE')} · Hoja1: ${ventasRaw.length} · tg_day: ${metasRows.length} · tg_month: ${tgMonthRows.length}`;
     showState('ok');
   } catch (err) {
     dot.classList.add('off');
