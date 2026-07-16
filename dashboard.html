@@ -383,11 +383,21 @@ function cellVal(row, i) {
   return c.f !== undefined ? c.f : (c.v !== undefined ? c.v : '');
 }
 
+// Para columnas NUMÉRICAS (so, stock, cv_p, cv_r, tg_day) hay que usar el valor
+// crudo "v" y no el formateado "f" — si la celda está formateada para mostrar
+// solo 2 decimales, "f" viene truncado (ej. "0.33" en vez de 0.3333333333333)
+// y las sumas quedan con diferencias de décimas contra el Sheet real.
+function numVal(row, i) {
+  if (i === -1 || !row.c[i]) return 0;
+  const c = row.c[i];
+  return typeof c.v === 'number' ? c.v : (parseFloat(c.v) || 0);
+}
+
 function parseVentas(table) {
   const idx = buildFieldIndex(table);
   return table.rows.map(r => {
-    const so = parseFloat(cellVal(r, idx.so)) || 0;
-    const stock = parseFloat(cellVal(r, idx.stock)) || 0;
+    const so = numVal(r, idx.so);
+    const stock = numVal(r, idx.stock);
     let fechaRaw = cellVal(r, idx.fecha);
     // gviz puede devolver fechas como Date(y,m,d) en el valor crudo; usamos el formateado (f) cuando existe
     return {
@@ -425,7 +435,7 @@ function parseMetas(table) {
       accountVv: iAccountVv !== -1 ? String(cellVal(r, iAccountVv)).trim().toUpperCase() : '',
       accountGroup: iAccountGroup !== -1 ? String(cellVal(r, iAccountGroup)).trim().toUpperCase() : '',
       supervisor: iSup !== -1 ? String(cellVal(r, iSup)).trim() : '',
-      tg_day: parseFloat(cellVal(r, iTg)) || 0
+      tg_day: numVal(r, iTg)
     });
   });
   return rows;
@@ -473,8 +483,8 @@ function parseTgMonth(table) {
       accountVv: iAccountVv !== -1 ? String(cellVal(r, iAccountVv)).trim().toUpperCase() : '',
       accountGroup: iAccountGroup !== -1 ? String(cellVal(r, iAccountGroup)).trim().toUpperCase() : '',
       pos,
-      cv_p: parseFloat(cellVal(r, iCvP)) || 0,
-      cv_r: parseFloat(cellVal(r, iCvR)) || 0
+      cv_p: numVal(r, iCvP),
+      cv_r: numVal(r, iCvR)
     });
   });
   return rows;
