@@ -243,6 +243,18 @@ details.setup code { background:var(--bg2); padding:1px 6px; border-radius:5px; 
         <tbody id="detail-tbody"></tbody>
       </table>
     </div>
+
+    <div class="section-label">Tabla 4 — Descargar datos</div>
+    <div class="table-wrap" style="padding:20px 22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:240px; font-size:12px; color:var(--muted); line-height:1.6;">
+        Exporta fecha, account_int, account_vv, POS, modelo, SO, SK, CV_p y CV_r — una fila por cada registro cargado.
+        Respeta los filtros de Corte, Región, Zona, POS, Modelo, Account_vv y Account_int de arriba, pero <b>no</b> el de Fecha (descarga todo el histórico disponible).
+      </div>
+      <button class="btn-refresh" style="background:var(--accent); border-color:var(--accent);" onclick="exportarCsv()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+        Descargar CSV
+      </button>
+    </div>
   </div>
 
 </div>
@@ -751,20 +763,48 @@ function renderDetailTablePos(fecha, corte, region, zona, pos, modelo, accountVv
     grupos[key].porDia[r.fecha].so += r.so;
     grupos[key].porDia[r.fecha].stock += r.stock;
   });
+
+  // cv_p / cv_r por POS, desde tg_month, con los mismos filtros (menos fecha,
+  // porque tg_month es mensual y no tiene esa dimensión)
+  const tgPos = tgMonthRows.filter(t =>
+    (!region || eq(regionDeZona(t.zona), region)) &&
+    (!zona || eq(t.zona, zona)) &&
+    (!pos || eq(t.pos, pos)) &&
+    (!accountInt || eq(t.account_int, accountInt)) &&
+    (!accountVv || eq(t.accountVv, accountVv))
+  );
+  const cvByPos = {};
+  tgPos.forEach(t => {
+    const k = normLoose(t.zona) + '||' + normLoose(t.account_int) + '||' + normLoose(t.pos);
+    if (!cvByPos[k]) cvByPos[k] = { cv_p: 0, cv_r: 0, zona: t.zona, account_int: t.account_int, accountVv: t.accountVv, pos: t.pos };
+    cvByPos[k].cv_p += t.cv_p;
+    cvByPos[k].cv_r += t.cv_r;
+  });
+
+  // POS que están en tg_month pero no tuvieron ninguna venta en la ventana de
+  // 7 días — sin esto, desaparecen de la tabla junto con su CV_p/CV_r.
+  const posConVentas = new Set(Object.keys(grupos).map(k => { const [z, a, p] = k.split('||'); return normLoose(z) + '||' + normLoose(a) + '||' + normLoose(p); }));
+  Object.keys(cvByPos).forEach(k => {
+    if (posConVentas.has(k)) return;
+    const cv = cvByPos[k];
+    grupos[k] = { zona: cv.zona, account_int: cv.account_int, accountVv: cv.accountVv, pos: cv.pos, porDia: {} };
+  });
+
   const filas = Object.values(grupos).sort((a, b) => a.zona.localeCompare(b.zona) || a.pos.localeCompare(b.pos));
 
   document.getElementById('detail-pos-thead-dates').innerHTML =
-    '<th rowspan="2">Zona</th><th rowspan="2">Account_int</th><th rowspan="2">Account_vv</th><th rowspan="2">POS</th>' +
+    '<th rowspan="2">Zona</th><th rowspan="2">Account_int</th><th rowspan="2">Account_vv</th><th rowspan="2">POS</th><th rowspan="2">CV_p</th><th rowspan="2">CV_r</th>' +
     dias.map(d => `<th class="num date-sep" colspan="2">${formatFechaCorta(d)}</th>`).join('');
   document.getElementById('detail-pos-thead-sub').innerHTML =
     dias.map(() => '<th class="num date-sep">SO</th><th class="num">SK</th>').join('');
 
   document.getElementById('detail-pos-tbody').innerHTML = filas.map(f => {
+    const cv = cvByPos[normLoose(f.zona) + '||' + normLoose(f.account_int) + '||' + normLoose(f.pos)] || { cv_p: 0, cv_r: 0 };
     const cells = dias.map(d => {
       const v = f.porDia[d] || { so: 0, stock: 0 };
       return `<td class="num date-sep ${cellClass(v.so)}">${v.so.toLocaleString('es-PE')}</td><td class="num ${cellClass(v.stock)}">${v.stock.toLocaleString('es-PE')}</td>`;
     }).join('');
-    return `<tr><td>${f.zona}</td><td>${f.account_int}</td><td>${f.accountVv || '—'}</td><td>${f.pos}</td>${cells}</tr>`;
+    return `<tr><td>${f.zona}</td><td>${f.account_int}</td><td>${f.accountVv || '—'}</td><td>${f.pos}</td><td class="num">${cv.cv_p.toLocaleString('es-PE')}</td><td class="num">${cv.cv_r.toLocaleString('es-PE')}</td>${cells}</tr>`;
   }).join('');
 }
 
@@ -867,6 +907,59 @@ function iniciar() {
   if (typeof ChartDataLabels !== 'undefined' && !Chart.registry.plugins.get('datalabels')) Chart.register(ChartDataLabels);
   cargarTodo();
   if (AUTO_REFRESH_SECONDS > 0) setInterval(() => cargarTodo(false), AUTO_REFRESH_SECONDS * 1000);
+
+/* ── exportar CSV: fecha | account_int | account_vv | POS | modelo | SO | SK | cv_p | cv_r ── */
+function csvEscape(v) {
+  const s = String(v ?? '');
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function exportarCsv() {
+  const corte = document.getElementById('f-corte').value;
+  const region = document.getElementById('f-region').value;
+  const zona = document.getElementById('f-zona').value;
+  const pos = document.getElementById('f-pos').value;
+  const modelo = document.getElementById('f-modelo').value;
+  const accountVv = document.getElementById('f-account-vv').value;
+  const accountInt = document.getElementById('f-account-int').value;
+
+  const filas = ventasRaw.filter(r =>
+    (!corte || r.corte === corte) &&
+    (!region || regionDeZona(r.zona) === region) &&
+    (!zona || r.zona === zona) &&
+    (!pos || r.pos === pos) &&
+    (!modelo || r.modelo === modelo) &&
+    (!accountVv || r.accountVv === accountVv) &&
+    (!accountInt || r.account_int === accountInt)
+  );
+
+  // cv_p / cv_r por POS (zona+account_int+pos), igual criterio que en las tablas
+  const cvByPos = {};
+  tgMonthRows.forEach(t => {
+    const k = normLoose(t.zona) + '||' + normLoose(t.account_int) + '||' + normLoose(t.pos);
+    if (!cvByPos[k]) cvByPos[k] = { cv_p: 0, cv_r: 0 };
+    cvByPos[k].cv_p += t.cv_p;
+    cvByPos[k].cv_r += t.cv_r;
+  });
+
+  const header = ['fecha', 'account_int', 'account_vv', 'POS', 'modelo', 'SO', 'SK', 'cv_p', 'cv_r'];
+  const lineas = [header.join(',')];
+  filas.forEach(r => {
+    const cv = cvByPos[normLoose(r.zona) + '||' + normLoose(r.account_int) + '||' + normLoose(r.pos)] || { cv_p: 0, cv_r: 0 };
+    lineas.push([r.fecha, r.account_int, r.accountVv, r.pos, r.modelo, r.so, r.stock, cv.cv_p, cv.cv_r].map(csvEscape).join(','));
+  });
+
+  const csv = '\uFEFF' + lineas.join('\r\n'); // BOM para que Excel abra bien los acentos
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ventas_vivo_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 }
 iniciar();
 </script>
