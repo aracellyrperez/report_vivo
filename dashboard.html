@@ -156,6 +156,7 @@ details.setup code { background:var(--bg2); padding:1px 6px; border-radius:5px; 
       <div class="field">
         <label>Fecha</label>
         <input type="date" id="f-fecha">
+        
       </div>
       <div class="field">
         <label>Corte</label>
@@ -312,6 +313,7 @@ let sortState = { key: 'so', dir: -1 };
 let chartRegion = null, chartModelo = null;
 
 document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+
 
 // El endpoint gviz/tq de Google no manda cabeceras CORS, así que fetch()
 // falla siempre con "Failed to fetch" sin importar dónde esté alojada esta
