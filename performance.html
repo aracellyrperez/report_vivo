@@ -206,7 +206,7 @@ const SO_SHEET_NAME = 'so';   // fecha | pos | DEPARTAMENTO | model | qty | id_p
 const SK_SHEET_NAME = 'sk';   // fecha | pos | model | qty | id_pos | id_vv | location | id_mi | id_mf | group_model | account_vv
 const MD_SHEET_NAME = 'md';   // id_mf | lineal | group_model
 const CORTE_FIJO = 'Corte 3'; // esta vista SIEMPRE filtra Hoja 1 a Corte 3, sin filtro visible
-const AUTO_REFRESH_SECONDS = 60;
+const AUTO_REFRESH_SECONDS = 3600; // se auto-actualiza cada 1 hora; el botón "Actualizar" siempre fuerza una actualización al instante
 
 const FIELD_ALIASES = {
   fecha: ['fecha'], corte: ['corte'], zona: ['zona'], region: ['region'], cuenta: ['cuenta'],
@@ -665,20 +665,19 @@ function calcularSoMes(fecha, filtros) {
    "sk" exclusivamente para toda esa cuenta; solo si "sk" no tiene NADA de esa cuenta
    se recurre a Hoja 1 (Corte 3) para esa cuenta. Nunca se mezclan ambas fuentes
    dentro de la misma cuenta, y nunca se suman. */
+/* Stock actual: SOLO desde "sk". Hoja 1 ya no aporta nada de stock, ni
+   siquiera como respaldo para cuentas que todavía no estén en "sk". */
 function calcularStockActual(filtros) {
-  // evaluamos qué cuentas tienen datos en "sk" SIN aplicar el filtro de accountVv
-  // (para poder decidir la fuente cuenta por cuenta, incluso viendo "todas")
-  const filtrosSinAccountVv = { ...filtros, accountVv: '' };
-  const skTodo = skEnriquecido.filter(r => pasaFiltrosComunes(r, filtrosSinAccountVv));
-  const accountVvConSk = new Set(skTodo.map(r => r.accountVv));
-
-  const hoja1C3Todo = ventasRaw.filter(r => r.corte === CORTE_FIJO && pasaFiltrosComunes(r, filtrosSinAccountVv));
-  const hoja1SoloCuentasSinSk = hoja1C3Todo.filter(r => !accountVvConSk.has(r.accountVv));
-
-  const combinado = [...skTodo, ...hoja1SoloCuentasSinSk];
-  const filtrado = filtros.accountVv ? combinado.filter(r => r.accountVv === filtros.accountVv) : combinado;
-
-  return filtrado.map(r => ({ pos: r.pos, zona: r.zona, modelo: r.modelo, accountGroup: r.accountGroup, stock: r.stock }));
+  const skFiltrado = skEnriquecido.filter(r => pasaFiltrosComunes(r, filtros));
+  // por cada POS+modelo, nos quedamos con la fecha más reciente disponible en
+  // "sk" — si "sk" acumula una fila por día en vez de tener solo la última
+  // foto, sin esto se sumarían todas las fechas y el stock queda inflado.
+  const porClave = {};
+  skFiltrado.forEach(r => {
+    const k = normLoose(r.pos) + '||' + normLoose(r.modelo);
+    if (!porClave[k] || r.fecha > porClave[k].fecha) porClave[k] = r;
+  });
+  return Object.values(porClave).map(r => ({ pos: r.pos, zona: r.zona, modelo: r.modelo, accountGroup: r.accountGroup, stock: r.stock }));
 }
 
 /* ── render principal ── */
@@ -763,8 +762,8 @@ function construirPivotModelo(ventasMes, keyDeVenta, metasMes, keyDeMeta) {
 function renderPivot(pivot, theadId, tbodyId, labelCol) {
   document.getElementById(theadId).innerHTML =
     `<th>${labelCol}</th>` +
-    pivot.modelos.map(m => `<th class="num">${nombreModeloCorto(m)}</th>`).join('') +
-    '<th class="num">Total general</th><th class="num">Cuota</th><th class="num">A/R</th>';
+    '<th class="num">Total general</th><th class="num">Cuota</th><th class="num">A/R</th>' +
+    pivot.modelos.map(m => `<th class="num">${nombreModeloCorto(m)}</th>`).join('');
 
   const filas = [...pivot.filas].sort((a, b) => b.total - a.total);
   const totalesModelo = {};
@@ -776,13 +775,13 @@ function renderPivot(pivot, theadId, tbodyId, labelCol) {
   document.getElementById(tbodyId).innerHTML = filas.map(g => `
     <tr>
       <td>${g.key}</td>
-      ${pivot.modelos.map(m => `<td class="num">${fmt(g.porModelo[m] || 0)}</td>`).join('')}
       <td class="num">${fmt(g.total)}</td><td class="num">${fmt(g.cuota)}</td><td class="num">${arPill(g.ar)}</td>
+      ${pivot.modelos.map(m => `<td class="num">${fmt(g.porModelo[m] || 0)}</td>`).join('')}
     </tr>`).join('') + `
     <tr class="total-row">
       <td>Total general</td>
-      ${pivot.modelos.map(m => `<td class="num">${fmt(totalesModelo[m])}</td>`).join('')}
       <td class="num">${fmt(totalGeneral)}</td><td class="num">${fmt(totalCuota)}</td><td class="num">${arPill(totalAr)}</td>
+      ${pivot.modelos.map(m => `<td class="num">${fmt(totalesModelo[m])}</td>`).join('')}
     </tr>`;
 }
 
