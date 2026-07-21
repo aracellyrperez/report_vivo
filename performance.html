@@ -812,7 +812,7 @@ function renderPivot(pivot, theadId, tbodyId, labelCol) {
 function construirDetallePos(ventasMes, stockActual, metasMes) {
   const posInfo = {};
   function ensureInfo(pos, zona) {
-    if (!posInfo[pos]) posInfo[pos] = { zona: zona || '', cv_p: 0, cv_r: 0, dni1: '', user1: '', dni2: '', user2: '', cuota: 0 };
+    if (!posInfo[pos]) posInfo[pos] = { zona: zona || '', cv_p: 0, cv_r: 0, dni1: '', user1: '', dni2: '', user2: '', cuota: 0, account: '', accountInt: '', accountVv: '' };
     return posInfo[pos];
   }
   metasMes.forEach(t => {
@@ -820,11 +820,17 @@ function construirDetallePos(ventasMes, stockActual, metasMes) {
     info.cv_p += t.cv_p; info.cv_r += t.cv_r; info.cuota += t.target;
     if (t.dni1) { info.dni1 = t.dni1; info.user1 = t.user1; }
     if (t.dni2) { info.dni2 = t.dni2; info.user2 = t.user2; }
+    if (t.accountGroup) info.account = t.accountGroup;
+    if (t.account_int) info.accountInt = t.account_int;
+    if (t.accountVv) info.accountVv = t.accountVv;
   });
 
   const soPorPos = {};
   ventasMes.forEach(r => {
-    ensureInfo(r.pos, r.zona);
+    const info = ensureInfo(r.pos, r.zona);
+    if (!info.account && r.accountGroup) info.account = r.accountGroup;
+    if (!info.accountInt && r.account_int) info.accountInt = r.account_int;
+    if (!info.accountVv && r.accountVv) info.accountVv = r.accountVv;
     if (!soPorPos[r.pos]) soPorPos[r.pos] = { total: 0, porModelo: {} };
     soPorPos[r.pos].total += r.so;
     if (r.modelo) soPorPos[r.pos].porModelo[r.modelo] = (soPorPos[r.pos].porModelo[r.modelo] || 0) + r.so;
@@ -832,7 +838,8 @@ function construirDetallePos(ventasMes, stockActual, metasMes) {
 
   const skPorPos = {};
   stockActual.forEach(r => {
-    ensureInfo(r.pos, r.zona);
+    const info = ensureInfo(r.pos, r.zona);
+    if (!info.account && r.accountGroup) info.account = r.accountGroup;
     if (!skPorPos[r.pos]) skPorPos[r.pos] = { total: 0, porModelo: {} };
     skPorPos[r.pos].total += r.stock;
     if (r.modelo) skPorPos[r.pos].porModelo[r.modelo] = (skPorPos[r.pos].porModelo[r.modelo] || 0) + r.stock;
@@ -849,6 +856,7 @@ function construirDetallePos(ventasMes, stockActual, metasMes) {
     const ar = info.cuota > 0 ? (so.total / info.cuota) * 100 : (so.total > 0 ? 100 : 0);
     return {
       pos, zona: info.zona, region: regionDeZona(info.zona),
+      account: info.account, accountInt: info.accountInt, accountVv: info.accountVv,
       cv_p: info.cv_p, cv_r: info.cv_r, dni1: info.dni1, user1: info.user1, dni2: info.dni2, user2: info.user2,
       so: so.total, cuota: info.cuota, ar, sk: sk.total, porModeloSo: so.porModelo, porModeloSk: sk.porModelo
     };
@@ -904,7 +912,7 @@ function exportarCsv() {
   );
   const d = construirDetallePos(ventasMes, stockActual, metasMes);
 
-  const header = ['Región', 'Zona', 'POS', 'CV_p', 'CV_r', 'DNI1', 'User1', 'DNI2', 'User2', 'SO', 'Cuota', 'A/R', 'SK', 'Atributo', 'modelo', 'qty'];
+  const header = ['Región', 'Zona', 'account', 'account_int', 'account_vv', 'POS', 'CV_p', 'CV_r', 'DNI1', 'User1', 'DNI2', 'User2', 'SO', 'Cuota', 'A/R', 'SK', 'Atributo', 'modelo', 'qty'];
 
   // Excel entiende una tabla HTML como si fuera una planilla si se la servimos
   // con el mime type correcto — así conseguimos color/formato real sin
@@ -920,7 +928,9 @@ function exportarCsv() {
   // vacías multiplicando modelos × POS × 2.
   const filasLargas = [];
   d.filas.forEach(f => {
-    const comun = `<td style="${tdStyle}">${htmlEscape(f.region)}</td><td style="${tdStyle}">${htmlEscape(f.zona)}</td><td style="${tdStyle}">${htmlEscape(f.pos)}</td>` +
+    const comun = `<td style="${tdStyle}">${htmlEscape(f.region)}</td><td style="${tdStyle}">${htmlEscape(f.zona)}</td>` +
+      `<td style="${tdStyle}">${htmlEscape(f.account)}</td><td style="${tdStyle}">${htmlEscape(f.accountInt)}</td><td style="${tdStyle}">${htmlEscape(f.accountVv)}</td>` +
+      `<td style="${tdStyle}">${htmlEscape(f.pos)}</td>` +
       `<td style="${tdNumStyle}">${fmt(f.cv_p)}</td><td style="${tdNumStyle}">${fmt(f.cv_r)}</td>` +
       `<td style="${tdStyle}">${htmlEscape(f.dni1)}</td><td style="${tdStyle}">${htmlEscape(f.user1)}</td><td style="${tdStyle}">${htmlEscape(f.dni2)}</td><td style="${tdStyle}">${htmlEscape(f.user2)}</td>` +
       `<td style="${tdNumStyle}">${fmt(f.so)}</td><td style="${tdNumStyle}">${fmt(f.cuota)}</td><td style="${tdNumStyle}">${Math.round(f.ar)}%</td><td style="${tdNumStyle}">${fmt(f.sk)}</td>`;
