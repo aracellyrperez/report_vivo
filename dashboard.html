@@ -92,6 +92,7 @@ table.sup-table tr.total-row td { background:var(--bg2); font-weight:800; border
 .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px 10px; }
 .chart-card h3 { font-size:13px; font-weight:700; color:var(--ink2); margin-bottom:12px; }
 .chart-card canvas { max-height:280px; }
+#chart-zona-so, #chart-zona-sk { max-height:none; }
 @media (max-width: 820px) { .charts-grid { grid-template-columns: 1fr; } }
 
 /* estados */
@@ -227,6 +228,17 @@ details.setup code { background:var(--bg2); padding:1px 6px; border-radius:5px; 
       </div>
     </div>
 
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>SO por zona</h3>
+        <canvas id="chart-zona-so"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>SK por zona</h3>
+        <canvas id="chart-zona-sk"></canvas>
+      </div>
+    </div>
+
     <div class="section-label">Tabla 1 — Detalle por account</div>
     <div class="table-wrap">
       <table class="sup-table">
@@ -310,7 +322,7 @@ let ventasRaw = [];      // filas normalizadas de la pestaña de ventas
 let metasRows = [];      // filas normalizadas de la pestaña "Metas" (zona, cuenta, tg_day, supervisor opcional)
 let tgMonthRows = [];    // filas normalizadas de "tg_month" (zona, account_int, pos, cv_p, cv_r) — base de POS totales
 let sortState = { key: 'so', dir: -1 };
-let chartRegion = null, chartModelo = null;
+let chartRegion = null, chartModelo = null, chartZonaSo = null, chartZonaSk = null;
 
 document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
 
@@ -972,6 +984,51 @@ function renderCharts(filtradas) {
       ]
     },
     options: { indexAxis: 'y', plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } }, datalabels: { anchor: 'end', align: 'end', color: '#0d1540', font: { weight: '700', size: 10 } } }, scales: { x: { beginAtZero: true, grid: { color: '#eaeefc' } }, y: { grid: { display: false } } } },
+    plugins: [ChartDataLabels]
+  });
+
+  // ── SO / SK por zona, apilado por cuenta (mismos colores/criterio que por región) ──
+  const zonas = [...new Set(filtradas.map(r => r.zona).filter(Boolean))];
+  const porZonaTotalSo = {};
+  filtradas.forEach(r => { porZonaTotalSo[r.zona] = (porZonaTotalSo[r.zona] || 0) + r.so; });
+  zonas.sort((a, b) => a.localeCompare(b, 'es'));
+
+  const porZonaCuentaSo = {}, porZonaCuentaSk = {};
+  zonas.forEach(z => { porZonaCuentaSo[z] = { CLARO: 0, ENTEL: 0, OM: 0 }; porZonaCuentaSk[z] = { CLARO: 0, ENTEL: 0, OM: 0 }; });
+  filtradas.forEach(r => {
+    if (!porZonaCuentaSo[r.zona]) return;
+    const g = gruposCuenta.includes(r.accountGroup) ? r.accountGroup : 'OM';
+    porZonaCuentaSo[r.zona][g] += r.so;
+    porZonaCuentaSk[r.zona][g] += r.stock;
+  });
+
+  const alturaZonas = Math.max(220, zonas.length * 26);
+  document.getElementById('chart-zona-so').parentElement.style.height = alturaZonas + 'px';
+  document.getElementById('chart-zona-sk').parentElement.style.height = alturaZonas + 'px';
+
+  const opcionesZona = {
+    indexAxis: 'y',
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+      datalabels: { display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0, anchor: 'center', align: 'center', color: '#0d1540', font: { weight: '700', size: 10 } }
+    },
+    scales: { x: { beginAtZero: true, stacked: true, grid: { color: '#eaeefc' } }, y: { stacked: true, grid: { display: false } } }
+  };
+
+  if (chartZonaSo) chartZonaSo.destroy();
+  chartZonaSo = new Chart(document.getElementById('chart-zona-so'), {
+    type: 'bar',
+    data: { labels: zonas, datasets: gruposCuenta.map(g => ({ label: g, data: zonas.map(z => porZonaCuentaSo[z][g]), backgroundColor: coloresCuenta[g], borderRadius: 3, maxBarThickness: 18 })) },
+    options: opcionesZona,
+    plugins: [ChartDataLabels]
+  });
+
+  if (chartZonaSk) chartZonaSk.destroy();
+  chartZonaSk = new Chart(document.getElementById('chart-zona-sk'), {
+    type: 'bar',
+    data: { labels: zonas, datasets: gruposCuenta.map(g => ({ label: g, data: zonas.map(z => porZonaCuentaSk[z][g]), backgroundColor: coloresCuenta[g], borderRadius: 3, maxBarThickness: 18 })) },
+    options: opcionesZona,
     plugins: [ChartDataLabels]
   });
 }
