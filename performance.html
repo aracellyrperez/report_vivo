@@ -412,21 +412,33 @@ function parseSo(table) {
 
 // sk: fecha | pos | model | qty | id_pos | id_vv | location | id_mi | id_mf | group_model | account_vv
 function parseSk(table) {
-  const labels = table.cols.map(c => normalize(c.label));
+  const rawLabels = table.cols.map(c => c.label || '');
+  const labels = rawLabels.map(normalize);
   const iFecha = labels.findIndex(l => l === 'fecha');
   const iIdVv = labels.findIndex(l => l === 'id_vv' || l === 'idvv' || l === 'id vv');
   const iQty = labels.findIndex(l => l === 'qty' || l === 'cantidad');
   const iGroupModel = labels.findIndex(l => l === 'group_model' || l === 'groupmodel' || l === 'group model');
   const iAccountVv = labels.findIndex(l => l === 'account_vv' || l === 'accountvv' || l === 'account vv');
+  const iAccountInt = labels.findIndex(l => l === 'account_int' || l === 'accountint' || l === 'account int');
+  const iRegion = labels.findIndex(l => l === 'region');
+  // "sk" a veces trae dos columnas parecidas: "pos" (nombre crudo, ej. "CL_Cad
+  // Efe Tarma") y "POS" (código que cruza con Hoja 1, ej. "CL_Efe Tarma").
+  // Preferimos la que se llama EXACTAMENTE "POS" (mayúsculas); si no existe,
+  // usamos cualquier columna "pos".
+  let iPos = rawLabels.findIndex(l => l === 'POS');
+  if (iPos === -1) iPos = labels.findIndex(l => l === 'pos');
   const rows = [];
   table.rows.forEach(r => {
     const fecha = fechaVal(r, iFecha);
-    const idVv = idVal(r, iIdVv);
-    if (!fecha || !idVv) return;
+    if (!fecha) return;
     rows.push({
-      fecha, idVv,
+      fecha,
+      idVv: idVal(r, iIdVv),
+      pos: iPos !== -1 ? String(cellVal(r, iPos)).trim() : '',
       groupModel: iGroupModel !== -1 ? String(cellVal(r, iGroupModel)).trim() : '',
       accountVv: iAccountVv !== -1 ? String(cellVal(r, iAccountVv)).trim().toUpperCase() : '',
+      accountInt: iAccountInt !== -1 ? String(cellVal(r, iAccountInt)).trim().toUpperCase() : '',
+      region: iRegion !== -1 ? String(cellVal(r, iRegion)).trim() : '',
       qty: numVal(r, iQty)
     });
   });
@@ -474,15 +486,24 @@ function enriquecerSo(soRows, tgById, mdById) {
   });
   return out;
 }
+let skSinZona = 0; // filas de "sk" cuyo id_vv no se encontró en tg_month (quedan sin zona/supervisor, pero SÍ se cuentan)
 function enriquecerSk(skRows, tgById) {
   const out = [];
+  skSinZona = 0;
   skRows.forEach(r => {
-    const tg = tgById[r.idVv];
-    if (!tg) return;
+    const tg = tgById[r.idVv]; // solo para completar zona/supervisor si existe
+    if (!tg) skSinZona++;
     out.push({
-      fecha: r.fecha, pos: tg.pos, zona: tg.zona,
-      accountVv: r.accountVv || tg.accountVv, account_int: tg.account_int, accountGroup: tg.accountGroup,
-      supervisor: tg.supervisor, modelo: r.groupModel, stock: r.qty
+      fecha: r.fecha,
+      pos: r.pos || (tg ? tg.pos : ''),
+      zona: tg ? tg.zona : '',
+      region: r.region || (tg ? regionDeZona(tg.zona) : ''),
+      accountVv: r.accountVv || (tg ? tg.accountVv : ''),
+      account_int: r.accountInt || (tg ? tg.account_int : ''),
+      accountGroup: tg ? tg.accountGroup : '',
+      supervisor: tg ? tg.supervisor : '',
+      modelo: r.groupModel,
+      stock: r.qty
     });
   });
   return out;
@@ -630,8 +651,10 @@ function nombreModeloCorto(m) {
   return s.trim();
 }
 
+function regionEfectiva(r) { return r.region || regionDeZona(r.zona); }
+
 function pasaFiltrosComunes(r, f) {
-  return (!f.region || regionDeZona(r.zona) === f.region) &&
+  return (!f.region || regionEfectiva(r) === f.region) &&
     (!f.zona || r.zona === f.zona) &&
     (!f.pos || r.pos === f.pos) &&
     (!f.modelo || r.modelo === f.modelo) &&
@@ -881,8 +904,7 @@ function exportarCsv() {
   );
   const d = construirDetallePos(ventasMes, stockActual, metasMes);
 
-  const header = ['Región', 'Zona', 'POS', 'CV_p', 'CV_r', 'DNI1', 'User1', 'DNI2', 'User2', 'SO', 'Cuota', 'A/R', 'SK']
-    .concat(d.modelos.flatMap(m => [`${nombreModeloCorto(m)} SO`, `${nombreModeloCorto(m)} SK`]));
+  const header = ['Región', 'Zona', 'POS', 'CV_p', 'CV_r', 'DNI1', 'User1', 'DNI2', 'User2', 'SO', 'Cuota', 'A/R', 'SK', 'Atributo', 'modelo', 'qty'];
 
   // Excel entiende una tabla HTML como si fuera una planilla si se la servimos
   // con el mime type correcto — así conseguimos color/formato real sin
@@ -890,22 +912,27 @@ function exportarCsv() {
   const thStyle = 'background:#1e46e6;color:#ffffff;font-weight:bold;padding:6px 10px;border:1px solid #a8baff;white-space:nowrap;font-family:Calibri,Arial,sans-serif;font-size:12px;';
   const tdStyle = 'padding:5px 9px;border:1px solid #d4daff;font-family:Calibri,Arial,sans-serif;font-size:12px;';
   const tdNumStyle = tdStyle + 'text-align:right;';
-  const tdTotalStyle = tdStyle + 'background:#eaeefc;font-weight:bold;';
 
   const theadHtml = '<tr>' + header.map(h => `<th style="${thStyle}">${htmlEscape(h)}</th>`).join('') + '</tr>';
 
-  const filasHtml = d.filas.map(f => {
-    const textos = [f.region, f.zona, f.pos, f.dni1, f.user1, f.dni2, f.user2];
-    const numeros = [f.cv_p, f.cv_r, f.so, f.cuota, Math.round(f.ar) + '%', f.sk]
-      .concat(d.modelos.flatMap(m => [f.porModeloSo[m] || 0, f.porModeloSk[m] || 0]));
-    return '<tr>' +
-      `<td style="${tdStyle}">${htmlEscape(f.region)}</td><td style="${tdStyle}">${htmlEscape(f.zona)}</td><td style="${tdStyle}">${htmlEscape(f.pos)}</td>` +
+  // formato "largo": una fila por cada combinación POS + modelo + atributo
+  // (SO o SK) — se salta cuando qty es 0, para no llenar el archivo de líneas
+  // vacías multiplicando modelos × POS × 2.
+  const filasLargas = [];
+  d.filas.forEach(f => {
+    const comun = `<td style="${tdStyle}">${htmlEscape(f.region)}</td><td style="${tdStyle}">${htmlEscape(f.zona)}</td><td style="${tdStyle}">${htmlEscape(f.pos)}</td>` +
       `<td style="${tdNumStyle}">${fmt(f.cv_p)}</td><td style="${tdNumStyle}">${fmt(f.cv_r)}</td>` +
       `<td style="${tdStyle}">${htmlEscape(f.dni1)}</td><td style="${tdStyle}">${htmlEscape(f.user1)}</td><td style="${tdStyle}">${htmlEscape(f.dni2)}</td><td style="${tdStyle}">${htmlEscape(f.user2)}</td>` +
-      `<td style="${tdNumStyle}">${fmt(f.so)}</td><td style="${tdNumStyle}">${fmt(f.cuota)}</td><td style="${tdNumStyle}">${Math.round(f.ar)}%</td><td style="${tdNumStyle}">${fmt(f.sk)}</td>` +
-      d.modelos.map(m => `<td style="${tdNumStyle}">${fmt(f.porModeloSo[m] || 0)}</td><td style="${tdNumStyle}">${fmt(f.porModeloSk[m] || 0)}</td>`).join('') +
-      '</tr>';
-  }).join('');
+      `<td style="${tdNumStyle}">${fmt(f.so)}</td><td style="${tdNumStyle}">${fmt(f.cuota)}</td><td style="${tdNumStyle}">${Math.round(f.ar)}%</td><td style="${tdNumStyle}">${fmt(f.sk)}</td>`;
+
+    d.modelos.forEach(m => {
+      const qtySo = f.porModeloSo[m] || 0;
+      const qtySk = f.porModeloSk[m] || 0;
+      if (qtySo > 0) filasLargas.push(`<tr>${comun}<td style="${tdStyle}">SO</td><td style="${tdStyle}">${htmlEscape(nombreModeloCorto(m))}</td><td style="${tdNumStyle}">${fmt(qtySo)}</td></tr>`);
+      if (qtySk > 0) filasLargas.push(`<tr>${comun}<td style="${tdStyle}">SK</td><td style="${tdStyle}">${htmlEscape(nombreModeloCorto(m))}</td><td style="${tdNumStyle}">${fmt(qtySk)}</td></tr>`);
+    });
+  });
+  const filasHtml = filasLargas.join('');
 
   const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Reporte</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
