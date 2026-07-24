@@ -128,6 +128,7 @@ table.sup-table tr.total-row td { background:var(--bg2); font-weight:800; border
       <div class="field"><label>Account_int</label><select id="f-account-int"><option value="">Todos</option></select></div>
       <div class="field"><label>Account_vv</label><select id="f-account-vv"><option value="">Todas</option></select></div>
       <div class="field"><label>Account</label><select id="f-account"><option value="">Todas</option></select></div>
+      <div class="field"><label>Channel</label><select id="f-channel"><option value="">Todos</option></select></div>
       <div class="filters-status" id="filters-status"></div>
     </div>
     <div class="filters-row">
@@ -218,6 +219,7 @@ const FIELD_ALIASES = {
   accountVv: ['account_vv','accountvv','account vv'],
   account_int: ['account_int','accountint','account int'],
   accountGroup: ['account'],
+  channel: ['channel_', 'channel'],
   pos: ['pos'], modelo: ['modelo'], lineal: ['lineal'], so: ['so'], stock: ['stock'],
   nota: ['nota','observacion','observación']
 };
@@ -335,6 +337,7 @@ function parseVentas(table) {
     accountVv: String(cellVal(r, idx.accountVv)).trim().toUpperCase(),
     account_int: String(cellVal(r, idx.account_int)).trim().toUpperCase(),
     accountGroup: String(cellVal(r, idx.accountGroup)).trim().toUpperCase(),
+    channel: String(cellVal(r, idx.channel)).trim().toUpperCase(),
     pos: String(cellVal(r, idx.pos)).trim(),
     modelo: String(cellVal(r, idx.modelo)).trim(),
     so: numVal(r, idx.so),
@@ -345,10 +348,12 @@ function parseVentas(table) {
 function parseTgMonth(table) {
   const labels = table.cols.map(c => normalize(c.label));
   const iZona = labels.findIndex(l => l === 'zone' || l === 'zona');
+  const iRegionDirecta = labels.findIndex(l => l === 'region');
   const iIdVv = labels.findIndex(l => l === 'id_vv' || l === 'idvv' || l === 'id vv');
   const iAccountInt = labels.findIndex(l => l === 'account_int' || l === 'accountint' || l === 'account int');
   const iAccountVv = labels.findIndex(l => l === 'account_vv' || l === 'accountvv' || l === 'account vv');
   const iAccountGroup = labels.findIndex(l => l === 'account');
+  const iChannel = labels.findIndex(l => l === 'channel_' || l === 'channel');
   const iSupervisor = labels.findIndex(l => l === 'supervisor');
   const iTarget = labels.findIndex(l => l === 'target' || l === 'meta' || l === 'cuota');
   let iPos = labels.findIndex(l => l === 'pos');
@@ -367,10 +372,12 @@ function parseTgMonth(table) {
     if (!zona || !pos) return;
     rows.push({
       zona, pos,
+      region: iRegionDirecta !== -1 ? String(cellVal(r, iRegionDirecta)).trim() : '',
       idVv: idVal(r, iIdVv),
       account_int: iAccountInt !== -1 ? String(cellVal(r, iAccountInt)).trim().toUpperCase() : '',
       accountVv: iAccountVv !== -1 ? String(cellVal(r, iAccountVv)).trim().toUpperCase() : '',
       accountGroup: iAccountGroup !== -1 ? String(cellVal(r, iAccountGroup)).trim().toUpperCase() : '',
+      channel: iChannel !== -1 ? String(cellVal(r, iChannel)).trim().toUpperCase() : '',
       supervisor: iSupervisor !== -1 ? String(cellVal(r, iSupervisor)).trim() : '',
       target: numVal(r, iTarget),
       cv_p: numVal(r, iCvP),
@@ -395,6 +402,9 @@ function parseSo(table) {
   const iAccountVv = labels.findIndex(l => l === 'account_vv' || l === 'accountvv' || l === 'account vv');
   const iAccountInt = labels.findIndex(l => l === 'account_int' || l === 'accountint' || l === 'account int');
   const iAccountGroup = labels.findIndex(l => l === 'account');
+  const iChannel = labels.findIndex(l => l === 'channel_' || l === 'channel');
+  const iZona = labels.findIndex(l => l === 'zone' || l === 'zona');
+  const iRegion = labels.findIndex(l => l === 'region');
   let iPos = labels.findIndex(l => l === 'pos');
   if (iPos === -1) iPos = labels.findIndex(l => l === 'pos_sql' || l === 'possql' || l === 'pos sql');
   const rows = [];
@@ -405,10 +415,13 @@ function parseSo(table) {
     rows.push({
       fecha, idVv,
       pos: iPos !== -1 ? String(cellVal(r, iPos)).trim() : '',
+      zona: iZona !== -1 ? String(cellVal(r, iZona)).trim() : '',
+      region: iRegion !== -1 ? String(cellVal(r, iRegion)).trim() : '',
       modelo: iGroupModel !== -1 && cellVal(r, iGroupModel) ? String(cellVal(r, iGroupModel)).trim() : (iModel !== -1 ? String(cellVal(r, iModel)).trim() : ''),
       accountVv: iAccountVv !== -1 ? String(cellVal(r, iAccountVv)).trim().toUpperCase() : '',
       account_int: iAccountInt !== -1 ? String(cellVal(r, iAccountInt)).trim().toUpperCase() : '',
       accountGroup: iAccountGroup !== -1 ? String(cellVal(r, iAccountGroup)).trim().toUpperCase() : '',
+      channel: iChannel !== -1 ? String(cellVal(r, iChannel)).trim().toUpperCase() : '',
       qty: numVal(r, iQty)
     });
   });
@@ -426,6 +439,8 @@ function parseSk(table) {
   const iAccountVv = labels.findIndex(l => l === 'account_vv' || l === 'accountvv' || l === 'account vv');
   const iAccountInt = labels.findIndex(l => l === 'account_int' || l === 'accountint' || l === 'account int');
   const iRegion = labels.findIndex(l => l === 'region');
+  const iZona = labels.findIndex(l => l === 'zone' || l === 'zona');
+  const iChannel = labels.findIndex(l => l === 'channel_' || l === 'channel');
   // "sk" a veces trae dos columnas parecidas: "pos" (nombre crudo, ej. "CL_Cad
   // Efe Tarma") y "POS" (código que cruza con Hoja 1, ej. "CL_Efe Tarma").
   // Preferimos la que se llama EXACTAMENTE "POS" (mayúsculas); si no existe,
@@ -443,7 +458,9 @@ function parseSk(table) {
       groupModel: iGroupModel !== -1 ? String(cellVal(r, iGroupModel)).trim() : '',
       accountVv: iAccountVv !== -1 ? String(cellVal(r, iAccountVv)).trim().toUpperCase() : '',
       accountInt: iAccountInt !== -1 ? String(cellVal(r, iAccountInt)).trim().toUpperCase() : '',
+      zona: iZona !== -1 ? String(cellVal(r, iZona)).trim() : '',
       region: iRegion !== -1 ? String(cellVal(r, iRegion)).trim() : '',
+      channel: iChannel !== -1 ? String(cellVal(r, iChannel)).trim().toUpperCase() : '',
       qty: numVal(r, iQty)
     });
   });
@@ -475,15 +492,18 @@ function enriquecerSo(soRows, tgById, mdById) {
   const out = [];
   soSinZona = 0;
   soRows.forEach(r => {
-    const tg = tgById[r.idVv]; // solo para completar zona/región/supervisor si existe
-    if (!tg) soSinZona++;
+    const tg = tgById[r.idVv]; // solo respaldo si la fila no trae zona/región propia
+    const zona = r.zona || (tg ? tg.zona : '');
+    if (!zona) soSinZona++;
     out.push({
       fecha: r.fecha,
       pos: r.pos || (tg ? tg.pos : ''),
-      zona: tg ? tg.zona : '',
+      zona,
+      region: r.region || (tg ? (tg.region || regionDeZona(tg.zona)) : ''),
       accountVv: r.accountVv || (tg ? tg.accountVv : ''),
       account_int: r.account_int || (tg ? tg.account_int : ''),
       accountGroup: r.accountGroup || (tg ? tg.accountGroup : ''),
+      channel: r.channel || (tg ? tg.channel : ''),
       supervisor: tg ? tg.supervisor : '',
       modelo: r.modelo,
       so: r.qty
@@ -496,16 +516,18 @@ function enriquecerSk(skRows, tgById) {
   const out = [];
   skSinZona = 0;
   skRows.forEach(r => {
-    const tg = tgById[r.idVv]; // solo para completar zona/supervisor si existe
-    if (!tg) skSinZona++;
+    const tg = tgById[r.idVv]; // solo respaldo si la fila no trae zona/región propia
+    const zona = r.zona || (tg ? tg.zona : '');
+    if (!zona) skSinZona++;
     out.push({
       fecha: r.fecha,
       pos: r.pos || (tg ? tg.pos : ''),
-      zona: tg ? tg.zona : '',
-      region: r.region || (tg ? regionDeZona(tg.zona) : ''),
+      zona,
+      region: r.region || (tg ? (tg.region || regionDeZona(tg.zona)) : ''),
       accountVv: r.accountVv || (tg ? tg.accountVv : ''),
       account_int: r.accountInt || (tg ? tg.account_int : ''),
       accountGroup: tg ? tg.accountGroup : '',
+      channel: r.channel || (tg ? tg.channel : ''),
       supervisor: tg ? tg.supervisor : '',
       modelo: r.groupModel,
       stock: r.qty
@@ -592,11 +614,13 @@ function poblarFiltros() {
   const accountIntActual = document.getElementById('f-account-int').value;
   const accountVvActual = document.getElementById('f-account-vv').value;
   const accountActual = document.getElementById('f-account').value;
+  const channelActual = document.getElementById('f-channel').value;
   const posOptions = [...new Set(ventasRaw.filter(r =>
     (!zonaActual || r.zona === zonaActual) &&
     (!accountIntActual || r.account_int === accountIntActual) &&
     (!accountVvActual || r.accountVv === accountVvActual) &&
-    (!accountActual || r.accountGroup === accountActual)
+    (!accountActual || r.accountGroup === accountActual) &&
+    (!channelActual || r.channel === channelActual)
   ).map(r => r.pos).filter(Boolean))].sort();
   const selPos = document.getElementById('f-pos');
   const prevPos = selPos.value;
@@ -626,10 +650,16 @@ function poblarFiltros() {
   const prevAccount = selAccount.value;
   selAccount.innerHTML = '<option value="">Todas</option>' + accounts.map(a => `<option value="${a}">${a}</option>`).join('');
   if (accounts.includes(prevAccount)) selAccount.value = prevAccount;
+
+  const channels = [...new Set(ventasRaw.map(r => r.channel).filter(Boolean))].sort();
+  const selChannel = document.getElementById('f-channel');
+  const prevChannel = selChannel.value;
+  selChannel.innerHTML = '<option value="">Todos</option>' + channels.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (channels.includes(prevChannel)) selChannel.value = prevChannel;
 }
-['f-fecha','f-region','f-zona','f-pos','f-modelo','f-account-vv','f-account-int','f-account'].forEach(id => {
+['f-fecha','f-region','f-zona','f-pos','f-modelo','f-account-vv','f-account-int','f-account','f-channel'].forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
-    if (['f-region','f-zona','f-account-int','f-account-vv','f-account'].includes(id)) poblarFiltros();
+    if (['f-region','f-zona','f-account-int','f-account-vv','f-account','f-channel'].includes(id)) poblarFiltros();
     render();
   });
 });
@@ -665,7 +695,8 @@ function pasaFiltrosComunes(r, f) {
     (!f.modelo || r.modelo === f.modelo) &&
     (!f.accountVv || r.accountVv === f.accountVv) &&
     (!f.accountInt || r.account_int === f.accountInt) &&
-    (!f.account || r.accountGroup === f.account);
+    (!f.account || r.accountGroup === f.account) &&
+    (!f.channel || r.channel === f.channel);
 }
 
 /* SO del mes: se consolida TODO — la suma de "so" más la suma de Hoja 1 (Corte 3),
@@ -705,7 +736,7 @@ function calcularStockActual(filtros) {
     const k = normLoose(r.pos) + '||' + normLoose(r.modelo);
     if (!porClave[k] || r.fecha > porClave[k].fecha) porClave[k] = r;
   });
-  return Object.values(porClave).map(r => ({ pos: r.pos, zona: r.zona, modelo: r.modelo, accountGroup: r.accountGroup, stock: r.stock }));
+  return Object.values(porClave).map(r => ({ pos: r.pos, zona: r.zona, modelo: r.modelo, accountGroup: r.accountGroup, channel: r.channel, stock: r.stock }));
 }
 
 /* ── render principal ── */
@@ -717,9 +748,10 @@ function render() {
   const accountInt = document.getElementById('f-account-int').value;
   const accountVv = document.getElementById('f-account-vv').value;
   const account = document.getElementById('f-account').value;
+  const channel = document.getElementById('f-channel').value;
   const pos = document.getElementById('f-pos').value;
   const modelo = document.getElementById('f-modelo').value;
-  const filtros = { region, zona, pos, modelo, accountVv, accountInt, account };
+  const filtros = { region, zona, pos, modelo, accountVv, accountInt, account, channel };
 
   const ventasMes = calcularSoMes(fecha, filtros);
   const stockActual = calcularStockActual(filtros);
@@ -730,7 +762,8 @@ function render() {
     (!pos || eq(t.pos, pos)) &&
     (!accountInt || eq(t.account_int, accountInt)) &&
     (!accountVv || eq(t.accountVv, accountVv)) &&
-    (!account || eq(t.accountGroup, account))
+    (!account || eq(t.accountGroup, account)) &&
+    (!channel || eq(t.channel, channel))
   );
 
   document.getElementById('filters-status').innerHTML =
@@ -817,7 +850,7 @@ function renderPivot(pivot, theadId, tbodyId, labelCol) {
 function construirDetallePos(ventasMes, stockActual, metasMes) {
   const posInfo = {};
   function ensureInfo(pos, zona) {
-    if (!posInfo[pos]) posInfo[pos] = { zona: zona || '', cv_p: 0, cv_r: 0, dni1: '', user1: '', dni2: '', user2: '', cuota: 0, account: '', accountInt: '', accountVv: '' };
+    if (!posInfo[pos]) posInfo[pos] = { zona: zona || '', cv_p: 0, cv_r: 0, dni1: '', user1: '', dni2: '', user2: '', cuota: 0, account: '', accountInt: '', accountVv: '', channel: '' };
     return posInfo[pos];
   }
   metasMes.forEach(t => {
@@ -828,6 +861,7 @@ function construirDetallePos(ventasMes, stockActual, metasMes) {
     if (t.accountGroup) info.account = t.accountGroup;
     if (t.account_int) info.accountInt = t.account_int;
     if (t.accountVv) info.accountVv = t.accountVv;
+    if (t.channel) info.channel = t.channel;
   });
 
   const soPorPos = {};
@@ -836,6 +870,7 @@ function construirDetallePos(ventasMes, stockActual, metasMes) {
     if (!info.account && r.accountGroup) info.account = r.accountGroup;
     if (!info.accountInt && r.account_int) info.accountInt = r.account_int;
     if (!info.accountVv && r.accountVv) info.accountVv = r.accountVv;
+    if (!info.channel && r.channel) info.channel = r.channel;
     if (!soPorPos[r.pos]) soPorPos[r.pos] = { total: 0, porModelo: {} };
     soPorPos[r.pos].total += r.so;
     if (r.modelo) soPorPos[r.pos].porModelo[r.modelo] = (soPorPos[r.pos].porModelo[r.modelo] || 0) + r.so;
@@ -845,6 +880,7 @@ function construirDetallePos(ventasMes, stockActual, metasMes) {
   stockActual.forEach(r => {
     const info = ensureInfo(r.pos, r.zona);
     if (!info.account && r.accountGroup) info.account = r.accountGroup;
+    if (!info.channel && r.channel) info.channel = r.channel;
     if (!skPorPos[r.pos]) skPorPos[r.pos] = { total: 0, porModelo: {} };
     skPorPos[r.pos].total += r.stock;
     if (r.modelo) skPorPos[r.pos].porModelo[r.modelo] = (skPorPos[r.pos].porModelo[r.modelo] || 0) + r.stock;
@@ -861,7 +897,7 @@ function construirDetallePos(ventasMes, stockActual, metasMes) {
     const ar = info.cuota > 0 ? (so.total / info.cuota) * 100 : (so.total > 0 ? 100 : 0);
     return {
       pos, zona: info.zona, region: regionDeZona(info.zona),
-      account: info.account, accountInt: info.accountInt, accountVv: info.accountVv,
+      account: info.account, accountInt: info.accountInt, accountVv: info.accountVv, channel: info.channel,
       cv_p: info.cv_p, cv_r: info.cv_r, dni1: info.dni1, user1: info.user1, dni2: info.dni2, user2: info.user2,
       so: so.total, cuota: info.cuota, ar, sk: sk.total, porModeloSo: so.porModelo, porModeloSk: sk.porModelo
     };
@@ -903,7 +939,8 @@ function exportarCsv() {
   const accountVv = document.getElementById('f-account-vv').value;
   const accountInt = document.getElementById('f-account-int').value;
   const account = document.getElementById('f-account').value;
-  const filtros = { region, zona, pos, modelo, accountVv, accountInt, account };
+  const channel = document.getElementById('f-channel').value;
+  const filtros = { region, zona, pos, modelo, accountVv, accountInt, account, channel };
 
   const ventasMes = calcularSoMes(fecha, filtros);
   const stockActual = calcularStockActual(filtros);
@@ -913,11 +950,12 @@ function exportarCsv() {
     (!pos || eq(t.pos, pos)) &&
     (!accountInt || eq(t.account_int, accountInt)) &&
     (!accountVv || eq(t.accountVv, accountVv)) &&
-    (!account || eq(t.accountGroup, account))
+    (!account || eq(t.accountGroup, account)) &&
+    (!channel || eq(t.channel, channel))
   );
   const d = construirDetallePos(ventasMes, stockActual, metasMes);
 
-  const header = ['Región', 'Zona', 'account', 'account_int', 'account_vv', 'POS', 'CV_p', 'CV_r', 'DNI1', 'User1', 'DNI2', 'User2', 'SO', 'Cuota', 'A/R', 'SK', 'Atributo', 'modelo', 'qty'];
+  const header = ['Región', 'Zona', 'account', 'account_int', 'account_vv', 'channel', 'POS', 'CV_p', 'CV_r', 'DNI1', 'User1', 'DNI2', 'User2', 'SO', 'Cuota', 'A/R', 'SK', 'Atributo', 'modelo', 'qty'];
 
   // Excel entiende una tabla HTML como si fuera una planilla si se la servimos
   // con el mime type correcto — así conseguimos color/formato real sin
@@ -934,7 +972,7 @@ function exportarCsv() {
   const filasLargas = [];
   d.filas.forEach(f => {
     const comun = `<td style="${tdStyle}">${htmlEscape(f.region)}</td><td style="${tdStyle}">${htmlEscape(f.zona)}</td>` +
-      `<td style="${tdStyle}">${htmlEscape(f.account)}</td><td style="${tdStyle}">${htmlEscape(f.accountInt)}</td><td style="${tdStyle}">${htmlEscape(f.accountVv)}</td>` +
+      `<td style="${tdStyle}">${htmlEscape(f.account)}</td><td style="${tdStyle}">${htmlEscape(f.accountInt)}</td><td style="${tdStyle}">${htmlEscape(f.accountVv)}</td><td style="${tdStyle}">${htmlEscape(f.channel)}</td>` +
       `<td style="${tdStyle}">${htmlEscape(f.pos)}</td>` +
       `<td style="${tdNumStyle}">${fmt(f.cv_p)}</td><td style="${tdNumStyle}">${fmt(f.cv_r)}</td>` +
       `<td style="${tdStyle}">${htmlEscape(f.dni1)}</td><td style="${tdStyle}">${htmlEscape(f.user1)}</td><td style="${tdStyle}">${htmlEscape(f.dni2)}</td><td style="${tdStyle}">${htmlEscape(f.user2)}</td>` +
